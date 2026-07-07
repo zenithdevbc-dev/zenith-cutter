@@ -1,27 +1,31 @@
 {
-  "name": "zenith_cutter",
+  "name": "zenith-cutter",
+  "productName": "Zenith Cutter",
   "version": "1.0.0",
-  "description": "",
+  "description": "Gerenciamento do setor de corte de confecções",
+  "private": true,
   "main": "dist-electron/main/index.js",
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
-    "build:win": "npm run build && electron-builder --win"
+    "build:win": "npm run build && electron-builder --win",
+    "postinstall": "electron-rebuild -f -w better-sqlite3"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zenithdevbc-dev/zenith-cutter.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Zenith DEV",
+  "license": "UNLICENSED",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/zenithdevbc-dev/zenith-cutter/issues"
   },
   "homepage": "https://github.com/zenithdevbc-dev/zenith-cutter#readme",
   "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^26.1.0",
     "@types/react": "^19.2.17",

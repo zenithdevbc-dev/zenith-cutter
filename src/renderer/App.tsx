@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
+import { DbStatusCard } from "@/components/DbStatusCard";
 import type { PageId } from "@/lib/navigation";
 
 const PAGE_DESCRIPTIONS: Record<PageId, string> = {
@@ -20,10 +21,13 @@ function App() {
 
   return (
     <AppShell currentPage={currentPage} onNavigate={setCurrentPage}>
-      <PlaceholderPage
-        title="Em construção"
-        description={PAGE_DESCRIPTIONS[currentPage]}
-      />
+      <div className="flex flex-col gap-4">
+        <PlaceholderPage
+          title="Em construção"
+          description={PAGE_DESCRIPTIONS[currentPage]}
+        />
+        {currentPage === "dashboard" && <DbStatusCard />}
+      </div>
     </AppShell>
   );
 }

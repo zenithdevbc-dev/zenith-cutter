@@ -1,5 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import path from "node:path";
+import { getDb } from "./db";
+import { registerIpcHandlers } from "./ipc";
 
 // Publicados pelo vite-plugin-electron durante o build:
 // process.env.VITE_DEV_SERVER_URL aponta pro dev server em desenvolvimento.
@@ -37,6 +39,8 @@ function createMainWindow() {
 }
 
 app.whenReady().then(() => {
+  getDb();
+  registerIpcHandlers();
   createMainWindow();
 
   app.on("activate", () => {
