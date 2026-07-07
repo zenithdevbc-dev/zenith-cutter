@@ -2,6 +2,8 @@ import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { DbStatusCard } from "@/components/DbStatusCard";
+import { LoginPage } from "@/pages/LoginPage";
+import { useAuth } from "@/lib/auth-context";
 import type { PageId } from "@/lib/navigation";
 
 const PAGE_DESCRIPTIONS: Record<PageId, string> = {
@@ -17,7 +19,16 @@ const PAGE_DESCRIPTIONS: Record<PageId, string> = {
 };
 
 function App() {
+  const { session, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState<PageId>("dashboard");
+
+  if (loading) {
+    return <div className="h-screen w-screen bg-background" />;
+  }
+
+  if (!session) {
+    return <LoginPage />;
+  }
 
   return (
     <AppShell currentPage={currentPage} onNavigate={setCurrentPage}>
