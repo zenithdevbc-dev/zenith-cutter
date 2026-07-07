@@ -117,9 +117,21 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: _(preencher)_
-- Última entrega concluída: _(preencher)_
-- Bloqueios conhecidos: _(preencher)_
+- Sprint em andamento: Sprint 1 — Cadastros (a iniciar)
+- Última entrega concluída: Sprint 0 — Fundação completo. Electron +
+  React + TS + Vite, Tailwind v4 + shadcn/ui, layout/navegação,
+  SQLite com migrations + IPC, cliente Supabase (renderer) com
+  autenticação (Supabase Auth), esqueleto da fila de sincronização
+  local, instalador Windows via electron-builder (NSIS) e checagem de
+  auto-update via electron-updater (respeitando o princípio 3.1: nunca
+  reinstala sem confirmação do operador).
+- Bloqueios conhecidos:
+  - Projeto Supabase ainda não foi criado — login e sync não
+    funcionam de fato até existirem credenciais reais em `.env`
+    (ver `.env.example`).
+  - Auto-update sem provider configurado (bucket de releases no
+    Supabase Storage ainda não existe); `build.publish` precisa ser
+    adicionado ao `package.json` quando o bucket existir.
 
 ## 8. Convenções de código
 
