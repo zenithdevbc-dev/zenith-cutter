@@ -117,16 +117,22 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: Sprint 1 — Cadastros (Usuários concluído;
-  faltam Clientes, Produtos, Tecidos, Mesas de Corte, configurações
+- Sprint em andamento: Sprint 1 — Cadastros (Usuários e Clientes
+  concluídos; faltam Produtos, Tecidos, Mesas de Corte, configurações
   básicas).
-- Última entrega concluída: Cadastro de Usuários completo e testado
-  ponta a ponta — tabela `public.usuarios` no Supabase (RLS,
+- Última entrega concluída: Cadastro de Clientes, 100% offline-first
+  (id gerado no app, grava local primeiro, sem nenhuma etapa online
+  — diferente de Usuários). RLS aberto a qualquer autenticado
+  (select/insert/update), sem DELETE físico (só `ativo = false`).
+  Cadastros ganhou abas (Usuários | Clientes) via shadcn Tabs. Ver
+  `supabase/sql/0002_clientes.sql` (ainda não rodado no Supabase —
+  pendente de ação manual do usuário).
+- Entregas anteriores do sprint: Cadastro de Usuários completo e
+  testado ponta a ponta — tabela `public.usuarios` no Supabase (RLS,
   trigger de perfil automático, `is_admin()`), Edge Function
   `create-usuario` (cria login + perfil, admin-only, deployada),
   cache local em SQLite com fila de sincronização para edições
-  offline, e UI em Cadastros (listar, criar, editar, ativar/desativar).
-  Ver `supabase/sql/0001_usuarios.sql` e
+  offline. Ver `supabase/sql/0001_usuarios.sql` e
   `supabase/functions/create-usuario/`.
 - Bloqueios conhecidos:
   - Auto-update sem provider configurado (bucket de releases no
