@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { DbStatusCard } from "@/components/DbStatusCard";
+import { SyncStatusCard } from "@/components/SyncStatusCard";
 import { LoginPage } from "@/pages/LoginPage";
 import { useAuth } from "@/lib/auth-context";
 import type { PageId } from "@/lib/navigation";
@@ -37,7 +38,12 @@ function App() {
           title="Em construção"
           description={PAGE_DESCRIPTIONS[currentPage]}
         />
-        {currentPage === "dashboard" && <DbStatusCard />}
+        {currentPage === "dashboard" && (
+          <>
+            <DbStatusCard />
+            <SyncStatusCard />
+          </>
+        )}
       </div>
     </AppShell>
   );

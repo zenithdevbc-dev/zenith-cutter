@@ -1,4 +1,4 @@
-import type { DbStatus } from "@shared/ipc";
+import type { DbStatus, SyncStatus } from "@shared/ipc";
 
 declare global {
   interface Window {
@@ -10,6 +10,9 @@ declare global {
       };
       db: {
         getStatus: () => Promise<DbStatus>;
+      };
+      sync: {
+        getStatus: () => Promise<SyncStatus>;
       };
     };
   }
