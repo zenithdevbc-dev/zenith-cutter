@@ -123,6 +123,12 @@ implementar.
 
 ## 8. Convenções de código
 
-_(preencher conforme forem definidas: nomenclatura, estrutura de pastas, padrão de
-commits, estilo de testes etc. — adicione aqui à medida que o projeto avança para que
-fiquem fixadas entre sessões.)_
+_(preencher conforme forem definidas: nomenclatura, estrutura de pastas, estilo de
+testes etc. — adicione aqui à medida que o projeto avança para que fiquem fixadas entre
+sessões.)_
+
+### 8.1 Commits
+
+A cada alteração feita no código (arquivo criado, editado ou removido), deve ser feito
+commit imediatamente, com mensagem descritiva explicando a alteração. Não acumular
+várias alterações não relacionadas em um único commit.
