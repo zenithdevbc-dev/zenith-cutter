@@ -14,6 +14,10 @@ declare global {
       sync: {
         getStatus: () => Promise<SyncStatus>;
       };
+      updater: {
+        onUpdateDownloaded: (callback: () => void) => () => void;
+        quitAndInstall: () => Promise<void>;
+      };
     };
   }
 }

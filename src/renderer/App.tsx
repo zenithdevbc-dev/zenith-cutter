@@ -4,6 +4,8 @@ import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { DbStatusCard } from "@/components/DbStatusCard";
 import { SyncStatusCard } from "@/components/SyncStatusCard";
 import { LoginPage } from "@/pages/LoginPage";
+import { UpdateNotifier } from "@/components/UpdateNotifier";
+import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/lib/auth-context";
 import type { PageId } from "@/lib/navigation";
 
@@ -23,29 +25,31 @@ function App() {
   const { session, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState<PageId>("dashboard");
 
-  if (loading) {
-    return <div className="h-screen w-screen bg-background" />;
-  }
-
-  if (!session) {
-    return <LoginPage />;
-  }
-
   return (
-    <AppShell currentPage={currentPage} onNavigate={setCurrentPage}>
-      <div className="flex flex-col gap-4">
-        <PlaceholderPage
-          title="Em construção"
-          description={PAGE_DESCRIPTIONS[currentPage]}
-        />
-        {currentPage === "dashboard" && (
-          <>
-            <DbStatusCard />
-            <SyncStatusCard />
-          </>
-        )}
-      </div>
-    </AppShell>
+    <>
+      <Toaster />
+      <UpdateNotifier />
+      {loading ? (
+        <div className="h-screen w-screen bg-background" />
+      ) : !session ? (
+        <LoginPage />
+      ) : (
+        <AppShell currentPage={currentPage} onNavigate={setCurrentPage}>
+          <div className="flex flex-col gap-4">
+            <PlaceholderPage
+              title="Em construção"
+              description={PAGE_DESCRIPTIONS[currentPage]}
+            />
+            {currentPage === "dashboard" && (
+              <>
+                <DbStatusCard />
+                <SyncStatusCard />
+              </>
+            )}
+          </div>
+        </AppShell>
+      )}
+    </>
   );
 }
 

@@ -3,6 +3,7 @@ import path from "node:path";
 import { IPC_CHANNELS, type DbStatus, type SyncStatus } from "../../../src/shared/ipc";
 import { getDb, getSchemaVersion } from "../db";
 import { getPendingSyncCount } from "../sync/queue";
+import { quitAndInstall } from "../updater";
 
 export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.dbGetStatus, (): DbStatus => {
@@ -16,5 +17,9 @@ export function registerIpcHandlers() {
     return {
       pendingCount: getPendingSyncCount(getDb()),
     };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.updaterQuitAndInstall, () => {
+    quitAndInstall();
   });
 }

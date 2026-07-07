@@ -15,4 +15,14 @@ contextBridge.exposeInMainWorld("zenith", {
     getStatus: (): Promise<SyncStatus> =>
       ipcRenderer.invoke(IPC_CHANNELS.syncGetStatus),
   },
+  updater: {
+    onUpdateDownloaded: (callback: () => void) => {
+      const listener = () => callback();
+      ipcRenderer.on(IPC_CHANNELS.updaterUpdateDownloaded, listener);
+      return () =>
+        ipcRenderer.removeListener(IPC_CHANNELS.updaterUpdateDownloaded, listener);
+    },
+    quitAndInstall: (): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.updaterQuitAndInstall),
+  },
 });

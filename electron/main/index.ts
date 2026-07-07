@@ -2,6 +2,7 @@ import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import { getDb } from "./db";
 import { registerIpcHandlers } from "./ipc";
+import { initAutoUpdater } from "./updater";
 
 // Publicados pelo vite-plugin-electron durante o build:
 // process.env.VITE_DEV_SERVER_URL aponta pro dev server em desenvolvimento.
@@ -37,6 +38,12 @@ function createMainWindow() {
     mainWindow.webContents.openDevTools({ mode: "detach" });
   } else {
     mainWindow.loadFile(path.join(RENDERER_DIST, "index.html"));
+  }
+
+  // Auto-update só faz sentido no app empacotado (precisa do
+  // app-update.yml gerado pelo electron-builder no build de produção).
+  if (app.isPackaged) {
+    initAutoUpdater(mainWindow);
   }
 }
 

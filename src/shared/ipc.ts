@@ -10,4 +10,6 @@ export interface SyncStatus {
 export const IPC_CHANNELS = {
   dbGetStatus: "db:get-status",
   syncGetStatus: "sync:get-status",
+  updaterUpdateDownloaded: "updater:update-downloaded",
+  updaterQuitAndInstall: "updater:quit-and-install",
 } as const;
