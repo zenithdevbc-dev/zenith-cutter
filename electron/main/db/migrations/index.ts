@@ -55,4 +55,27 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 3,
+    name: "create_clientes",
+    up: (db) => {
+      db.exec(`
+        -- Diferente de usuarios, cliente nasce local (offline-first de
+        -- verdade): id é gerado no app (uuid), gravado aqui primeiro, e só
+        -- depois sincronizado com o Supabase via sync_queue.
+        CREATE TABLE clientes (
+          id            TEXT PRIMARY KEY,
+          nome          TEXT NOT NULL,
+          documento     TEXT,
+          telefone      TEXT,
+          email         TEXT,
+          ativo         INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_clientes_nome ON clientes (nome);
+      `);
+    },
+  },
 ];

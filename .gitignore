@@ -37,6 +37,9 @@ Thumbs.db
 # Claude Code local settings
 .claude/settings.local.json
 
+# Supabase CLI local cache (link state, não é segredo, mas é local da máquina)
+supabase/.temp/
+
 # Electron / packaging
 *.exe
 *.msi

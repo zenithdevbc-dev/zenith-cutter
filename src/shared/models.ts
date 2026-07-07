@@ -15,3 +15,29 @@ export interface UsuarioUpdatePatch {
   papel?: PapelUsuario;
   ativo?: boolean;
 }
+
+export interface Cliente {
+  id: string;
+  nome: string;
+  documento: string | null;
+  telefone: string | null;
+  email: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface ClienteInput {
+  nome: string;
+  documento?: string | null;
+  telefone?: string | null;
+  email?: string | null;
+}
+
+export interface ClienteUpdatePatch {
+  nome?: string;
+  documento?: string | null;
+  telefone?: string | null;
+  email?: string | null;
+  ativo?: boolean;
+}

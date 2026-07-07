@@ -1,6 +1,12 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC_CHANNELS, type DbStatus, type SyncStatus } from "../../src/shared/ipc";
-import type { Usuario, UsuarioUpdatePatch } from "../../src/shared/models";
+import type {
+  Usuario,
+  UsuarioUpdatePatch,
+  Cliente,
+  ClienteInput,
+  ClienteUpdatePatch,
+} from "../../src/shared/models";
 
 contextBridge.exposeInMainWorld("zenith", {
   versions: {
@@ -33,5 +39,13 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.usuariosCache, usuarios),
     updateLocal: (id: string, patch: UsuarioUpdatePatch): Promise<Usuario> =>
       ipcRenderer.invoke(IPC_CHANNELS.usuariosUpdateLocal, id, patch),
+  },
+  clientes: {
+    listLocal: (): Promise<Cliente[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.clientesListLocal),
+    createLocal: (input: ClienteInput): Promise<Cliente> =>
+      ipcRenderer.invoke(IPC_CHANNELS.clientesCreateLocal, input),
+    updateLocal: (id: string, patch: ClienteUpdatePatch): Promise<Cliente> =>
+      ipcRenderer.invoke(IPC_CHANNELS.clientesUpdateLocal, id, patch),
   },
 });

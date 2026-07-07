@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
-import { UsuariosPage } from "@/pages/UsuariosPage";
+import { CadastrosPage } from "@/pages/CadastrosPage";
 import { DbStatusCard } from "@/components/DbStatusCard";
 import { SyncStatusCard } from "@/components/SyncStatusCard";
 import { LoginPage } from "@/pages/LoginPage";
@@ -35,7 +35,7 @@ function App() {
       ) : (
         <AppShell currentPage={currentPage} onNavigate={setCurrentPage}>
           {currentPage === "cadastros" ? (
-            <UsuariosPage />
+            <CadastrosPage />
           ) : (
             <div className="flex flex-col gap-4">
               <PlaceholderPage

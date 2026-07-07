@@ -59,6 +59,7 @@
     "electron": "^43.1.0",
     "electron-builder": "^26.15.3",
     "postcss": "^8.5.16",
+    "supabase": "^2.109.1",
     "tailwindcss": "^4.3.2",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^6.0.3",

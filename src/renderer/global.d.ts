@@ -1,5 +1,11 @@
 import type { DbStatus, SyncStatus } from "@shared/ipc";
-import type { Usuario, UsuarioUpdatePatch } from "@shared/models";
+import type {
+  Usuario,
+  UsuarioUpdatePatch,
+  Cliente,
+  ClienteInput,
+  ClienteUpdatePatch,
+} from "@shared/models";
 
 declare global {
   interface Window {
@@ -23,6 +29,11 @@ declare global {
         listLocal: () => Promise<Usuario[]>;
         cache: (usuarios: Usuario[]) => Promise<void>;
         updateLocal: (id: string, patch: UsuarioUpdatePatch) => Promise<Usuario>;
+      };
+      clientes: {
+        listLocal: () => Promise<Cliente[]>;
+        createLocal: (input: ClienteInput) => Promise<Cliente>;
+        updateLocal: (id: string, patch: ClienteUpdatePatch) => Promise<Cliente>;
       };
     };
   }
