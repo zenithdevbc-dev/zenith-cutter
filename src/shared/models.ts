@@ -1,7 +1,15 @@
+export interface Empresa {
+  id: string;
+  nome: string;
+  ativo: boolean;
+  criado_em: string;
+}
+
 export type PapelUsuario = "operador" | "administrador";
 
 export interface Usuario {
   id: string;
+  empresa_id: string;
   nome: string;
   email: string;
   papel: PapelUsuario;
@@ -18,6 +26,7 @@ export interface UsuarioUpdatePatch {
 
 export interface Cliente {
   id: string;
+  empresa_id: string;
   nome: string;
   documento: string | null;
   telefone: string | null;
@@ -28,6 +37,7 @@ export interface Cliente {
 }
 
 export interface ClienteInput {
+  empresa_id: string;
   nome: string;
   documento?: string | null;
   telefone?: string | null;

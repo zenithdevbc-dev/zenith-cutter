@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
 
     const { data: callerProfile, error: profileError } = await adminClient
       .from("usuarios")
-      .select("papel, ativo")
+      .select("papel, ativo, empresa_id")
       .eq("id", callerData.user.id)
       .single();
 
@@ -77,11 +77,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Novo usuário sempre herda a empresa de quem o criou — nunca é
+    // possível criar um usuário em outra empresa por aqui.
     const { data: created, error: createError } = await adminClient.auth.admin.createUser({
       email: body.email.trim(),
       password: body.senha,
       email_confirm: true,
-      user_metadata: { nome: body.nome.trim() },
+      user_metadata: { nome: body.nome.trim(), empresa_id: callerProfile.empresa_id },
     });
 
     if (createError || !created.user) {
@@ -89,7 +91,8 @@ Deno.serve(async (req) => {
     }
 
     // O trigger on_auth_user_created já criou a linha em usuarios com
-    // papel padrão 'operador'; só ajusta se foi pedido 'administrador'.
+    // papel padrão 'operador' e a empresa correta; só ajusta o papel se
+    // foi pedido 'administrador'.
     const papel = body.papel === "administrador" ? "administrador" : "operador";
     if (papel !== "operador") {
       await adminClient.from("usuarios").update({ papel }).eq("id", created.user.id);
@@ -97,7 +100,7 @@ Deno.serve(async (req) => {
 
     const { data: usuario } = await adminClient
       .from("usuarios")
-      .select("id, nome, email, papel, ativo, criado_em, atualizado_em")
+      .select("id, empresa_id, nome, email, papel, ativo, criado_em, atualizado_em")
       .eq("id", created.user.id)
       .single();
 

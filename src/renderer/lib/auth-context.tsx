@@ -7,11 +7,12 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "./supabase";
-import type { Usuario } from "@shared/models";
+import type { Usuario, Empresa } from "@shared/models";
 
 interface AuthContextValue {
   session: Session | null;
   usuario: Usuario | null;
+  empresa: Empresa | null;
   isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabase || !session) {
       setUsuario(null);
+      setEmpresa(null);
       return;
     }
     const client = supabase;
@@ -56,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("*")
       .eq("id", session.user.id)
       .single()
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (cancelled) return;
         if (error || !data) {
           setUsuario(null);
@@ -69,6 +72,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         setUsuario(perfil);
+
+        const { data: empresaData } = await client
+          .from("empresas")
+          .select("*")
+          .eq("id", perfil.empresa_id)
+          .single();
+        if (cancelled) return;
+        if (empresaData) {
+          const empresaRow = empresaData as Empresa;
+          setEmpresa(empresaRow);
+          window.zenith.empresas.cache(empresaRow);
+        }
       });
 
     return () => {
@@ -94,7 +109,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = usuario?.papel === "administrador" && usuario?.ativo === true;
 
   return (
-    <AuthContext.Provider value={{ session, usuario, isAdmin, loading, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ session, usuario, empresa, isAdmin, loading, signIn, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

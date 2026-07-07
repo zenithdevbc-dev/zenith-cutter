@@ -5,6 +5,7 @@ import type {
   Cliente,
   ClienteInput,
   ClienteUpdatePatch,
+  Empresa,
 } from "@shared/models";
 
 declare global {
@@ -34,6 +35,10 @@ declare global {
         listLocal: () => Promise<Cliente[]>;
         createLocal: (input: ClienteInput) => Promise<Cliente>;
         updateLocal: (id: string, patch: ClienteUpdatePatch) => Promise<Cliente>;
+      };
+      empresas: {
+        cache: (empresa: Empresa) => Promise<void>;
+        getLocal: (id: string) => Promise<Empresa | null>;
       };
     };
   }

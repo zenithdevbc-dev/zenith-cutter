@@ -4,6 +4,7 @@ import { enqueueChange } from "../../sync/queue";
 
 interface UsuarioRow {
   id: string;
+  empresa_id: string;
   nome: string;
   email: string;
   papel: string;
@@ -15,6 +16,7 @@ interface UsuarioRow {
 function rowToUsuario(row: UsuarioRow): Usuario {
   return {
     id: row.id,
+    empresa_id: row.empresa_id,
     nome: row.nome,
     email: row.email,
     papel: row.papel as Usuario["papel"],
@@ -38,9 +40,10 @@ export function listUsuariosLocal(db: Database.Database): Usuario[] {
  */
 export function cacheUsuarios(db: Database.Database, usuarios: Usuario[]) {
   const stmt = db.prepare(`
-    INSERT INTO usuarios (id, nome, email, papel, ativo, criado_em, atualizado_em)
-    VALUES (@id, @nome, @email, @papel, @ativo, @criado_em, @atualizado_em)
+    INSERT INTO usuarios (id, empresa_id, nome, email, papel, ativo, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @nome, @email, @papel, @ativo, @criado_em, @atualizado_em)
     ON CONFLICT (id) DO UPDATE SET
+      empresa_id = excluded.empresa_id,
       nome = excluded.nome,
       email = excluded.email,
       papel = excluded.papel,

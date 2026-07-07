@@ -7,6 +7,7 @@ import type {
   Cliente,
   ClienteInput,
   ClienteUpdatePatch,
+  Empresa,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
 import { getPendingSyncCount } from "../sync/queue";
@@ -21,6 +22,7 @@ import {
   createClienteLocal,
   updateClienteLocal,
 } from "../db/repositories/clientes";
+import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
 
 export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.dbGetStatus, (): DbStatus => {
@@ -69,4 +71,12 @@ export function registerIpcHandlers() {
       return updateClienteLocal(getDb(), id, patch);
     },
   );
+
+  ipcMain.handle(IPC_CHANNELS.empresasCache, (_event, empresa: Empresa) => {
+    cacheEmpresa(getDb(), empresa);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.empresasGetLocal, (_event, id: string): Empresa | null => {
+    return getEmpresaLocal(getDb(), id);
+  });
 }

@@ -78,4 +78,29 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 4,
+    name: "add_empresas_multi_tenant",
+    up: (db) => {
+      db.exec(`
+        -- Cache local só-leitura da empresa do usuário logado (não tem
+        -- CRUD no app — provisionar empresa é operação de backend, ver
+        -- supabase/functions/create-empresa).
+        CREATE TABLE empresas (
+          id        TEXT PRIMARY KEY,
+          nome      TEXT NOT NULL,
+          ativo     INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em TEXT NOT NULL
+        );
+
+        -- Toda tabela de negócio carrega empresa_id a partir daqui — é o
+        -- que o RLS do Supabase usa pra isolar os dados entre empresas.
+        ALTER TABLE usuarios ADD COLUMN empresa_id TEXT;
+        ALTER TABLE clientes ADD COLUMN empresa_id TEXT;
+
+        CREATE INDEX idx_usuarios_empresa ON usuarios (empresa_id);
+        CREATE INDEX idx_clientes_empresa ON clientes (empresa_id);
+      `);
+    },
+  },
 ];

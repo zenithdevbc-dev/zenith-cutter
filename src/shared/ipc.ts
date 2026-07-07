@@ -18,4 +18,6 @@ export const IPC_CHANNELS = {
   clientesListLocal: "clientes:list-local",
   clientesCreateLocal: "clientes:create-local",
   clientesUpdateLocal: "clientes:update-local",
+  empresasCache: "empresas:cache",
+  empresasGetLocal: "empresas:get-local",
 } as const;

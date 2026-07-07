@@ -5,6 +5,7 @@ import { enqueueChange } from "../../sync/queue";
 
 interface ClienteRow {
   id: string;
+  empresa_id: string;
   nome: string;
   documento: string | null;
   telefone: string | null;
@@ -17,6 +18,7 @@ interface ClienteRow {
 function rowToCliente(row: ClienteRow): Cliente {
   return {
     id: row.id,
+    empresa_id: row.empresa_id,
     nome: row.nome,
     documento: row.documento,
     telefone: row.telefone,
@@ -45,6 +47,7 @@ export function createClienteLocal(db: Database.Database, input: ClienteInput): 
   const now = new Date().toISOString();
   const cliente: Cliente = {
     id,
+    empresa_id: input.empresa_id,
     nome: input.nome,
     documento: input.documento ?? null,
     telefone: input.telefone ?? null,
@@ -56,8 +59,8 @@ export function createClienteLocal(db: Database.Database, input: ClienteInput): 
 
   const create = db.transaction(() => {
     db.prepare(`
-      INSERT INTO clientes (id, nome, documento, telefone, email, ativo, criado_em, atualizado_em)
-      VALUES (@id, @nome, @documento, @telefone, @email, 1, @criado_em, @atualizado_em)
+      INSERT INTO clientes (id, empresa_id, nome, documento, telefone, email, ativo, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @nome, @documento, @telefone, @email, 1, @criado_em, @atualizado_em)
     `).run(cliente);
     enqueueChange(db, {
       tableName: "clientes",

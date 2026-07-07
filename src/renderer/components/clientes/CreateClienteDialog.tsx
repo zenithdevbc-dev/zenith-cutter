@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { createCliente } from "@/lib/clientes";
+import { useAuth } from "@/lib/auth-context";
 import type { Cliente } from "@shared/models";
 
 interface CreateClienteDialogProps {
@@ -19,6 +20,7 @@ interface CreateClienteDialogProps {
 }
 
 export function CreateClienteDialog({ onCreated }: CreateClienteDialogProps) {
+  const { usuario } = useAuth();
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [documento, setDocumento] = useState("");
@@ -37,10 +39,12 @@ export function CreateClienteDialog({ onCreated }: CreateClienteDialogProps) {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (!usuario) return;
     setSubmitting(true);
     setError(null);
     try {
       const cliente = await createCliente({
+        empresa_id: usuario.empresa_id,
         nome,
         documento: documento || null,
         telefone: telefone || null,

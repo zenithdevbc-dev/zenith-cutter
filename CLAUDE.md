@@ -81,11 +81,22 @@ deve seguir exatamente essa sequência — sem pular etapas, sem atalhos automá
 Produção, Mesas de Corte, ciclo iniciar/pausar/retomar/finalizar, registro de perdas e
 observações, histórico completo, offline + sync com Supabase.
 
+**Multiempresa (isolamento de dados) — decisão de 2026-07-07:** o MVP roda múltiplas
+empresas-cliente simultaneamente sobre a mesma infraestrutura Supabase, com isolamento
+via RLS (toda tabela de negócio carrega `empresa_id`; políticas restringem cada usuário
+aos dados da própria empresa). Cada usuário pertence a exatamente uma empresa
+(`usuarios.empresa_id`). Provisionar uma empresa nova (+ seu primeiro administrador) é
+uma operação de backend (Edge Function protegida por segredo, usada pelo time Zenith DEV
+ao fechar um cliente novo) — **não** existe tela de auto-cadastro/signup público de
+empresas no app, isso continua fora do escopo.
+
 **Fora do escopo (não implementar, mesmo se parecer "fácil de adicionar"):**
-Financeiro, Estoque, Compras, PCP, Custos, Engenharia de Produto, Multiempresa,
-Etiquetas, Leitores de código de barras, Integrações com ERPs, Inteligência Artificial,
-App Mobile, Relatórios avançados, Planejamento automático, Balanceamento automático da
-fila.
+Financeiro, Estoque, Compras, PCP, Custos, Engenharia de Produto, Etiquetas, Leitores de
+código de barras, Integrações com ERPs, Inteligência Artificial, App Mobile, Relatórios
+avançados, Planejamento automático, Balanceamento automático da fila. Também fora de
+escopo dentro do próprio multiempresa: tela de auto-cadastro/signup de empresas, troca de
+empresa dentro do app (um usuário pertence a uma única empresa), billing/cobrança por
+empresa.
 
 Se uma tarefa pedida se sobrepuser a um desses itens fora de escopo, avise antes de
 implementar.

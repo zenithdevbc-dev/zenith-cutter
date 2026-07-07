@@ -6,6 +6,7 @@ import type {
   Cliente,
   ClienteInput,
   ClienteUpdatePatch,
+  Empresa,
 } from "../../src/shared/models";
 
 contextBridge.exposeInMainWorld("zenith", {
@@ -47,5 +48,11 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.clientesCreateLocal, input),
     updateLocal: (id: string, patch: ClienteUpdatePatch): Promise<Cliente> =>
       ipcRenderer.invoke(IPC_CHANNELS.clientesUpdateLocal, id, patch),
+  },
+  empresas: {
+    cache: (empresa: Empresa): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.empresasCache, empresa),
+    getLocal: (id: string): Promise<Empresa | null> =>
+      ipcRenderer.invoke(IPC_CHANNELS.empresasGetLocal, id),
   },
 });
