@@ -117,18 +117,18 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: Sprint 1 — Cadastros (a iniciar)
-- Última entrega concluída: Sprint 0 — Fundação completo. Electron +
-  React + TS + Vite, Tailwind v4 + shadcn/ui, layout/navegação,
-  SQLite com migrations + IPC, cliente Supabase (renderer) com
-  autenticação (Supabase Auth), esqueleto da fila de sincronização
-  local, instalador Windows via electron-builder (NSIS) e checagem de
-  auto-update via electron-updater (respeitando o princípio 3.1: nunca
-  reinstala sem confirmação do operador).
+- Sprint em andamento: Sprint 1 — Cadastros (Usuários concluído;
+  faltam Clientes, Produtos, Tecidos, Mesas de Corte, configurações
+  básicas).
+- Última entrega concluída: Cadastro de Usuários completo e testado
+  ponta a ponta — tabela `public.usuarios` no Supabase (RLS,
+  trigger de perfil automático, `is_admin()`), Edge Function
+  `create-usuario` (cria login + perfil, admin-only, deployada),
+  cache local em SQLite com fila de sincronização para edições
+  offline, e UI em Cadastros (listar, criar, editar, ativar/desativar).
+  Ver `supabase/sql/0001_usuarios.sql` e
+  `supabase/functions/create-usuario/`.
 - Bloqueios conhecidos:
-  - Projeto Supabase ainda não foi criado — login e sync não
-    funcionam de fato até existirem credenciais reais em `.env`
-    (ver `.env.example`).
   - Auto-update sem provider configurado (bucket de releases no
     Supabase Storage ainda não existe); `build.publish` precisa ser
     adicionado ao `package.json` quando o bucket existir.
