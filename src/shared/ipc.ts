@@ -12,4 +12,7 @@ export const IPC_CHANNELS = {
   syncGetStatus: "sync:get-status",
   updaterUpdateDownloaded: "updater:update-downloaded",
   updaterQuitAndInstall: "updater:quit-and-install",
+  usuariosListLocal: "usuarios:list-local",
+  usuariosCache: "usuarios:cache",
+  usuariosUpdateLocal: "usuarios:update-local",
 } as const;

@@ -34,4 +34,25 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 2,
+    name: "create_usuarios",
+    up: (db) => {
+      db.exec(`
+        -- Espelho local da tabela public.usuarios do Supabase. O id é o
+        -- mesmo uuid do auth.users (conta é sempre criada no Supabase
+        -- primeiro, via Edge Function — nunca existe usuário "só local").
+        CREATE TABLE usuarios (
+          id            TEXT PRIMARY KEY,
+          nome          TEXT NOT NULL,
+          email         TEXT NOT NULL,
+          papel         TEXT NOT NULL DEFAULT 'operador' CHECK (papel IN ('operador', 'administrador')),
+          ativo         INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          cached_at     TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+      `);
+    },
+  },
 ];

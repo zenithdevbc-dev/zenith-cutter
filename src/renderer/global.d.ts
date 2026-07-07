@@ -1,4 +1,5 @@
 import type { DbStatus, SyncStatus } from "@shared/ipc";
+import type { Usuario, UsuarioUpdatePatch } from "@shared/models";
 
 declare global {
   interface Window {
@@ -17,6 +18,11 @@ declare global {
       updater: {
         onUpdateDownloaded: (callback: () => void) => () => void;
         quitAndInstall: () => Promise<void>;
+      };
+      usuarios: {
+        listLocal: () => Promise<Usuario[]>;
+        cache: (usuarios: Usuario[]) => Promise<void>;
+        updateLocal: (id: string, patch: UsuarioUpdatePatch) => Promise<Usuario>;
       };
     };
   }

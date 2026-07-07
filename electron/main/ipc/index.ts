@@ -1,9 +1,15 @@
 import { ipcMain, app } from "electron";
 import path from "node:path";
 import { IPC_CHANNELS, type DbStatus, type SyncStatus } from "../../../src/shared/ipc";
+import type { Usuario, UsuarioUpdatePatch } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
 import { getPendingSyncCount } from "../sync/queue";
 import { quitAndInstall } from "../updater";
+import {
+  listUsuariosLocal,
+  cacheUsuarios,
+  updateUsuarioLocal,
+} from "../db/repositories/usuarios";
 
 export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.dbGetStatus, (): DbStatus => {
@@ -22,4 +28,19 @@ export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.updaterQuitAndInstall, () => {
     quitAndInstall();
   });
+
+  ipcMain.handle(IPC_CHANNELS.usuariosListLocal, (): Usuario[] => {
+    return listUsuariosLocal(getDb());
+  });
+
+  ipcMain.handle(IPC_CHANNELS.usuariosCache, (_event, usuarios: Usuario[]) => {
+    cacheUsuarios(getDb(), usuarios);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.usuariosUpdateLocal,
+    (_event, id: string, patch: UsuarioUpdatePatch): Usuario => {
+      return updateUsuarioLocal(getDb(), id, patch);
+    },
+  );
 }
