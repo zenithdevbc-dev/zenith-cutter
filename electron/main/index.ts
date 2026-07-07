@@ -7,6 +7,7 @@ import { registerIpcHandlers } from "./ipc";
 // process.env.VITE_DEV_SERVER_URL aponta pro dev server em desenvolvimento.
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 const RENDERER_DIST = path.join(__dirname, "../../dist");
+const APP_ICON = path.join(__dirname, "../../build/icon.png");
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -18,6 +19,7 @@ function createMainWindow() {
     minHeight: 640,
     show: false,
     autoHideMenuBar: true,
+    icon: APP_ICON,
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.js"),
       contextIsolation: true,

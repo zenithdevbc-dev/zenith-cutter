@@ -6,8 +6,9 @@ dist/
 dist-electron/
 dist-native/
 release/
-build/
 out/
+# Nota: build/ NÃO é ignorado — é a pasta de recursos de build do
+# electron-builder (ícones etc.), deve ser versionada.
 
 # Environment / secrets
 .env
