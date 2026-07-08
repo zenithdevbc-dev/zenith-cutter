@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { CadastrosPage } from "@/pages/CadastrosPage";
@@ -8,7 +8,7 @@ import { LoginPage } from "@/pages/LoginPage";
 import { UpdateNotifier } from "@/components/UpdateNotifier";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/lib/auth-context";
-import type { PageId } from "@/lib/navigation";
+import { getAllowedNavItems, type PageId } from "@/lib/navigation";
 
 const PAGE_DESCRIPTIONS: Record<Exclude<PageId, "cadastros">, string> = {
   dashboard:
@@ -21,8 +21,17 @@ const PAGE_DESCRIPTIONS: Record<Exclude<PageId, "cadastros">, string> = {
 };
 
 function App() {
-  const { session, loading } = useAuth();
+  const { session, usuario, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState<PageId>("dashboard");
+
+  useEffect(() => {
+    if (!usuario) return;
+    const allowed = getAllowedNavItems(usuario.papel);
+    if (!allowed.some((item) => item.id === currentPage)) {
+      setCurrentPage(allowed[0]?.id ?? "dashboard");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuario]);
 
   return (
     <>

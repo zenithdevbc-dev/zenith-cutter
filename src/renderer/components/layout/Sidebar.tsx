@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS, type PageId } from "@/lib/navigation";
+import { getAllowedNavItems, type PageId } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 interface SidebarProps {
@@ -8,7 +8,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
-  const { empresa } = useAuth();
+  const { empresa, usuario } = useAuth();
+  const items = getAllowedNavItems(usuario?.papel);
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-card">
@@ -24,7 +25,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 p-2">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const isActive = item.id === currentPage;
           return (
