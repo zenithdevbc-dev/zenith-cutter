@@ -129,22 +129,56 @@ implementar.
 ## 7. Estado atual
 
 - Sprint em andamento: Sprint 1 — Cadastros (Usuários e Clientes
-  concluídos; faltam Produtos, Tecidos, Mesas de Corte, configurações
-  básicas).
-- Última entrega concluída: Cadastro de Clientes, 100% offline-first
-  (id gerado no app, grava local primeiro, sem nenhuma etapa online
-  — diferente de Usuários). RLS aberto a qualquer autenticado
-  (select/insert/update), sem DELETE físico (só `ativo = false`).
-  Cadastros ganhou abas (Usuários | Clientes) via shadcn Tabs. Ver
-  `supabase/sql/0002_clientes.sql` (ainda não rodado no Supabase —
-  pendente de ação manual do usuário).
-- Entregas anteriores do sprint: Cadastro de Usuários completo e
-  testado ponta a ponta — tabela `public.usuarios` no Supabase (RLS,
-  trigger de perfil automático, `is_admin()`), Edge Function
-  `create-usuario` (cria login + perfil, admin-only, deployada),
-  cache local em SQLite com fila de sincronização para edições
-  offline. Ver `supabase/sql/0001_usuarios.sql` e
-  `supabase/functions/create-usuario/`.
+  concluídos, incluindo isolamento multiempresa; faltam Produtos,
+  Tecidos, Mesas de Corte, configurações básicas).
+- Última entrega concluída: restrição de navegação por papel — o
+  Sidebar e o `App.tsx` usam `getAllowedNavItems()`
+  (`src/renderer/lib/navigation.ts`) para filtrar as páginas visíveis
+  conforme `usuario.papel`. Administrador vê tudo (Dashboard, Fila de
+  Produção, Ordens de Corte, Cadastros, Configurações); operador vê
+  somente Fila de Produção e Ordens de Corte. É proteção só de UI —
+  a proteção real dos dados continua sendo o RLS do Supabase,
+  independente do que a navegação mostra ou esconde. Se o papel do
+  usuário mudar e a página atual deixar de ser permitida, o `App.tsx`
+  redireciona automaticamente para a primeira página permitida.
+- Entrega anterior: **multiempresa (multi-tenant) retrofit completo e
+  rodado em produção** — decisão de 2026-07-07 (ver seção 5). Toda
+  tabela de negócio carrega `empresa_id`; RLS isola cada usuário aos
+  dados da própria empresa via função `security definer`
+  `current_empresa_id()` (evita recursão de RLS). Migrations
+  aplicadas: `supabase/sql/0001_usuarios.sql`,
+  `supabase/sql/0002_clientes.sql` (já nasceu com `empresa_id NOT
+  NULL` e políticas escopadas por empresa) e
+  `supabase/sql/0003_empresas_multi_tenant.sql` (cria tabela
+  `empresas`, adiciona `empresa_id` a `usuarios` com backfill,
+  substitui as policies antigas de `usuarios` — que vazavam entre
+  empresas — por versões escopadas por empresa). Provisionamento de
+  empresa nova é feito pela Edge Function `create-empresa`
+  (`supabase/functions/create-empresa/`), protegida por segredo
+  compartilhado (`x-provisioning-secret` / secret
+  `EMPRESA_PROVISIONING_SECRET`, já configurado no projeto Supabase);
+  cria a empresa + o primeiro admin em uma única chamada, sem
+  depender de autenticação prévia. A Edge Function `create-usuario`
+  foi atualizada para sempre herdar o `empresa_id` de quem está
+  criando o novo usuário.
+- Cadastro de Clientes: 100% offline-first (id gerado no app via
+  `crypto.randomUUID()`, grava local primeiro, sem nenhuma etapa
+  online — diferente de Usuários, que é criação online-only via Edge
+  Function). Sem DELETE físico em nenhum cadastro (só `ativo =
+  false`). Cadastros tem abas (Usuários | Clientes) via shadcn Tabs.
+- Cadastro de Usuários: completo e testado ponta a ponta — tabela
+  `public.usuarios` no Supabase (RLS, trigger de perfil automático,
+  `is_admin()`), Edge Function `create-usuario` (cria login + perfil,
+  admin-only), cache local em SQLite com fila de sincronização para
+  edições offline.
+- Gotcha operacional importante: o atalho da Desktop aponta para
+  `release/win-unpacked/Zenith Cutter.exe`, um **build estático**
+  (snapshot de quando `npm run build:win` rodou pela última vez — o
+  Vite grava `.env` no bundle em tempo de build, não lê em runtime).
+  Sempre rodar `npm run build:win` de novo após mudar `.env` ou
+  código antes de testar "o app instalado de verdade"; fechar o app
+  primeiro (senão dá `EBUSY`). Ver memória
+  `feedback_rebuild_packaged_app.md`.
 - Bloqueios conhecidos:
   - Auto-update sem provider configurado (bucket de releases no
     Supabase Storage ainda não existe); `build.publish` precisa ser
