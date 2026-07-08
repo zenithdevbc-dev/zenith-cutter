@@ -195,3 +195,19 @@ sessões.)_
 A cada alteração feita no código (arquivo criado, editado ou removido), deve ser feito
 commit imediatamente, com mensagem descritiva explicando a alteração. Não acumular
 várias alterações não relacionadas em um único commit.
+
+### 8.2 Encerramento de sessão
+
+Quando o usuário der o comando **"Finalizar sessão de hoje"**, antes de encerrar:
+
+1. Atualizar a seção 7 (Estado atual) deste CLAUDE.md com o que foi entregue na sessão,
+   o que ficou pendente e quaisquer bloqueios novos.
+2. Atualizar a memória automática (arquivos em
+   `C:\Users\mafio\.claude\projects\c--Users-mafio-Desktop-ZENITH-DEV-Zenith-Cutter\memory\`):
+   criar/atualizar memórias de `feedback` (correções ou confirmações de abordagem),
+   `project` (decisões e estado de trabalho em andamento) ou `reference` conforme o que
+   surgiu na sessão, e manter o índice `MEMORY.md` em dia.
+3. Conferir se há commits pendentes (`git status`) e commitar qualquer alteração ainda
+   não salva, seguindo a regra 8.1.
+4. Confirmar ao usuário, em poucas linhas, o que foi atualizado e qual é o próximo passo
+   natural para a retomada.
