@@ -255,4 +255,38 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 11,
+    name: "add_supervisor_role",
+    up: (db) => {
+      db.exec(`
+        -- Novo papel "supervisor" (entre operador e administrador). SQLite
+        -- não permite ALTER de CHECK constraint diretamente — recria a
+        -- tabela preservando dados e índices.
+        CREATE TABLE usuarios_new (
+          id            TEXT PRIMARY KEY,
+          nome          TEXT NOT NULL,
+          email         TEXT NOT NULL,
+          papel         TEXT NOT NULL DEFAULT 'operador' CHECK (papel IN ('operador', 'supervisor', 'administrador')),
+          ativo         INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          cached_at     TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+          empresa_id    TEXT,
+          login         TEXT
+        );
+
+        INSERT INTO usuarios_new
+          (id, nome, email, papel, ativo, criado_em, atualizado_em, cached_at, empresa_id, login)
+          SELECT id, nome, email, papel, ativo, criado_em, atualizado_em, cached_at, empresa_id, login
+          FROM usuarios;
+
+        DROP TABLE usuarios;
+        ALTER TABLE usuarios_new RENAME TO usuarios;
+
+        CREATE INDEX idx_usuarios_empresa ON usuarios (empresa_id);
+        CREATE UNIQUE INDEX idx_usuarios_login ON usuarios (login);
+      `);
+    },
+  },
 ];

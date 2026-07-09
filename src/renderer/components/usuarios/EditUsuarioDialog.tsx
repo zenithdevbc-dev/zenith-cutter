@@ -76,6 +76,7 @@ export function EditUsuarioDialog({ usuario, onUpdated }: EditUsuarioDialogProps
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="operador">Operador</SelectItem>
+                <SelectItem value="supervisor">Supervisor</SelectItem>
                 <SelectItem value="administrador">Administrador</SelectItem>
               </SelectContent>
             </Select>

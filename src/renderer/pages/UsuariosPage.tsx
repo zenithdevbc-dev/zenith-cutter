@@ -15,7 +15,19 @@ import { CreateUsuarioDialog } from "@/components/usuarios/CreateUsuarioDialog";
 import { EditUsuarioDialog } from "@/components/usuarios/EditUsuarioDialog";
 import { listUsuarios, updateUsuario } from "@/lib/usuarios";
 import { useAuth } from "@/lib/auth-context";
-import type { Usuario } from "@shared/models";
+import type { PapelUsuario, Usuario } from "@shared/models";
+
+const PAPEL_LABEL: Record<PapelUsuario, string> = {
+  administrador: "Administrador",
+  supervisor: "Supervisor",
+  operador: "Operador",
+};
+
+const PAPEL_BADGE_VARIANT: Record<PapelUsuario, "default" | "secondary" | "outline"> = {
+  administrador: "default",
+  supervisor: "secondary",
+  operador: "outline",
+};
 
 export function UsuariosPage() {
   const { isAdmin } = useAuth();
@@ -76,8 +88,8 @@ export function UsuariosPage() {
                   <TableCell className="font-medium">{usuario.nome}</TableCell>
                   <TableCell className="text-muted-foreground">{usuario.email}</TableCell>
                   <TableCell>
-                    <Badge variant={usuario.papel === "administrador" ? "default" : "secondary"}>
-                      {usuario.papel === "administrador" ? "Administrador" : "Operador"}
+                    <Badge variant={PAPEL_BADGE_VARIANT[usuario.papel]}>
+                      {PAPEL_LABEL[usuario.papel]}
                     </Badge>
                   </TableCell>
                   <TableCell>

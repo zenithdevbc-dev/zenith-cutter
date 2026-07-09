@@ -5,7 +5,7 @@ export interface Empresa {
   criado_em: string;
 }
 
-export type PapelUsuario = "operador" | "administrador";
+export type PapelUsuario = "operador" | "supervisor" | "administrador";
 
 export interface Usuario {
   id: string;

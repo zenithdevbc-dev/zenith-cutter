@@ -16,6 +16,8 @@ const PAGE_DESCRIPTIONS: Record<Exclude<PageId, "cadastros" | "ordens-corte">, s
     "Visão operacional de ordens por status, mesas livres/ocupadas e indicadores. Chega no Sprint 5.",
   "fila-producao":
     "Fila ordenada de produção, seleção de mesa e confirmação de início. Chega no Sprint 3.",
+  producao:
+    "Execução da produção: iniciar/pausar/retomar/finalizar, registro de perdas e observações. Chega no Sprint 4.",
   configuracoes: "Configurações básicas do sistema. Ainda sem escopo definido.",
 };
 

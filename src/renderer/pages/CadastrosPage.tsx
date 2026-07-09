@@ -4,20 +4,25 @@ import { ClientesPage } from "@/pages/ClientesPage";
 import { ProdutosPage } from "@/pages/ProdutosPage";
 import { TecidosPage } from "@/pages/TecidosPage";
 import { MesasCortePage } from "@/pages/MesasCortePage";
+import { useAuth } from "@/lib/auth-context";
 
 export function CadastrosPage() {
+  const { isAdmin } = useAuth();
+
   return (
-    <Tabs defaultValue="usuarios" className="h-full">
+    <Tabs defaultValue={isAdmin ? "usuarios" : "clientes"} className="h-full">
       <TabsList className="shrink-0">
-        <TabsTrigger value="usuarios">Usuários</TabsTrigger>
+        {isAdmin && <TabsTrigger value="usuarios">Usuários</TabsTrigger>}
         <TabsTrigger value="clientes">Clientes</TabsTrigger>
         <TabsTrigger value="produtos">Produtos</TabsTrigger>
         <TabsTrigger value="tecidos">Tecidos</TabsTrigger>
         <TabsTrigger value="mesas">Mesas de Corte</TabsTrigger>
       </TabsList>
-      <TabsContent value="usuarios" className="min-h-0 overflow-hidden">
-        <UsuariosPage />
-      </TabsContent>
+      {isAdmin && (
+        <TabsContent value="usuarios" className="min-h-0 overflow-hidden">
+          <UsuariosPage />
+        </TabsContent>
+      )}
       <TabsContent value="clientes" className="min-h-0 overflow-hidden">
         <ClientesPage />
       </TabsContent>
