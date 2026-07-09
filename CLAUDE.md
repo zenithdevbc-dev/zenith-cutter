@@ -128,10 +128,20 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: Sprint 1 — Cadastros (Usuários e Clientes
-  concluídos, incluindo isolamento multiempresa; faltam Produtos,
+- Sprint em andamento: Sprint 1 — Cadastros (Usuários, Clientes e
+  Produtos concluídos, incluindo isolamento multiempresa; faltam
   Tecidos, Mesas de Corte, configurações básicas).
-- Última entrega concluída: restrição de navegação por papel — o
+- Última entrega concluída: **Cadastro de Produtos** — mesmo padrão de
+  Clientes (100% offline-first, id gerado no app via
+  `crypto.randomUUID()`, grava local primeiro, sem DELETE físico).
+  Campos: nome, código/referência, descrição, ativo. Aba "Produtos"
+  adicionada em Cadastros. Migration local v5 (`create_produtos`) já
+  aplicada; migration Supabase `supabase/sql/0004_produtos.sql` criada
+  com RLS escopado por empresa desde a criação da tabela (segue o
+  molde de `0002_clientes.sql`) — **pendente de execução manual** no
+  SQL Editor do Supabase pelo usuário (mesma rotina já usada para
+  0001/0002/0003).
+- Entrega anterior: restrição de navegação por papel — o
   Sidebar e o `App.tsx` usam `getAllowedNavItems()`
   (`src/renderer/lib/navigation.ts`) para filtrar as páginas visíveis
   conforme `usuario.papel`. Administrador vê tudo (Dashboard, Fila de
@@ -141,7 +151,7 @@ implementar.
   independente do que a navegação mostra ou esconde. Se o papel do
   usuário mudar e a página atual deixar de ser permitida, o `App.tsx`
   redireciona automaticamente para a primeira página permitida.
-- Entrega anterior: **multiempresa (multi-tenant) retrofit completo e
+- Entregas mais antigas do sprint: **multiempresa (multi-tenant) retrofit completo e
   rodado em produção** — decisão de 2026-07-07 (ver seção 5). Toda
   tabela de negócio carrega `empresa_id`; RLS isola cada usuário aos
   dados da própria empresa via função `security definer`
