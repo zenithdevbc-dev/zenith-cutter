@@ -57,6 +57,27 @@ Toda ação relevante (criação, edição, mudança de status, pausa, perda reg
 observação) deve ser registrada de forma rastreável — usuário, timestamp, ação, dados
 antes/depois quando aplicável.
 
+### 3.6 Perfis de usuário e permissões
+Três papéis (`usuarios.papel`), decisão de 2026-07-09:
+
+| Área | Administrador | Supervisor | Operador |
+|---|---|---|---|
+| Dashboard | ✅ | ✅ | ✅ |
+| Ordens de Corte | ✅ | ✅ | ❌ |
+| Fila de Produção | ✅ | ✅ | ❌ |
+| Produção (execução: iniciar/pausar/retomar/finalizar/perdas/observações) | ✅ | ✅ | ✅ |
+| Cadastros — Clientes/Produtos/Tecidos/Mesas de Corte | ✅ | ✅ | ❌ |
+| Cadastros — Usuários | ✅ | ❌ | ❌ |
+| Configurações | ✅ | ❌ | ❌ |
+
+Aplicado em duas camadas, nunca só uma (ver 3.1): navegação/UI
+(`src/renderer/lib/navigation.ts`, `CadastrosPage.tsx` esconde a aba
+Usuários para quem não é admin) **e** RLS no Supabase (função
+`current_papel()`, ver `supabase/sql/0011_add_supervisor_role.sql`) —
+um operador não acessa essas tabelas nem chamando a API diretamente.
+Ao criar a Fila de Produção (Sprint 3) e a Produção/execução (Sprint
+4), replicar a mesma regra nas novas tabelas.
+
 ## 4. Fluxo oficial da produção (state machine de referência)
 
 ```
@@ -134,7 +155,15 @@ implementar.
   Sprint 1 fica considerado encerrado por decisão do usuário em
   2026-07-09, com "configurações básicas" deliberadamente adiada sem
   escopo definido (não é um item esquecido — foi pulado a pedido).
-- Última entrega: **Ordens de Corte** (Sprint 2). Cada ordem tem
+- Última entrega: **papel Supervisor + matriz de permissões** (ver
+  seção 3.6). `PapelUsuario` ganhou `"supervisor"`; navegação e RLS
+  atualizados. `supabase/sql/0011_add_supervisor_role.sql` (CHECK de
+  papel + `current_papel()` + RLS de
+  clientes/produtos/tecidos/mesas_corte/produto_tamanhos/ordens_corte/
+  ordem_corte_itens) **pendente de execução manual** no SQL Editor;
+  migration local v11 (recria a tabela `usuarios` — SQLite não permite
+  ALTER de CHECK) já aplicada.
+- Entrega anterior: **Ordens de Corte** (Sprint 2). Cada ordem tem
   cliente, produto, tecido, observações, status (`aberta` / `em_fila`
   / `cancelada`) e itens de quantidade por tamanho da grade do produto
   escolhido (`ordem_corte_itens`). Sem DELETE físico da ordem —
