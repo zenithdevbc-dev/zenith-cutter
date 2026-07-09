@@ -132,7 +132,20 @@ implementar.
   Produtos — com grade de tamanhos —, Tecidos e Mesas de Corte
   concluídos, incluindo isolamento multiempresa; falta só
   configurações básicas, ainda sem escopo definido).
-- Última entrega: **grade de tamanhos no cadastro de Produtos**. Cada
+- Última entrega: **login por nome de usuário, não e-mail**. Novo
+  campo `usuarios.login` (username único, `NOT NULL` em produção). A
+  tela de login pede "Usuário" (login) + senha; o app resolve
+  login → email via `resolve_login_email()` (função `security
+  definer`, executável por `anon`) antes de chamar
+  `signInWithPassword` — Supabase Auth só aceita email/phone
+  internamente, então isso continua por baixo dos panos. Cadastro de
+  usuário (Cadastros > Usuários) continua exigindo e-mail normalmente,
+  além do novo campo Login. Aplicado em produção: migration
+  `supabase/sql/0009_usuarios_login.sql`, redeploy da Edge Function
+  `create-usuario` (grava login também), e — a pedido explícito do
+  usuário — **excluída a conta TESTER 01**, mantendo só o admin
+  `rafaelfsantosmk5@gmail.com` (login definido como `ZNTOWR`).
+- Entrega anterior: **grade de tamanhos no cadastro de Produtos**. Cada
   produto tem uma lista de tamanhos (`produto_tamanhos`) onde o
   tamanho é texto livre digitado pelo usuário (não um enum fixo — cada
   produto pode ter uma grade diferente, ex.: P/M/G ou numérica) e a
