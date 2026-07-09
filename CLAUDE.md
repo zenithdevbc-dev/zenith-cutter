@@ -131,7 +131,24 @@ implementar.
 - Sprint em andamento: Sprint 1 — Cadastros (Usuários, Clientes e
   Produtos concluídos, incluindo isolamento multiempresa; faltam
   Tecidos, Mesas de Corte, configurações básicas).
-- Última entrega concluída: **Cadastro de Produtos** — mesmo padrão de
+- Última correção: **bug de produção — trava do único administrador**.
+  Sintoma relatado: login carregava a tela inicial e voltava sozinho
+  para a tela de login. Causa: o único usuário `administrador` da
+  empresa estava com `ativo = false` no Supabase (origem exata não
+  identificada); o app força `signOut()` quando o perfil vem inativo
+  (comportamento intencional, ver `auth-context.tsx`). Agravante: não
+  havia como reverter pela própria tela, porque a policy de UPDATE de
+  `usuarios` exige `is_admin()`, que por sua vez exige `ativo = true`
+  — ou seja, o único admin de uma empresa que fica inativo (por
+  engano ou não) trava permanentemente, sem autorrecuperação. Corrigido
+  em produção: 1) `UPDATE usuarios SET ativo = true` no registro
+  afetado (com autorização explícita do usuário, via
+  `npx supabase db query --linked`); 2) nova migration
+  `supabase/sql/0005_prevent_last_admin_lockout.sql` (trigger
+  `usuarios_prevent_last_admin_lockout`, já aplicada em produção)
+  bloqueia no próprio Postgres qualquer UPDATE que desative ou rebaixe
+  o último administrador ativo restante de uma empresa.
+- Entrega anterior: **Cadastro de Produtos** — mesmo padrão de
   Clientes (100% offline-first, id gerado no app via
   `crypto.randomUUID()`, grava local primeiro, sem DELETE físico).
   Campos: nome, código/referência, descrição, ativo. Aba "Produtos"
