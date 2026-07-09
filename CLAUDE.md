@@ -160,9 +160,25 @@ implementar.
   atualizados. `supabase/sql/0011_add_supervisor_role.sql` (CHECK de
   papel + `current_papel()` + RLS de
   clientes/produtos/tecidos/mesas_corte/produto_tamanhos/ordens_corte/
-  ordem_corte_itens) **pendente de execução manual** no SQL Editor;
-  migration local v11 (recria a tabela `usuarios` — SQLite não permite
-  ALTER de CHECK) já aplicada.
+  ordem_corte_itens) e migration local v11 (recria a tabela `usuarios`
+  — SQLite não permite ALTER de CHECK) **aplicadas em produção e
+  local** (2026-07-09).
+- Correção **2026-07-09**: ao testar o papel Supervisor em produção,
+  achados dois bugs. 1) A Edge Function `create-usuario` nunca tinha
+  sido atualizada para o novo papel — forçava qualquer valor diferente
+  de `administrador` para `operador` (por isso um usuário criado como
+  "Supervisor" nascia com `papel='operador'`); corrigida e redeployada.
+  2) Achado maior, sem relação com o pedido original: a tabela
+  `clientes` em produção **nunca tinha ganhado `empresa_id`** — ficou
+  para trás quando a decisão de multiempresa (2026-07-07) retrofitou
+  `usuarios` via `0003_empresas_multi_tenant.sql` mas não `clientes`;
+  RLS ficava aberta (`using(true)/check(true)`), sem isolamento entre
+  empresas. Como só havia 1 empresa e 0 linhas em `clientes` em
+  produção, o backfill foi trivial e sem perda de dado. Corrigido com
+  nova migration `supabase/sql/0012_clientes_empresa_id_retrofit.sql`
+  (aplicada em produção antes da 0011, que já pressupunha a coluna).
+  Usuário de teste `Supervisor de Teste` corrigido manualmente para
+  `papel='supervisor'`.
 - Entrega anterior: **Ordens de Corte** (Sprint 2). Cada ordem tem
   cliente, produto, tecido, observações, status (`aberta` / `em_fila`
   / `cancelada`) e itens de quantidade por tamanho da grade do produto
