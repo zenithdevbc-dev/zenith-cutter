@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { ProvisionarEmpresaDialog } from "@/components/empresas/ProvisionarEmpresaDialog";
 
 export function LoginPage() {
   const { signIn } = useAuth();
@@ -67,6 +68,11 @@ export function LoginPage() {
           )}
         </CardContent>
       </Card>
+      {isSupabaseConfigured && (
+        <div className="fixed bottom-4 right-4">
+          <ProvisionarEmpresaDialog />
+        </div>
+      )}
     </div>
   );
 }

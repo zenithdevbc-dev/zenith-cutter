@@ -107,17 +107,27 @@ empresas-cliente simultaneamente sobre a mesma infraestrutura Supabase, com isol
 via RLS (toda tabela de negócio carrega `empresa_id`; políticas restringem cada usuário
 aos dados da própria empresa). Cada usuário pertence a exatamente uma empresa
 (`usuarios.empresa_id`). Provisionar uma empresa nova (+ seu primeiro administrador) é
-uma operação de backend (Edge Function protegida por segredo, usada pelo time Zenith DEV
-ao fechar um cliente novo) — **não** existe tela de auto-cadastro/signup público de
-empresas no app, isso continua fora do escopo.
+feito pela Edge Function `create-empresa`, protegida por segredo compartilhado (não por
+papel de usuário — não existe sessão autenticada nesse momento).
+
+**Atualização de 2026-07-09** (revisão de segurança pediu essa mudança
+explicitamente, substituindo a frase anterior "não existe tela... no
+app"): existe, sim, uma tela dentro do app para chamar essa Edge
+Function — `ProvisionarEmpresaDialog`, acessível só por um link
+discreto no rodapé da tela de login ("Provisionar nova empresa (uso
+interno Zenith DEV)"), que pede a chave de provisionamento a cada uso
+(nunca fica salva). Isso é **uso interno do time Zenith DEV**, não uma
+tela de signup público — nenhum usuário de empresa-cliente vê isso no
+dia a dia, e sem a chave certa a Edge Function recusa (403). A regra
+de não ter signup público/self-service continua valendo.
 
 **Fora do escopo (não implementar, mesmo se parecer "fácil de adicionar"):**
 Financeiro, Estoque, Compras, PCP, Custos, Engenharia de Produto, Etiquetas, Leitores de
 código de barras, Integrações com ERPs, Inteligência Artificial, App Mobile, Relatórios
 avançados, Planejamento automático, Balanceamento automático da fila. Também fora de
-escopo dentro do próprio multiempresa: tela de auto-cadastro/signup de empresas, troca de
-empresa dentro do app (um usuário pertence a uma única empresa), billing/cobrança por
-empresa.
+escopo dentro do próprio multiempresa: signup público/self-service de empresas (sem
+depender da chave de provisionamento do Zenith DEV), troca de empresa dentro do app (um
+usuário pertence a uma única empresa), billing/cobrança por empresa.
 
 Se uma tarefa pedida se sobrepuser a um desses itens fora de escopo, avise antes de
 implementar.
@@ -155,7 +165,23 @@ implementar.
   Sprint 1 fica considerado encerrado por decisão do usuário em
   2026-07-09, com "configurações básicas" deliberadamente adiada sem
   escopo definido (não é um item esquecido — foi pulado a pedido).
-- Última entrega: **papel Supervisor + matriz de permissões** (ver
+- Última entrega: **auditoria de segurança (isolamento entre empresas
+  + papéis) + tela de provisionamento de empresa**. Revisão pedida
+  pelo usuário focada em multiempresa/RLS encontrou: 1) policy de
+  SELECT de `usuarios` sem filtro de papel (Supervisor/Operador liam a
+  tabela inteira de usuários da própria empresa via API direta) —
+  corrigida em `supabase/sql/0013_usuarios_select_admin_supervisor.sql`
+  (exige administrador/supervisor OU a própria linha); 2)
+  `create-empresa` nunca gravava `login` do admin criado, e
+  `usuarios.login` é `NOT NULL` em produção — toda tentativa de
+  provisionar empresa nova falhava; corrigida (exige e grava
+  `admin_login`) e redeployada. A pedido do usuário, também foi criada
+  uma tela dentro do app para chamar essa Edge Function —
+  `ProvisionarEmpresaDialog`, atrás de um link discreto na tela de
+  login, protegida pela mesma chave de provisionamento (ver seção 5,
+  atualizada) — não foi testada ponta a ponta com a chave real ainda
+  (só validado visualmente; typecheck limpo).
+- Entrega anterior: **papel Supervisor + matriz de permissões** (ver
   seção 3.6). `PapelUsuario` ganhou `"supervisor"`; navegação e RLS
   atualizados. `supabase/sql/0011_add_supervisor_role.sql` (CHECK de
   papel + `current_papel()` + RLS de
