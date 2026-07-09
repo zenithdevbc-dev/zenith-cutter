@@ -10,6 +10,10 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
  * (.env ausente). O app deve continuar funcionando offline mesmo assim —
  * nunca depender deste client no caminho crítico de produção.
  */
+// persistSession: false — login não sobrevive ao fechamento da janela;
+// cada abertura do app exige novo login (nunca fica sessão salva em disco).
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+    })
   : null;

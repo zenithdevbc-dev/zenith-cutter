@@ -1,7 +1,7 @@
 # Zenith Cutter MVP — Contexto do Projeto
 
-> Este arquivo é lido automaticamente pelo Claude Code no início de cada sessão.
-> Ele define o que o sistema é, os princípios inegociáveis do produto e o estado do roadmap.
+## 0.0 - Modo de entrega de respostas no chat
+Seja extremamente conciso e direto. Remova conversas fiadas, saudações e explicações longas. Vá direto ao ponto, mostre apenas o código essencial ou uma lista de tópicos (bullet points) quando apropriado.
 
 ## 1. O que é o sistema
 

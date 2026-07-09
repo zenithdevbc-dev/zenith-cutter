@@ -38,7 +38,7 @@ export function LoginPage() {
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">Usuário</Label>
                 <Input
                   id="email"
                   type="email"
