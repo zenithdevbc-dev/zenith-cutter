@@ -18,6 +18,11 @@ import type {
   ProdutoTamanho,
   ProdutoTamanhoInput,
   ProdutoTamanhoUpdatePatch,
+  OrdemCorte,
+  OrdemCorteResumo,
+  OrdemCorteItem,
+  OrdemCorteInput,
+  OrdemCorteUpdatePatch,
   Empresa,
 } from "../../src/shared/models";
 
@@ -94,6 +99,18 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosUpdateLocal, id, patch),
     reorderLocal: (orderedIds: string[]): Promise<ProdutoTamanho[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosReorderLocal, orderedIds),
+  },
+  ordensCorte: {
+    listLocal: (): Promise<OrdemCorteResumo[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteListLocal),
+    itensListLocal: (ordemId: string): Promise<OrdemCorteItem[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteItensListLocal, ordemId),
+    createLocal: (input: OrdemCorteInput): Promise<OrdemCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteCreateLocal, input),
+    updateLocal: (id: string, patch: OrdemCorteUpdatePatch): Promise<OrdemCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteUpdateLocal, id, patch),
+    duplicateLocal: (id: string): Promise<OrdemCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteDuplicateLocal, id),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

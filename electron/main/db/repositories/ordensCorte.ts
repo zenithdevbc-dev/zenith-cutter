@@ -1,0 +1,259 @@
+import { randomUUID } from "node:crypto";
+import type Database from "better-sqlite3";
+import type {
+  OrdemCorte,
+  OrdemCorteInput,
+  OrdemCorteItem,
+  OrdemCorteResumo,
+  OrdemCorteUpdatePatch,
+} from "../../../../src/shared/models";
+import { enqueueChange } from "../../sync/queue";
+
+interface OrdemCorteRow {
+  id: string;
+  empresa_id: string;
+  cliente_id: string;
+  produto_id: string;
+  tecido_id: string;
+  status: string;
+  observacoes: string | null;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+interface OrdemCorteResumoRow extends OrdemCorteRow {
+  cliente_nome: string;
+  produto_nome: string;
+  tecido_nome: string;
+  quantidade_total: number;
+}
+
+interface OrdemCorteItemRow {
+  id: string;
+  empresa_id: string;
+  ordem_id: string;
+  produto_tamanho_id: string;
+  tamanho: string;
+  quantidade: number;
+}
+
+function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
+  return {
+    id: row.id,
+    empresa_id: row.empresa_id,
+    cliente_id: row.cliente_id,
+    produto_id: row.produto_id,
+    tecido_id: row.tecido_id,
+    status: row.status as OrdemCorte["status"],
+    observacoes: row.observacoes,
+    criado_em: row.criado_em,
+    atualizado_em: row.atualizado_em,
+  };
+}
+
+function rowToResumo(row: OrdemCorteResumoRow): OrdemCorteResumo {
+  return {
+    ...rowToOrdemCorte(row),
+    cliente_nome: row.cliente_nome,
+    produto_nome: row.produto_nome,
+    tecido_nome: row.tecido_nome,
+    quantidade_total: row.quantidade_total,
+  };
+}
+
+export function listOrdensCorteLocal(db: Database.Database): OrdemCorteResumo[] {
+  const rows = db
+    .prepare<[], OrdemCorteResumoRow>(`
+      SELECT
+        oc.*,
+        c.nome AS cliente_nome,
+        p.nome AS produto_nome,
+        t.nome AS tecido_nome,
+        COALESCE((SELECT SUM(quantidade) FROM ordem_corte_itens WHERE ordem_id = oc.id), 0) AS quantidade_total
+      FROM ordens_corte oc
+      JOIN clientes c ON c.id = oc.cliente_id
+      JOIN produtos p ON p.id = oc.produto_id
+      JOIN tecidos t ON t.id = oc.tecido_id
+      ORDER BY oc.criado_em DESC
+    `)
+    .all();
+  return rows.map(rowToResumo);
+}
+
+export function listOrdemCorteItensLocal(
+  db: Database.Database,
+  ordemId: string,
+): OrdemCorteItem[] {
+  const rows = db
+    .prepare<[string], OrdemCorteItemRow>(`
+      SELECT oci.*, pt.tamanho AS tamanho
+      FROM ordem_corte_itens oci
+      JOIN produto_tamanhos pt ON pt.id = oci.produto_tamanho_id
+      WHERE oci.ordem_id = ?
+      ORDER BY pt.ordem ASC
+    `)
+    .all(ordemId);
+  return rows;
+}
+
+function insertItens(
+  db: Database.Database,
+  empresaId: string,
+  ordemId: string,
+  itens: { produto_tamanho_id: string; quantidade: number }[],
+) {
+  const stmt = db.prepare(`
+    INSERT INTO ordem_corte_itens (id, empresa_id, ordem_id, produto_tamanho_id, quantidade)
+    VALUES (@id, @empresa_id, @ordem_id, @produto_tamanho_id, @quantidade)
+  `);
+  for (const item of itens) {
+    const id = randomUUID();
+    stmt.run({
+      id,
+      empresa_id: empresaId,
+      ordem_id: ordemId,
+      produto_tamanho_id: item.produto_tamanho_id,
+      quantidade: item.quantidade,
+    });
+    enqueueChange(db, {
+      tableName: "ordem_corte_itens",
+      recordId: id,
+      operation: "insert",
+      payload: { id, empresa_id: empresaId, ordem_id: ordemId, ...item },
+    });
+  }
+}
+
+export function createOrdemCorteLocal(
+  db: Database.Database,
+  input: OrdemCorteInput,
+): OrdemCorte {
+  const id = randomUUID();
+  const now = new Date().toISOString();
+  const ordem: OrdemCorte = {
+    id,
+    empresa_id: input.empresa_id,
+    cliente_id: input.cliente_id,
+    produto_id: input.produto_id,
+    tecido_id: input.tecido_id,
+    status: "aberta",
+    observacoes: input.observacoes ?? null,
+    criado_em: now,
+    atualizado_em: now,
+  };
+
+  const create = db.transaction(() => {
+    db.prepare(`
+      INSERT INTO ordens_corte (id, empresa_id, cliente_id, produto_id, tecido_id, status, observacoes, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @cliente_id, @produto_id, @tecido_id, 'aberta', @observacoes, @criado_em, @atualizado_em)
+    `).run(ordem);
+    enqueueChange(db, {
+      tableName: "ordens_corte",
+      recordId: id,
+      operation: "insert",
+      payload: ordem,
+    });
+    insertItens(db, input.empresa_id, id, input.itens);
+  });
+  create();
+
+  return ordem;
+}
+
+export function updateOrdemCorteLocal(
+  db: Database.Database,
+  id: string,
+  patch: OrdemCorteUpdatePatch,
+): OrdemCorte {
+  const fields: string[] = [];
+  const params: Record<string, unknown> = { id };
+
+  if (patch.cliente_id !== undefined) {
+    fields.push("cliente_id = @cliente_id");
+    params.cliente_id = patch.cliente_id;
+  }
+  if (patch.produto_id !== undefined) {
+    fields.push("produto_id = @produto_id");
+    params.produto_id = patch.produto_id;
+  }
+  if (patch.tecido_id !== undefined) {
+    fields.push("tecido_id = @tecido_id");
+    params.tecido_id = patch.tecido_id;
+  }
+  if (patch.observacoes !== undefined) {
+    fields.push("observacoes = @observacoes");
+    params.observacoes = patch.observacoes;
+  }
+  if (patch.status !== undefined) {
+    fields.push("status = @status");
+    params.status = patch.status;
+  }
+  fields.push("atualizado_em = @atualizado_em");
+  params.atualizado_em = new Date().toISOString();
+
+  const row = db
+    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
+    .get(id);
+  if (!row) throw new Error(`Ordem de Corte ${id} não encontrada.`);
+
+  const apply = db.transaction(() => {
+    db.prepare(`UPDATE ordens_corte SET ${fields.join(", ")} WHERE id = @id`).run(params);
+    enqueueChange(db, {
+      tableName: "ordens_corte",
+      recordId: id,
+      operation: "update",
+      payload: patch,
+    });
+
+    if (patch.itens !== undefined) {
+      const oldItens = db
+        .prepare<[string], { id: string }>(
+          "SELECT id FROM ordem_corte_itens WHERE ordem_id = ?",
+        )
+        .all(id);
+      db.prepare("DELETE FROM ordem_corte_itens WHERE ordem_id = ?").run(id);
+      for (const old of oldItens) {
+        enqueueChange(db, {
+          tableName: "ordem_corte_itens",
+          recordId: old.id,
+          operation: "delete",
+          payload: { id: old.id },
+        });
+      }
+      insertItens(db, row.empresa_id, id, patch.itens);
+    }
+  });
+  apply();
+
+  const updatedRow = db
+    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
+    .get(id);
+  if (!updatedRow) throw new Error(`Ordem de Corte ${id} não encontrada após atualização.`);
+  return rowToOrdemCorte(updatedRow);
+}
+
+/**
+ * Duplicar cria uma ordem nova (id novo, status volta para 'aberta')
+ * copiando cliente/produto/tecido/observações e os itens da grade.
+ */
+export function duplicateOrdemCorteLocal(db: Database.Database, id: string): OrdemCorte {
+  const original = db
+    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
+    .get(id);
+  if (!original) throw new Error(`Ordem de Corte ${id} não encontrada.`);
+
+  const itens = db
+    .prepare<[string], { produto_tamanho_id: string; quantidade: number }>(
+      "SELECT produto_tamanho_id, quantidade FROM ordem_corte_itens WHERE ordem_id = ?",
+    )
+    .all(id);
+
+  return createOrdemCorteLocal(db, {
+    empresa_id: original.empresa_id,
+    cliente_id: original.cliente_id,
+    produto_id: original.produto_id,
+    tecido_id: original.tecido_id,
+    observacoes: original.observacoes,
+    itens,
+  });
+}

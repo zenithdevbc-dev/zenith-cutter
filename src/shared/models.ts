@@ -147,3 +147,60 @@ export interface ProdutoTamanhoUpdatePatch {
   tamanho?: string;
   ativo?: boolean;
 }
+
+export type StatusOrdemCorte = "aberta" | "em_fila" | "cancelada";
+
+export interface OrdemCorte {
+  id: string;
+  empresa_id: string;
+  cliente_id: string;
+  produto_id: string;
+  tecido_id: string;
+  status: StatusOrdemCorte;
+  observacoes: string | null;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+/**
+ * Linha da lista já com nomes resolvidos (join feito no repositório) —
+ * evita N+1 lookups no renderer só para exibir a tabela.
+ */
+export interface OrdemCorteResumo extends OrdemCorte {
+  cliente_nome: string;
+  produto_nome: string;
+  tecido_nome: string;
+  quantidade_total: number;
+}
+
+export interface OrdemCorteItem {
+  id: string;
+  empresa_id: string;
+  ordem_id: string;
+  produto_tamanho_id: string;
+  tamanho: string;
+  quantidade: number;
+}
+
+export interface OrdemCorteItemInput {
+  produto_tamanho_id: string;
+  quantidade: number;
+}
+
+export interface OrdemCorteInput {
+  empresa_id: string;
+  cliente_id: string;
+  produto_id: string;
+  tecido_id: string;
+  observacoes?: string | null;
+  itens: OrdemCorteItemInput[];
+}
+
+export interface OrdemCorteUpdatePatch {
+  cliente_id?: string;
+  produto_id?: string;
+  tecido_id?: string;
+  observacoes?: string | null;
+  status?: StatusOrdemCorte;
+  itens?: OrdemCorteItemInput[];
+}

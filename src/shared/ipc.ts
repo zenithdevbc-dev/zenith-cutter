@@ -31,6 +31,11 @@ export const IPC_CHANNELS = {
   produtoTamanhosCreateLocal: "produto-tamanhos:create-local",
   produtoTamanhosUpdateLocal: "produto-tamanhos:update-local",
   produtoTamanhosReorderLocal: "produto-tamanhos:reorder-local",
+  ordensCorteListLocal: "ordens-corte:list-local",
+  ordensCorteCreateLocal: "ordens-corte:create-local",
+  ordensCorteUpdateLocal: "ordens-corte:update-local",
+  ordensCorteDuplicateLocal: "ordens-corte:duplicate-local",
+  ordensCorteItensListLocal: "ordens-corte:itens-list-local",
   empresasCache: "empresas:cache",
   empresasGetLocal: "empresas:get-local",
 } as const;

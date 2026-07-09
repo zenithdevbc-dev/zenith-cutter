@@ -19,6 +19,11 @@ import type {
   ProdutoTamanho,
   ProdutoTamanhoInput,
   ProdutoTamanhoUpdatePatch,
+  OrdemCorte,
+  OrdemCorteResumo,
+  OrdemCorteItem,
+  OrdemCorteInput,
+  OrdemCorteUpdatePatch,
   Empresa,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
@@ -55,6 +60,13 @@ import {
   updateProdutoTamanhoLocal,
   reorderProdutoTamanhosLocal,
 } from "../db/repositories/produtoTamanhos";
+import {
+  listOrdensCorteLocal,
+  listOrdemCorteItensLocal,
+  createOrdemCorteLocal,
+  updateOrdemCorteLocal,
+  duplicateOrdemCorteLocal,
+} from "../db/repositories/ordensCorte";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
 
 export function registerIpcHandlers() {
@@ -177,6 +189,32 @@ export function registerIpcHandlers() {
       return reorderProdutoTamanhosLocal(getDb(), orderedIds);
     },
   );
+
+  ipcMain.handle(IPC_CHANNELS.ordensCorteListLocal, (): OrdemCorteResumo[] => {
+    return listOrdensCorteLocal(getDb());
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.ordensCorteItensListLocal,
+    (_event, ordemId: string): OrdemCorteItem[] => {
+      return listOrdemCorteItensLocal(getDb(), ordemId);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.ordensCorteCreateLocal, (_event, input: OrdemCorteInput): OrdemCorte => {
+    return createOrdemCorteLocal(getDb(), input);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.ordensCorteUpdateLocal,
+    (_event, id: string, patch: OrdemCorteUpdatePatch): OrdemCorte => {
+      return updateOrdemCorteLocal(getDb(), id, patch);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.ordensCorteDuplicateLocal, (_event, id: string): OrdemCorte => {
+    return duplicateOrdemCorteLocal(getDb(), id);
+  });
 
   ipcMain.handle(IPC_CHANNELS.empresasCache, (_event, empresa: Empresa) => {
     cacheEmpresa(getDb(), empresa);

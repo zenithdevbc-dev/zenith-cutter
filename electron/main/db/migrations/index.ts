@@ -215,4 +215,44 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 10,
+    name: "create_ordens_corte",
+    up: (db) => {
+      db.exec(`
+        -- Sprint 2: cadastro de Ordens de Corte. Status aqui é só o que
+        -- existe ANTES de entrar na Fila de Produção (Sprint 3) — os
+        -- estados de execução (Em Corte, Pausada, Finalizada...) chegam
+        -- junto com a fila. Mesmo padrão offline-first das demais
+        -- tabelas de negócio.
+        CREATE TABLE ordens_corte (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          cliente_id    TEXT NOT NULL,
+          produto_id    TEXT NOT NULL,
+          tecido_id     TEXT NOT NULL,
+          status        TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta', 'em_fila', 'cancelada')),
+          observacoes   TEXT,
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_ordens_corte_empresa ON ordens_corte (empresa_id);
+        CREATE INDEX idx_ordens_corte_status ON ordens_corte (status);
+
+        -- Quantidade por tamanho da grade do produto escolhido (ver
+        -- produto_tamanhos). Editar itens de uma ordem = apagar e
+        -- regravar tudo (simplicidade — nunca há muitos itens por ordem).
+        CREATE TABLE ordem_corte_itens (
+          id                 TEXT PRIMARY KEY,
+          empresa_id         TEXT NOT NULL,
+          ordem_id           TEXT NOT NULL,
+          produto_tamanho_id TEXT NOT NULL,
+          quantidade         INTEGER NOT NULL
+        );
+
+        CREATE INDEX idx_ordem_corte_itens_ordem ON ordem_corte_itens (ordem_id);
+      `);
+    },
+  },
 ];

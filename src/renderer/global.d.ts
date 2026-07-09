@@ -17,6 +17,11 @@ import type {
   ProdutoTamanho,
   ProdutoTamanhoInput,
   ProdutoTamanhoUpdatePatch,
+  OrdemCorte,
+  OrdemCorteResumo,
+  OrdemCorteItem,
+  OrdemCorteInput,
+  OrdemCorteUpdatePatch,
   Empresa,
 } from "@shared/models";
 
@@ -68,6 +73,13 @@ declare global {
         createLocal: (input: ProdutoTamanhoInput) => Promise<ProdutoTamanho>;
         updateLocal: (id: string, patch: ProdutoTamanhoUpdatePatch) => Promise<ProdutoTamanho>;
         reorderLocal: (orderedIds: string[]) => Promise<ProdutoTamanho[]>;
+      };
+      ordensCorte: {
+        listLocal: () => Promise<OrdemCorteResumo[]>;
+        itensListLocal: (ordemId: string) => Promise<OrdemCorteItem[]>;
+        createLocal: (input: OrdemCorteInput) => Promise<OrdemCorte>;
+        updateLocal: (id: string, patch: OrdemCorteUpdatePatch) => Promise<OrdemCorte>;
+        duplicateLocal: (id: string) => Promise<OrdemCorte>;
       };
       empresas: {
         cache: (empresa: Empresa) => Promise<void>;
