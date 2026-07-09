@@ -7,6 +7,9 @@ import type {
   Cliente,
   ClienteInput,
   ClienteUpdatePatch,
+  Produto,
+  ProdutoInput,
+  ProdutoUpdatePatch,
   Empresa,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
@@ -22,6 +25,11 @@ import {
   createClienteLocal,
   updateClienteLocal,
 } from "../db/repositories/clientes";
+import {
+  listProdutosLocal,
+  createProdutoLocal,
+  updateProdutoLocal,
+} from "../db/repositories/produtos";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
 
 export function registerIpcHandlers() {
@@ -69,6 +77,21 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.clientesUpdateLocal,
     (_event, id: string, patch: ClienteUpdatePatch): Cliente => {
       return updateClienteLocal(getDb(), id, patch);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.produtosListLocal, (): Produto[] => {
+    return listProdutosLocal(getDb());
+  });
+
+  ipcMain.handle(IPC_CHANNELS.produtosCreateLocal, (_event, input: ProdutoInput): Produto => {
+    return createProdutoLocal(getDb(), input);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.produtosUpdateLocal,
+    (_event, id: string, patch: ProdutoUpdatePatch): Produto => {
+      return updateProdutoLocal(getDb(), id, patch);
     },
   );
 

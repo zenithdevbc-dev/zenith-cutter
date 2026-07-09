@@ -51,3 +51,28 @@ export interface ClienteUpdatePatch {
   email?: string | null;
   ativo?: boolean;
 }
+
+export interface Produto {
+  id: string;
+  empresa_id: string;
+  nome: string;
+  codigo: string | null;
+  descricao: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface ProdutoInput {
+  empresa_id: string;
+  nome: string;
+  codigo?: string | null;
+  descricao?: string | null;
+}
+
+export interface ProdutoUpdatePatch {
+  nome?: string;
+  codigo?: string | null;
+  descricao?: string | null;
+  ativo?: boolean;
+}

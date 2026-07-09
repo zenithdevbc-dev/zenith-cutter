@@ -103,4 +103,29 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 5,
+    name: "create_produtos",
+    up: (db) => {
+      db.exec(`
+        -- Mesmo padrão de clientes: nasce local (offline-first de
+        -- verdade), id gerado no app, empresa_id já presente desde a
+        -- criação (diferente de usuarios/clientes, que vieram antes do
+        -- multiempresa e precisaram de ALTER retroativo).
+        CREATE TABLE produtos (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          nome          TEXT NOT NULL,
+          codigo        TEXT,
+          descricao     TEXT,
+          ativo         INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_produtos_nome ON produtos (nome);
+        CREATE INDEX idx_produtos_empresa ON produtos (empresa_id);
+      `);
+    },
+  },
 ];
