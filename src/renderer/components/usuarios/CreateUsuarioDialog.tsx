@@ -29,6 +29,7 @@ export function CreateUsuarioDialog({ onCreated }: CreateUsuarioDialogProps) {
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [senha, setSenha] = useState("");
   const [papel, setPapel] = useState<Usuario["papel"]>("operador");
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export function CreateUsuarioDialog({ onCreated }: CreateUsuarioDialogProps) {
   function reset() {
     setNome("");
     setEmail("");
+    setLogin("");
     setSenha("");
     setPapel("operador");
     setError(null);
@@ -47,7 +49,7 @@ export function CreateUsuarioDialog({ onCreated }: CreateUsuarioDialogProps) {
     setSubmitting(true);
     setError(null);
     try {
-      const usuario = await createUsuario({ nome, email, senha, papel });
+      const usuario = await createUsuario({ nome, email, login, senha, papel });
       toast.success(`Usuário ${usuario.nome} criado.`);
       onCreated(usuario);
       setOpen(false);
@@ -80,6 +82,15 @@ export function CreateUsuarioDialog({ onCreated }: CreateUsuarioDialogProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="login">Login</Label>
+            <Input
+              id="login"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
               required
             />
           </div>

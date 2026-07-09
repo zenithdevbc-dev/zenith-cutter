@@ -16,6 +16,7 @@ const corsHeaders = {
 interface CreateUsuarioBody {
   nome: string;
   email: string;
+  login: string;
   senha: string;
   papel?: "operador" | "administrador";
 }
@@ -70,20 +71,35 @@ Deno.serve(async (req) => {
     }
 
     const body: CreateUsuarioBody = await req.json();
-    if (!body.nome?.trim() || !body.email?.trim() || !body.senha || body.senha.length < 8) {
+    if (
+      !body.nome?.trim() ||
+      !body.email?.trim() ||
+      !body.login?.trim() ||
+      !body.senha ||
+      body.senha.length < 8
+    ) {
       return json(
-        { error: "Dados inválidos: nome, email e senha (mínimo 8 caracteres) são obrigatórios." },
+        {
+          error:
+            "Dados inválidos: nome, email, login e senha (mínimo 8 caracteres) são obrigatórios.",
+        },
         400,
       );
     }
 
     // Novo usuário sempre herda a empresa de quem o criou — nunca é
-    // possível criar um usuário em outra empresa por aqui.
+    // possível criar um usuário em outra empresa por aqui. Login é a
+    // credencial usada para entrar no app (não o e-mail); precisa ser
+    // único em todo o sistema (constraint no banco).
     const { data: created, error: createError } = await adminClient.auth.admin.createUser({
       email: body.email.trim(),
       password: body.senha,
       email_confirm: true,
-      user_metadata: { nome: body.nome.trim(), empresa_id: callerProfile.empresa_id },
+      user_metadata: {
+        nome: body.nome.trim(),
+        empresa_id: callerProfile.empresa_id,
+        login: body.login.trim(),
+      },
     });
 
     if (createError || !created.user) {
@@ -100,7 +116,7 @@ Deno.serve(async (req) => {
 
     const { data: usuario } = await adminClient
       .from("usuarios")
-      .select("id, empresa_id, nome, email, papel, ativo, criado_em, atualizado_em")
+      .select("id, empresa_id, nome, email, login, papel, ativo, criado_em, atualizado_em")
       .eq("id", created.user.id)
       .single();
 

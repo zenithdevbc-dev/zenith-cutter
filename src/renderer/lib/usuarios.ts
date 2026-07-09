@@ -4,6 +4,7 @@ import type { Usuario, UsuarioUpdatePatch } from "@shared/models";
 export interface CreateUsuarioInput {
   nome: string;
   email: string;
+  login: string;
   senha: string;
   papel?: Usuario["papel"];
 }

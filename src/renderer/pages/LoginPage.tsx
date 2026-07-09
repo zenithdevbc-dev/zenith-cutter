@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 
 export function LoginPage() {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -17,7 +17,7 @@ export function LoginPage() {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
-    const { error: signInError } = await signIn(email, password);
+    const { error: signInError } = await signIn(login, password);
     if (signInError) setError(signInError);
     setSubmitting(false);
   }
@@ -38,13 +38,13 @@ export function LoginPage() {
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="email">Usuário</Label>
+                <Label htmlFor="login">Usuário</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="login"
+                  type="text"
                   autoComplete="username"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={login}
+                  onChange={(e) => setLogin(e.target.value)}
                   required
                 />
               </div>

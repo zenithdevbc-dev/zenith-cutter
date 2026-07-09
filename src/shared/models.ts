@@ -12,6 +12,7 @@ export interface Usuario {
   empresa_id: string;
   nome: string;
   email: string;
+  login: string;
   papel: PapelUsuario;
   ativo: boolean;
   criado_em: string;
@@ -20,6 +21,7 @@ export interface Usuario {
 
 export interface UsuarioUpdatePatch {
   nome?: string;
+  login?: string;
   papel?: PapelUsuario;
   ativo?: boolean;
 }

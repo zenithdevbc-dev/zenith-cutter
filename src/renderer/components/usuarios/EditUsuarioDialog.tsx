@@ -29,6 +29,7 @@ interface EditUsuarioDialogProps {
 export function EditUsuarioDialog({ usuario, onUpdated }: EditUsuarioDialogProps) {
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState(usuario.nome);
+  const [login, setLogin] = useState(usuario.login);
   const [papel, setPapel] = useState(usuario.papel);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -38,7 +39,7 @@ export function EditUsuarioDialog({ usuario, onUpdated }: EditUsuarioDialogProps
     setSubmitting(true);
     setError(null);
     try {
-      const updated = await updateUsuario(usuario.id, { nome, papel });
+      const updated = await updateUsuario(usuario.id, { nome, login, papel });
       toast.success("Usuário atualizado.");
       onUpdated(updated);
       setOpen(false);
@@ -62,6 +63,10 @@ export function EditUsuarioDialog({ usuario, onUpdated }: EditUsuarioDialogProps
           <div className="flex flex-col gap-2">
             <Label htmlFor="edit-nome">Nome</Label>
             <Input id="edit-nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="edit-login">Login</Label>
+            <Input id="edit-login" value={login} onChange={(e) => setLogin(e.target.value)} required />
           </div>
           <div className="flex flex-col gap-2">
             <Label>Papel</Label>

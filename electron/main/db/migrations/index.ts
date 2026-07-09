@@ -199,4 +199,20 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 9,
+    name: "add_usuarios_login",
+    up: (db) => {
+      db.exec(`
+        -- A credencial de login deixa de ser o e-mail e passa a ser um
+        -- "nome de login" próprio (username), resolvido para o e-mail
+        -- real do Supabase Auth antes do signIn (ver resolve_login_email
+        -- no Supabase e auth-context.tsx). E-mail continua obrigatório
+        -- no cadastro do usuário.
+        ALTER TABLE usuarios ADD COLUMN login TEXT;
+
+        CREATE UNIQUE INDEX idx_usuarios_login ON usuarios (login);
+      `);
+    },
+  },
 ];

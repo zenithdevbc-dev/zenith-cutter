@@ -7,6 +7,7 @@ interface UsuarioRow {
   empresa_id: string;
   nome: string;
   email: string;
+  login: string;
   papel: string;
   ativo: number;
   criado_em: string;
@@ -19,6 +20,7 @@ function rowToUsuario(row: UsuarioRow): Usuario {
     empresa_id: row.empresa_id,
     nome: row.nome,
     email: row.email,
+    login: row.login,
     papel: row.papel as Usuario["papel"],
     ativo: row.ativo === 1,
     criado_em: row.criado_em,
@@ -40,12 +42,13 @@ export function listUsuariosLocal(db: Database.Database): Usuario[] {
  */
 export function cacheUsuarios(db: Database.Database, usuarios: Usuario[]) {
   const stmt = db.prepare(`
-    INSERT INTO usuarios (id, empresa_id, nome, email, papel, ativo, criado_em, atualizado_em)
-    VALUES (@id, @empresa_id, @nome, @email, @papel, @ativo, @criado_em, @atualizado_em)
+    INSERT INTO usuarios (id, empresa_id, nome, email, login, papel, ativo, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @nome, @email, @login, @papel, @ativo, @criado_em, @atualizado_em)
     ON CONFLICT (id) DO UPDATE SET
       empresa_id = excluded.empresa_id,
       nome = excluded.nome,
       email = excluded.email,
+      login = excluded.login,
       papel = excluded.papel,
       ativo = excluded.ativo,
       criado_em = excluded.criado_em,
@@ -78,6 +81,10 @@ export function updateUsuarioLocal(
   if (patch.nome !== undefined) {
     fields.push("nome = @nome");
     params.nome = patch.nome;
+  }
+  if (patch.login !== undefined) {
+    fields.push("login = @login");
+    params.login = patch.login;
   }
   if (patch.papel !== undefined) {
     fields.push("papel = @papel");
