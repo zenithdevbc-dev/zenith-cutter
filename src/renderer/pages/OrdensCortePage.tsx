@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { CreateOrdemCorteDialog } from "@/components/ordens/CreateOrdemCorteDialog";
 import { EditOrdemCorteDialog } from "@/components/ordens/EditOrdemCorteDialog";
+import { InfoOrdemCorteDialog } from "@/components/ordens/InfoOrdemCorteDialog";
 import { listOrdensCorte, updateOrdemCorte, duplicateOrdemCorte } from "@/lib/ordensCorte";
 import type { OrdemCorteResumo, StatusOrdemCorte } from "@shared/models";
 
@@ -155,6 +156,7 @@ export function OrdensCortePage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <InfoOrdemCorteDialog ordem={ordem} />
                         <Button variant="outline" size="sm" onClick={() => handleDuplicar(ordem)}>
                           Duplicar
                         </Button>
