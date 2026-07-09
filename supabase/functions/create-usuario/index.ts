@@ -18,7 +18,7 @@ interface CreateUsuarioBody {
   email: string;
   login: string;
   senha: string;
-  papel?: "operador" | "administrador";
+  papel?: "operador" | "supervisor" | "administrador";
 }
 
 function json(body: unknown, status: number) {
@@ -108,8 +108,9 @@ Deno.serve(async (req) => {
 
     // O trigger on_auth_user_created já criou a linha em usuarios com
     // papel padrão 'operador' e a empresa correta; só ajusta o papel se
-    // foi pedido 'administrador'.
-    const papel = body.papel === "administrador" ? "administrador" : "operador";
+    // foi pedido 'supervisor' ou 'administrador'.
+    const papel =
+      body.papel === "administrador" || body.papel === "supervisor" ? body.papel : "operador";
     if (papel !== "operador") {
       await adminClient.from("usuarios").update({ papel }).eq("id", created.user.id);
     }
