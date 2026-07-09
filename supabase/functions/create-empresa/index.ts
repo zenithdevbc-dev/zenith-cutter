@@ -24,6 +24,7 @@ interface CreateEmpresaBody {
   admin_nome: string;
   admin_email: string;
   admin_senha: string;
+  admin_login: string;
 }
 
 function json(body: unknown, status: number) {
@@ -50,13 +51,14 @@ Deno.serve(async (req) => {
       !body.nome_empresa?.trim() ||
       !body.admin_nome?.trim() ||
       !body.admin_email?.trim() ||
+      !body.admin_login?.trim() ||
       !body.admin_senha ||
       body.admin_senha.length < 8
     ) {
       return json(
         {
           error:
-            "Dados inválidos: nome_empresa, admin_nome, admin_email e admin_senha (mínimo 8 caracteres) são obrigatórios.",
+            "Dados inválidos: nome_empresa, admin_nome, admin_email, admin_login e admin_senha (mínimo 8 caracteres) são obrigatórios.",
         },
         400,
       );
@@ -80,7 +82,11 @@ Deno.serve(async (req) => {
       email: body.admin_email.trim(),
       password: body.admin_senha,
       email_confirm: true,
-      user_metadata: { nome: body.admin_nome.trim(), empresa_id: empresa.id },
+      user_metadata: {
+        nome: body.admin_nome.trim(),
+        empresa_id: empresa.id,
+        login: body.admin_login.trim(),
+      },
     });
 
     if (createError || !created.user) {
