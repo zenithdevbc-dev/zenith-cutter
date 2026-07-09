@@ -128,11 +128,24 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: Sprint 1 — Cadastros (Usuários, Clientes,
-  Produtos — com grade de tamanhos —, Tecidos e Mesas de Corte
-  concluídos, incluindo isolamento multiempresa; falta só
-  configurações básicas, ainda sem escopo definido).
-- Última entrega: **login por nome de usuário, não e-mail**. Novo
+- Sprint em andamento: Sprint 2 — Ordens de Corte (criar/editar/
+  cancelar/duplicar concluído; faltam entrada automática na fila —
+  depende da Fila de Produção do Sprint 3 — e histórico dedicado).
+  Sprint 1 fica considerado encerrado por decisão do usuário em
+  2026-07-09, com "configurações básicas" deliberadamente adiada sem
+  escopo definido (não é um item esquecido — foi pulado a pedido).
+- Última entrega: **Ordens de Corte** (Sprint 2). Cada ordem tem
+  cliente, produto, tecido, observações, status (`aberta` / `em_fila`
+  / `cancelada`) e itens de quantidade por tamanho da grade do produto
+  escolhido (`ordem_corte_itens`). Sem DELETE físico da ordem —
+  cancelar é só mudar o status; editar os itens da grade apaga e
+  regrava tudo (simplicidade, nunca são muitos itens). Página
+  `OrdensCortePage.tsx` (lista com pesquisa por cliente/produto/tecido
+  + filtro por status, ações duplicar/cancelar/editar) substituiu o
+  placeholder da nav "Ordens de Corte". Migration local aplicada;
+  `supabase/sql/0010_ordens_corte.sql` (RLS por empresa) **pendente de
+  execução manual** no SQL Editor.
+- Entrega anterior: **login por nome de usuário, não e-mail**. Novo
   campo `usuarios.login` (username único, `NOT NULL` em produção). A
   tela de login pede "Usuário" (login) + senha; o app resolve
   login → email via `resolve_login_email()` (função `security
