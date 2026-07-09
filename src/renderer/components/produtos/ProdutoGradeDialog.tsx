@@ -110,7 +110,7 @@ export function ProdutoGradeDialog({ produto }: ProdutoGradeDialogProps) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">Grade</Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
+      <DialogContent>
         <DialogHeader className="shrink-0">
           <DialogTitle>Grade de tamanhos — {produto.nome}</DialogTitle>
         </DialogHeader>

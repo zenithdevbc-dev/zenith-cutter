@@ -52,7 +52,7 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">Info</Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
+      <DialogContent>
         <DialogHeader className="shrink-0">
           <DialogTitle>Ordem de corte — {ordem.produto_nome}</DialogTitle>
         </DialogHeader>

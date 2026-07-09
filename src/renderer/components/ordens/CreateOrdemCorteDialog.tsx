@@ -142,7 +142,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
       <DialogTrigger asChild>
         <Button>Nova ordem de corte</Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
+      <DialogContent>
         <DialogHeader className="shrink-0">
           <DialogTitle>Nova ordem de corte</DialogTitle>
         </DialogHeader>

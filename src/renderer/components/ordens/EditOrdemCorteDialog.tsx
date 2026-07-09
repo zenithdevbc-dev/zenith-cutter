@@ -145,7 +145,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">Editar</Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
+      <DialogContent>
         <DialogHeader className="shrink-0">
           <DialogTitle>Editar ordem de corte</DialogTitle>
         </DialogHeader>
