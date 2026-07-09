@@ -46,12 +46,12 @@ export function ClientesPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex shrink-0 flex-row items-center justify-between">
         <CardTitle>Clientes</CardTitle>
         <CreateClienteDialog onCreated={upsertLocal} />
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-h-0 flex-1 overflow-y-auto">
         {clientes === null ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
         ) : clientes.length === 0 ? (

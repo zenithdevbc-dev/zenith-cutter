@@ -7,27 +7,27 @@ import { MesasCortePage } from "@/pages/MesasCortePage";
 
 export function CadastrosPage() {
   return (
-    <Tabs defaultValue="usuarios">
-      <TabsList>
+    <Tabs defaultValue="usuarios" className="h-full">
+      <TabsList className="shrink-0">
         <TabsTrigger value="usuarios">Usuários</TabsTrigger>
         <TabsTrigger value="clientes">Clientes</TabsTrigger>
         <TabsTrigger value="produtos">Produtos</TabsTrigger>
         <TabsTrigger value="tecidos">Tecidos</TabsTrigger>
         <TabsTrigger value="mesas">Mesas de Corte</TabsTrigger>
       </TabsList>
-      <TabsContent value="usuarios">
+      <TabsContent value="usuarios" className="min-h-0 overflow-hidden">
         <UsuariosPage />
       </TabsContent>
-      <TabsContent value="clientes">
+      <TabsContent value="clientes" className="min-h-0 overflow-hidden">
         <ClientesPage />
       </TabsContent>
-      <TabsContent value="produtos">
+      <TabsContent value="produtos" className="min-h-0 overflow-hidden">
         <ProdutosPage />
       </TabsContent>
-      <TabsContent value="tecidos">
+      <TabsContent value="tecidos" className="min-h-0 overflow-hidden">
         <TecidosPage />
       </TabsContent>
-      <TabsContent value="mesas">
+      <TabsContent value="mesas" className="min-h-0 overflow-hidden">
         <MesasCortePage />
       </TabsContent>
     </Tabs>

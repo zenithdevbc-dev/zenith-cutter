@@ -49,12 +49,12 @@ export function UsuariosPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex shrink-0 flex-row items-center justify-between">
         <CardTitle>Usuários</CardTitle>
         {isAdmin && <CreateUsuarioDialog onCreated={upsertLocal} />}
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-h-0 flex-1 overflow-y-auto">
         {usuarios === null ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
         ) : usuarios.length === 0 ? (

@@ -110,12 +110,12 @@ export function ProdutoGradeDialog({ produto }: ProdutoGradeDialogProps) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">Grade</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Grade de tamanhos — {produto.nome}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleAdd} className="flex gap-2">
+        <form onSubmit={handleAdd} className="flex shrink-0 gap-2">
           <Input
             placeholder="Novo tamanho (ex.: P, 38, Único)"
             value={novoTamanho}
@@ -126,63 +126,65 @@ export function ProdutoGradeDialog({ produto }: ProdutoGradeDialogProps) {
           </Button>
         </form>
 
-        {tamanhos === null ? (
-          <p className="text-sm text-muted-foreground">Carregando...</p>
-        ) : tamanhos.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum tamanho cadastrado ainda.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ordem</TableHead>
-                <TableHead>Tamanho</TableHead>
-                <TableHead>Ativo</TableHead>
-                <TableHead className="text-right">Mover</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tamanhos.map((tamanho, index) => (
-                <TableRow key={tamanho.id}>
-                  <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                  <TableCell>
-                    <Input
-                      defaultValue={tamanho.tamanho}
-                      onBlur={(e) => handleRenomear(tamanho, e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={tamanho.ativo}
-                      onCheckedChange={(checked) => handleToggleAtivo(tamanho, checked)}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        disabled={index === 0}
-                        onClick={() => handleMove(index, -1)}
-                      >
-                        <ArrowUp className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        disabled={index === tamanhos.length - 1}
-                        onClick={() => handleMove(index, 1)}
-                      >
-                        <ArrowDown className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {tamanhos === null ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : tamanhos.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum tamanho cadastrado ainda.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ordem</TableHead>
+                  <TableHead>Tamanho</TableHead>
+                  <TableHead>Ativo</TableHead>
+                  <TableHead className="text-right">Mover</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {tamanhos.map((tamanho, index) => (
+                  <TableRow key={tamanho.id}>
+                    <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                    <TableCell>
+                      <Input
+                        defaultValue={tamanho.tamanho}
+                        onBlur={(e) => handleRenomear(tamanho, e.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={tamanho.ativo}
+                        onCheckedChange={(checked) => handleToggleAtivo(tamanho, checked)}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          disabled={index === 0}
+                          onClick={() => handleMove(index, -1)}
+                        >
+                          <ArrowUp className="size-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          disabled={index === tamanhos.length - 1}
+                          onClick={() => handleMove(index, 1)}
+                        >
+                          <ArrowDown className="size-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

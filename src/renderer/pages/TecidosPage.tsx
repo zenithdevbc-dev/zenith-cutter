@@ -46,12 +46,12 @@ export function TecidosPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex shrink-0 flex-row items-center justify-between">
         <CardTitle>Tecidos</CardTitle>
         <CreateTecidoDialog onCreated={upsertLocal} />
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-h-0 flex-1 overflow-y-auto">
         {tecidos === null ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
         ) : tecidos.length === 0 ? (

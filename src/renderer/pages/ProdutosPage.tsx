@@ -47,12 +47,12 @@ export function ProdutosPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex shrink-0 flex-row items-center justify-between">
         <CardTitle>Produtos</CardTitle>
         <CreateProdutoDialog onCreated={upsertLocal} />
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-h-0 flex-1 overflow-y-auto">
         {produtos === null ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
         ) : produtos.length === 0 ? (
