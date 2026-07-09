@@ -123,3 +123,25 @@ export interface MesaCorteUpdatePatch {
   observacoes?: string | null;
   ativo?: boolean;
 }
+
+export interface ProdutoTamanho {
+  id: string;
+  empresa_id: string;
+  produto_id: string;
+  tamanho: string;
+  ordem: number;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface ProdutoTamanhoInput {
+  empresa_id: string;
+  produto_id: string;
+  tamanho: string;
+}
+
+export interface ProdutoTamanhoUpdatePatch {
+  tamanho?: string;
+  ativo?: boolean;
+}

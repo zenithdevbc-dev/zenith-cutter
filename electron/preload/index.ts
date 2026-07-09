@@ -15,6 +15,9 @@ import type {
   MesaCorte,
   MesaCorteInput,
   MesaCorteUpdatePatch,
+  ProdutoTamanho,
+  ProdutoTamanhoInput,
+  ProdutoTamanhoUpdatePatch,
   Empresa,
 } from "../../src/shared/models";
 
@@ -81,6 +84,16 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.mesasCorteCreateLocal, input),
     updateLocal: (id: string, patch: MesaCorteUpdatePatch): Promise<MesaCorte> =>
       ipcRenderer.invoke(IPC_CHANNELS.mesasCorteUpdateLocal, id, patch),
+  },
+  produtoTamanhos: {
+    listLocal: (produtoId: string): Promise<ProdutoTamanho[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosListLocal, produtoId),
+    createLocal: (input: ProdutoTamanhoInput): Promise<ProdutoTamanho> =>
+      ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosCreateLocal, input),
+    updateLocal: (id: string, patch: ProdutoTamanhoUpdatePatch): Promise<ProdutoTamanho> =>
+      ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosUpdateLocal, id, patch),
+    reorderLocal: (orderedIds: string[]): Promise<ProdutoTamanho[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosReorderLocal, orderedIds),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

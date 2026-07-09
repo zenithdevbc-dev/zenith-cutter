@@ -16,6 +16,9 @@ import type {
   MesaCorte,
   MesaCorteInput,
   MesaCorteUpdatePatch,
+  ProdutoTamanho,
+  ProdutoTamanhoInput,
+  ProdutoTamanhoUpdatePatch,
   Empresa,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
@@ -46,6 +49,12 @@ import {
   createMesaCorteLocal,
   updateMesaCorteLocal,
 } from "../db/repositories/mesasCorte";
+import {
+  listProdutoTamanhosLocal,
+  createProdutoTamanhoLocal,
+  updateProdutoTamanhoLocal,
+  reorderProdutoTamanhosLocal,
+} from "../db/repositories/produtoTamanhos";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
 
 export function registerIpcHandlers() {
@@ -138,6 +147,34 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.mesasCorteUpdateLocal,
     (_event, id: string, patch: MesaCorteUpdatePatch): MesaCorte => {
       return updateMesaCorteLocal(getDb(), id, patch);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.produtoTamanhosListLocal,
+    (_event, produtoId: string): ProdutoTamanho[] => {
+      return listProdutoTamanhosLocal(getDb(), produtoId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.produtoTamanhosCreateLocal,
+    (_event, input: ProdutoTamanhoInput): ProdutoTamanho => {
+      return createProdutoTamanhoLocal(getDb(), input);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.produtoTamanhosUpdateLocal,
+    (_event, id: string, patch: ProdutoTamanhoUpdatePatch): ProdutoTamanho => {
+      return updateProdutoTamanhoLocal(getDb(), id, patch);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.produtoTamanhosReorderLocal,
+    (_event, orderedIds: string[]): ProdutoTamanho[] => {
+      return reorderProdutoTamanhosLocal(getDb(), orderedIds);
     },
   );
 

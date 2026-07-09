@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateProdutoDialog } from "@/components/produtos/CreateProdutoDialog";
 import { EditProdutoDialog } from "@/components/produtos/EditProdutoDialog";
+import { ProdutoGradeDialog } from "@/components/produtos/ProdutoGradeDialog";
 import { listProdutos, updateProduto } from "@/lib/produtos";
 import type { Produto } from "@shared/models";
 
@@ -84,7 +85,10 @@ export function ProdutosPage() {
                     />
                   </TableCell>
                   <TableCell className="text-right">
-                    <EditProdutoDialog produto={produto} onUpdated={upsertLocal} />
+                    <div className="flex justify-end gap-2">
+                      <ProdutoGradeDialog produto={produto} />
+                      <EditProdutoDialog produto={produto} onUpdated={upsertLocal} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

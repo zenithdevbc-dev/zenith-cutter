@@ -174,4 +174,29 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 8,
+    name: "create_produto_tamanhos",
+    up: (db) => {
+      db.exec(`
+        -- Grade de tamanhos de um produto: tamanho é texto livre
+        -- (definido pelo usuário, não um enum fixo), com uma ordem
+        -- explícita que o usuário controla (reordenar a grade). Mesmo
+        -- padrão offline-first das demais tabelas de negócio.
+        CREATE TABLE produto_tamanhos (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          produto_id    TEXT NOT NULL,
+          tamanho       TEXT NOT NULL,
+          ordem         INTEGER NOT NULL,
+          ativo         INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_produto_tamanhos_produto ON produto_tamanhos (produto_id);
+        CREATE INDEX idx_produto_tamanhos_empresa ON produto_tamanhos (empresa_id);
+      `);
+    },
+  },
 ];
