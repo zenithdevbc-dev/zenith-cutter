@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "./supabase";
+import { runSync } from "./sync";
 import type { Usuario, Empresa } from "@shared/models";
 
 interface AuthContextValue {
@@ -72,6 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         setUsuario(perfil);
+        runSync().catch(() => {
+          // Falha de rede/transitória — a fila continua pendente e uma
+          // próxima sincronização (próximo login, ou botão manual) tenta
+          // de novo. Nunca bloqueia o uso do app.
+        });
 
         const { data: empresaData } = await client
           .from("empresas")

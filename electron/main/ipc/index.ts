@@ -1,6 +1,11 @@
 import { ipcMain, app } from "electron";
 import path from "node:path";
-import { IPC_CHANNELS, type DbStatus, type SyncStatus } from "../../../src/shared/ipc";
+import {
+  IPC_CHANNELS,
+  type DbStatus,
+  type SyncStatus,
+  type PendingSyncItem,
+} from "../../../src/shared/ipc";
 import type {
   Usuario,
   UsuarioUpdatePatch,
@@ -27,7 +32,12 @@ import type {
   Empresa,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
-import { getPendingSyncCount } from "../sync/queue";
+import {
+  getPendingSyncCount,
+  listPendingSync,
+  markSyncSuccess,
+  markSyncError,
+} from "../sync/queue";
 import { quitAndInstall } from "../updater";
 import {
   listUsuariosLocal,
@@ -81,6 +91,18 @@ export function registerIpcHandlers() {
     return {
       pendingCount: getPendingSyncCount(getDb()),
     };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.syncListPending, (): PendingSyncItem[] => {
+    return listPendingSync(getDb());
+  });
+
+  ipcMain.handle(IPC_CHANNELS.syncMarkSuccess, (_event, id: number) => {
+    markSyncSuccess(getDb(), id);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.syncMarkError, (_event, id: number, message: string) => {
+    markSyncError(getDb(), id, message);
   });
 
   ipcMain.handle(IPC_CHANNELS.updaterQuitAndInstall, () => {

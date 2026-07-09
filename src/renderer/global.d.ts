@@ -1,4 +1,4 @@
-import type { DbStatus, SyncStatus } from "@shared/ipc";
+import type { DbStatus, SyncStatus, PendingSyncItem } from "@shared/ipc";
 import type {
   Usuario,
   UsuarioUpdatePatch,
@@ -38,6 +38,9 @@ declare global {
       };
       sync: {
         getStatus: () => Promise<SyncStatus>;
+        listPending: () => Promise<PendingSyncItem[]>;
+        markSuccess: (id: number) => Promise<void>;
+        markError: (id: number, message: string) => Promise<void>;
       };
       updater: {
         onUpdateDownloaded: (callback: () => void) => () => void;

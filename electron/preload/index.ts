@@ -1,5 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
-import { IPC_CHANNELS, type DbStatus, type SyncStatus } from "../../src/shared/ipc";
+import {
+  IPC_CHANNELS,
+  type DbStatus,
+  type SyncStatus,
+  type PendingSyncItem,
+} from "../../src/shared/ipc";
 import type {
   Usuario,
   UsuarioUpdatePatch,
@@ -39,6 +44,12 @@ contextBridge.exposeInMainWorld("zenith", {
   sync: {
     getStatus: (): Promise<SyncStatus> =>
       ipcRenderer.invoke(IPC_CHANNELS.syncGetStatus),
+    listPending: (): Promise<PendingSyncItem[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.syncListPending),
+    markSuccess: (id: number): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.syncMarkSuccess, id),
+    markError: (id: number, message: string): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.syncMarkError, id, message),
   },
   updater: {
     onUpdateDownloaded: (callback: () => void) => {

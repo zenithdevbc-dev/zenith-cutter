@@ -7,9 +7,23 @@ export interface SyncStatus {
   pendingCount: number;
 }
 
+export type SyncOperation = "insert" | "update" | "delete";
+
+export interface PendingSyncItem {
+  id: number;
+  tableName: string;
+  recordId: string;
+  operation: SyncOperation;
+  payload: unknown;
+  retryCount: number;
+}
+
 export const IPC_CHANNELS = {
   dbGetStatus: "db:get-status",
   syncGetStatus: "sync:get-status",
+  syncListPending: "sync:list-pending",
+  syncMarkSuccess: "sync:mark-success",
+  syncMarkError: "sync:mark-error",
   updaterUpdateDownloaded: "updater:update-downloaded",
   updaterQuitAndInstall: "updater:quit-and-install",
   usuariosListLocal: "usuarios:list-local",

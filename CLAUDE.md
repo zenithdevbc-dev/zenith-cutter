@@ -155,6 +155,30 @@ implementar.
   Sprint 1 fica considerado encerrado por decisão do usuário em
   2026-07-09, com "configurações básicas" deliberadamente adiada sem
   escopo definido (não é um item esquecido — foi pulado a pedido).
+- Entrega **2026-07-09**: motor mínimo de sincronização (núcleo do
+  Sprint 6, adiantado a pedido do usuário — havia ~83 alterações
+  locais nunca enviadas ao Supabase, acumuladas desde o início do
+  projeto porque nada processava a `sync_queue` ainda).
+  `src/renderer/lib/sync.ts` (`runSync()`) lê a fila pendente
+  (`window.zenith.sync.listPending`, IPC novo em
+  `electron/main/sync/queue.ts` + `electron/main/ipc/index.ts` +
+  `electron/preload/index.ts`), processa em ordem cronológica (FIFO
+  por id — respeita dependências de FK sem precisar de sort por
+  tabela) e faz upsert/update/delete no Supabase por item, isolando
+  falhas (uma linha com erro não trava as demais; depois de 5
+  tentativas falhas vira `status='error'`, senão volta pra `pending`
+  e tenta de novo na próxima sincronização). Disparado automaticamente
+  logo após o login (`auth-context.tsx`) e por um botão "Sincronizar
+  agora" no `SyncStatusCard` (Dashboard). Testado ponta a ponta em
+  produção: as 83 alterações pendentes foram enviadas com sucesso
+  (verificado por contagem direta nas tabelas do Supabase).
+  **O que NÃO foi implementado** (continua Sprint 6 de verdade):
+  detecção de rede/reconexão automática, backoff entre tentativas,
+  log de sincronização visível pro usuário, testes de perda de
+  conexão. `ordens_corte` tem um caso especial: o payload de update
+  pode conter `itens` (não é coluna da tabela — os itens da grade
+  viajam como entradas próprias em `ordem_corte_itens`), removido
+  antes do envio em `sanitizePayload()`.
 - Última entrega: **papel Supervisor + matriz de permissões** (ver
   seção 3.6). `PapelUsuario` ganhou `"supervisor"`; navegação e RLS
   atualizados. `supabase/sql/0011_add_supervisor_role.sql` (CHECK de
