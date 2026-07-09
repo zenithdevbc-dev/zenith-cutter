@@ -129,10 +129,22 @@ implementar.
 ## 7. Estado atual
 
 - Sprint em andamento: Sprint 1 — Cadastros (Usuários, Clientes,
-  Produtos, Tecidos e Mesas de Corte concluídos, incluindo isolamento
-  multiempresa; falta só configurações básicas, ainda sem escopo
-  definido).
-- Última entrega: **Cadastro de Tecidos e Mesas de Corte** — mesmo
+  Produtos — com grade de tamanhos —, Tecidos e Mesas de Corte
+  concluídos, incluindo isolamento multiempresa; falta só
+  configurações básicas, ainda sem escopo definido).
+- Última entrega: **grade de tamanhos no cadastro de Produtos**. Cada
+  produto tem uma lista de tamanhos (`produto_tamanhos`) onde o
+  tamanho é texto livre digitado pelo usuário (não um enum fixo — cada
+  produto pode ter uma grade diferente, ex.: P/M/G ou numérica) e a
+  ordem é controlada pelo próprio usuário (botões mover para
+  cima/baixo na tabela, que reescrevem `ordem` sequencialmente).
+  Acessível pelo botão "Grade" na linha de cada produto em Cadastros >
+  Produtos (`ProdutoGradeDialog.tsx`). Mesmo padrão offline-first e de
+  soft-delete das demais tabelas (sem DELETE físico — remover um
+  tamanho é `ativo = false`). Migration local v8 já aplicada; migration
+  Supabase `supabase/sql/0008_produto_tamanhos.sql` (RLS escopado por
+  empresa) ainda **pendente de execução manual** no SQL Editor.
+- Entrega anterior: **Cadastro de Tecidos e Mesas de Corte** — mesmo
   padrão offline-first de Clientes/Produtos (id gerado no app, grava
   local primeiro, sem DELETE físico). Tecido: nome, composição, cor.
   Mesa de Corte: nome/identificação, observações — estado de ocupação
