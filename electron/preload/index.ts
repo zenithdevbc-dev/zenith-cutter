@@ -9,6 +9,12 @@ import type {
   Produto,
   ProdutoInput,
   ProdutoUpdatePatch,
+  Tecido,
+  TecidoInput,
+  TecidoUpdatePatch,
+  MesaCorte,
+  MesaCorteInput,
+  MesaCorteUpdatePatch,
   Empresa,
 } from "../../src/shared/models";
 
@@ -59,6 +65,22 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.produtosCreateLocal, input),
     updateLocal: (id: string, patch: ProdutoUpdatePatch): Promise<Produto> =>
       ipcRenderer.invoke(IPC_CHANNELS.produtosUpdateLocal, id, patch),
+  },
+  tecidos: {
+    listLocal: (): Promise<Tecido[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.tecidosListLocal),
+    createLocal: (input: TecidoInput): Promise<Tecido> =>
+      ipcRenderer.invoke(IPC_CHANNELS.tecidosCreateLocal, input),
+    updateLocal: (id: string, patch: TecidoUpdatePatch): Promise<Tecido> =>
+      ipcRenderer.invoke(IPC_CHANNELS.tecidosUpdateLocal, id, patch),
+  },
+  mesasCorte: {
+    listLocal: (): Promise<MesaCorte[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.mesasCorteListLocal),
+    createLocal: (input: MesaCorteInput): Promise<MesaCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.mesasCorteCreateLocal, input),
+    updateLocal: (id: string, patch: MesaCorteUpdatePatch): Promise<MesaCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.mesasCorteUpdateLocal, id, patch),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

@@ -128,4 +128,50 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 6,
+    name: "create_tecidos",
+    up: (db) => {
+      db.exec(`
+        -- Mesmo padrão de produtos/clientes: offline-first, id gerado no
+        -- app, empresa_id presente desde a criação.
+        CREATE TABLE tecidos (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          nome          TEXT NOT NULL,
+          composicao    TEXT,
+          cor           TEXT,
+          ativo         INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_tecidos_nome ON tecidos (nome);
+        CREATE INDEX idx_tecidos_empresa ON tecidos (empresa_id);
+      `);
+    },
+  },
+  {
+    version: 7,
+    name: "create_mesas_corte",
+    up: (db) => {
+      db.exec(`
+        -- Cadastro (Sprint 1) das mesas físicas de corte que existem na
+        -- fábrica. Estado de ocupação (livre/ocupada) é conceito da Fila
+        -- de Produção (Sprint 3), não faz parte deste cadastro.
+        CREATE TABLE mesas_corte (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          nome          TEXT NOT NULL,
+          observacoes   TEXT,
+          ativo         INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_mesas_corte_nome ON mesas_corte (nome);
+        CREATE INDEX idx_mesas_corte_empresa ON mesas_corte (empresa_id);
+      `);
+    },
+  },
 ];

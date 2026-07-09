@@ -10,6 +10,12 @@ import type {
   Produto,
   ProdutoInput,
   ProdutoUpdatePatch,
+  Tecido,
+  TecidoInput,
+  TecidoUpdatePatch,
+  MesaCorte,
+  MesaCorteInput,
+  MesaCorteUpdatePatch,
   Empresa,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
@@ -30,6 +36,16 @@ import {
   createProdutoLocal,
   updateProdutoLocal,
 } from "../db/repositories/produtos";
+import {
+  listTecidosLocal,
+  createTecidoLocal,
+  updateTecidoLocal,
+} from "../db/repositories/tecidos";
+import {
+  listMesasCorteLocal,
+  createMesaCorteLocal,
+  updateMesaCorteLocal,
+} from "../db/repositories/mesasCorte";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
 
 export function registerIpcHandlers() {
@@ -92,6 +108,36 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.produtosUpdateLocal,
     (_event, id: string, patch: ProdutoUpdatePatch): Produto => {
       return updateProdutoLocal(getDb(), id, patch);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.tecidosListLocal, (): Tecido[] => {
+    return listTecidosLocal(getDb());
+  });
+
+  ipcMain.handle(IPC_CHANNELS.tecidosCreateLocal, (_event, input: TecidoInput): Tecido => {
+    return createTecidoLocal(getDb(), input);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.tecidosUpdateLocal,
+    (_event, id: string, patch: TecidoUpdatePatch): Tecido => {
+      return updateTecidoLocal(getDb(), id, patch);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.mesasCorteListLocal, (): MesaCorte[] => {
+    return listMesasCorteLocal(getDb());
+  });
+
+  ipcMain.handle(IPC_CHANNELS.mesasCorteCreateLocal, (_event, input: MesaCorteInput): MesaCorte => {
+    return createMesaCorteLocal(getDb(), input);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.mesasCorteUpdateLocal,
+    (_event, id: string, patch: MesaCorteUpdatePatch): MesaCorte => {
+      return updateMesaCorteLocal(getDb(), id, patch);
     },
   );
 

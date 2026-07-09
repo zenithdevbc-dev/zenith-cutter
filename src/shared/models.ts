@@ -76,3 +76,50 @@ export interface ProdutoUpdatePatch {
   descricao?: string | null;
   ativo?: boolean;
 }
+
+export interface Tecido {
+  id: string;
+  empresa_id: string;
+  nome: string;
+  composicao: string | null;
+  cor: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface TecidoInput {
+  empresa_id: string;
+  nome: string;
+  composicao?: string | null;
+  cor?: string | null;
+}
+
+export interface TecidoUpdatePatch {
+  nome?: string;
+  composicao?: string | null;
+  cor?: string | null;
+  ativo?: boolean;
+}
+
+export interface MesaCorte {
+  id: string;
+  empresa_id: string;
+  nome: string;
+  observacoes: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface MesaCorteInput {
+  empresa_id: string;
+  nome: string;
+  observacoes?: string | null;
+}
+
+export interface MesaCorteUpdatePatch {
+  nome?: string;
+  observacoes?: string | null;
+  ativo?: boolean;
+}

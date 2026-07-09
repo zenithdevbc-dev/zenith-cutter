@@ -8,6 +8,12 @@ import type {
   Produto,
   ProdutoInput,
   ProdutoUpdatePatch,
+  Tecido,
+  TecidoInput,
+  TecidoUpdatePatch,
+  MesaCorte,
+  MesaCorteInput,
+  MesaCorteUpdatePatch,
   Empresa,
 } from "@shared/models";
 
@@ -43,6 +49,16 @@ declare global {
         listLocal: () => Promise<Produto[]>;
         createLocal: (input: ProdutoInput) => Promise<Produto>;
         updateLocal: (id: string, patch: ProdutoUpdatePatch) => Promise<Produto>;
+      };
+      tecidos: {
+        listLocal: () => Promise<Tecido[]>;
+        createLocal: (input: TecidoInput) => Promise<Tecido>;
+        updateLocal: (id: string, patch: TecidoUpdatePatch) => Promise<Tecido>;
+      };
+      mesasCorte: {
+        listLocal: () => Promise<MesaCorte[]>;
+        createLocal: (input: MesaCorteInput) => Promise<MesaCorte>;
+        updateLocal: (id: string, patch: MesaCorteUpdatePatch) => Promise<MesaCorte>;
       };
       empresas: {
         cache: (empresa: Empresa) => Promise<void>;
