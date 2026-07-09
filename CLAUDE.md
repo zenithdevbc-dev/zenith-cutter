@@ -128,10 +128,23 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: Sprint 1 — Cadastros (Usuários, Clientes e
-  Produtos concluídos, incluindo isolamento multiempresa; faltam
-  Tecidos, Mesas de Corte, configurações básicas).
-- Última correção: **bug de produção — trava do único administrador**.
+- Sprint em andamento: Sprint 1 — Cadastros (Usuários, Clientes,
+  Produtos, Tecidos e Mesas de Corte concluídos, incluindo isolamento
+  multiempresa; falta só configurações básicas, ainda sem escopo
+  definido).
+- Última entrega: **Cadastro de Tecidos e Mesas de Corte** — mesmo
+  padrão offline-first de Clientes/Produtos (id gerado no app, grava
+  local primeiro, sem DELETE físico). Tecido: nome, composição, cor.
+  Mesa de Corte: nome/identificação, observações — estado de ocupação
+  (livre/ocupada) é conceito da Fila de Produção (Sprint 3), não faz
+  parte deste cadastro. Abas "Tecidos" e "Mesas de Corte" adicionadas
+  em Cadastros. Migrations locais v6/v7 já aplicadas; migrations
+  Supabase `supabase/sql/0006_tecidos.sql` e
+  `supabase/sql/0007_mesas_corte.sql` criadas com RLS escopado por
+  empresa — **pendentes de execução manual** no SQL Editor do Supabase
+  (mesma rotina de 0001–0005; `0004_produtos.sql` também segue
+  pendente).
+- Correção anterior: **bug de produção — trava do único administrador**.
   Sintoma relatado: login carregava a tela inicial e voltava sozinho
   para a tela de login. Causa: o único usuário `administrador` da
   empresa estava com `ativo = false` no Supabase (origem exata não
@@ -148,7 +161,7 @@ implementar.
   `usuarios_prevent_last_admin_lockout`, já aplicada em produção)
   bloqueia no próprio Postgres qualquer UPDATE que desative ou rebaixe
   o último administrador ativo restante de uma empresa.
-- Entrega anterior: **Cadastro de Produtos** — mesmo padrão de
+- Entregas mais antigas do sprint: **Cadastro de Produtos** — mesmo padrão de
   Clientes (100% offline-first, id gerado no app via
   `crypto.randomUUID()`, grava local primeiro, sem DELETE físico).
   Campos: nome, código/referência, descrição, ativo. Aba "Produtos"
@@ -168,7 +181,7 @@ implementar.
   independente do que a navegação mostra ou esconde. Se o papel do
   usuário mudar e a página atual deixar de ser permitida, o `App.tsx`
   redireciona automaticamente para a primeira página permitida.
-- Entregas mais antigas do sprint: **multiempresa (multi-tenant) retrofit completo e
+- Fundação do sprint: **multiempresa (multi-tenant) retrofit completo e
   rodado em produção** — decisão de 2026-07-07 (ver seção 5). Toda
   tabela de negócio carrega `empresa_id`; RLS isola cada usuário aos
   dados da própria empresa via função `security definer`
