@@ -138,12 +138,10 @@ implementar.
   Mesa de Corte: nome/identificação, observações — estado de ocupação
   (livre/ocupada) é conceito da Fila de Produção (Sprint 3), não faz
   parte deste cadastro. Abas "Tecidos" e "Mesas de Corte" adicionadas
-  em Cadastros. Migrations locais v6/v7 já aplicadas; migrations
-  Supabase `supabase/sql/0006_tecidos.sql` e
-  `supabase/sql/0007_mesas_corte.sql` criadas com RLS escopado por
-  empresa — **pendentes de execução manual** no SQL Editor do Supabase
-  (mesma rotina de 0001–0005; `0004_produtos.sql` também segue
-  pendente).
+  em Cadastros. Migrations locais v6/v7 e migrations Supabase
+  `0004_produtos.sql`, `0006_tecidos.sql` e `0007_mesas_corte.sql`
+  todas aplicadas em produção (confirmado 2026-07-09 via
+  `information_schema.tables`) — RLS escopado por empresa em todas.
 - Correção anterior: **bug de produção — trava do único administrador**.
   Sintoma relatado: login carregava a tela inicial e voltava sozinho
   para a tela de login. Causa: o único usuário `administrador` da
