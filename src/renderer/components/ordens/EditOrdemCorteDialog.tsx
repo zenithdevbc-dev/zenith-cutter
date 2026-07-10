@@ -31,6 +31,7 @@ import { listProdutos } from "@/lib/produtos";
 import { listTecidos } from "@/lib/tecidos";
 import { listProdutoTamanhos } from "@/lib/produtoTamanhos";
 import { listOrdemCorteItens, updateOrdemCorte } from "@/lib/ordensCorte";
+import { useAuth } from "@/lib/auth-context";
 import type {
   Cliente,
   Produto,
@@ -52,6 +53,7 @@ const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
 };
 
 export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogProps) {
+  const { usuario } = useAuth();
   const [open, setOpen] = useState(false);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -98,7 +100,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!clienteId || !produtoId || !tecidoId) return;
+    if (!usuario || !clienteId || !produtoId || !tecidoId) return;
 
     const itens = grade
       .map((t) => ({ produto_tamanho_id: t.id, quantidade: Number(quantidades[t.id] || 0) }))
@@ -112,14 +114,18 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
     setSubmitting(true);
     setError(null);
     try {
-      const updated = await updateOrdemCorte(ordem.id, {
-        cliente_id: clienteId,
-        produto_id: produtoId,
-        tecido_id: tecidoId,
-        observacoes: observacoes || null,
-        status,
-        itens,
-      });
+      const updated = await updateOrdemCorte(
+        ordem.id,
+        {
+          cliente_id: clienteId,
+          produto_id: produtoId,
+          tecido_id: tecidoId,
+          observacoes: observacoes || null,
+          status,
+          itens,
+        },
+        usuario.id,
+      );
       const cliente = clientes.find((c) => c.id === clienteId);
       const produto = produtos.find((p) => p.id === produtoId);
       const tecido = tecidos.find((t) => t.id === tecidoId);

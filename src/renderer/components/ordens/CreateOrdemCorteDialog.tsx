@@ -108,14 +108,17 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
     setSubmitting(true);
     setError(null);
     try {
-      const ordem = await createOrdemCorte({
-        empresa_id: usuario.empresa_id,
-        cliente_id: clienteId,
-        produto_id: produtoId,
-        tecido_id: tecidoId,
-        observacoes: observacoes || null,
-        itens,
-      });
+      const ordem = await createOrdemCorte(
+        {
+          empresa_id: usuario.empresa_id,
+          cliente_id: clienteId,
+          produto_id: produtoId,
+          tecido_id: tecidoId,
+          observacoes: observacoes || null,
+          itens,
+        },
+        usuario.id,
+      );
       const cliente = clientes.find((c) => c.id === clienteId);
       const produto = produtos.find((p) => p.id === produtoId);
       const tecido = tecidos.find((t) => t.id === tecidoId);

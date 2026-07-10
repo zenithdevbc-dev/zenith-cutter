@@ -1,13 +1,87 @@
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type {
+  AcaoOrdemCorteHistorico,
   OrdemCorte,
+  OrdemCorteHistoricoEntry,
   OrdemCorteInput,
   OrdemCorteItem,
   OrdemCorteResumo,
   OrdemCorteUpdatePatch,
 } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+
+const STATUS_LABEL: Record<string, string> = {
+  aberta: "Aberta",
+  em_fila: "Em Fila",
+  cancelada: "Cancelada",
+};
+
+interface OrdemCorteHistoricoRow {
+  id: string;
+  empresa_id: string;
+  ordem_id: string;
+  usuario_id: string;
+  usuario_nome: string;
+  acao: AcaoOrdemCorteHistorico;
+  descricao: string;
+  criado_em: string;
+}
+
+function registrarHistorico(
+  db: Database.Database,
+  params: {
+    empresaId: string;
+    ordemId: string;
+    usuarioId: string;
+    acao: AcaoOrdemCorteHistorico;
+    descricao: string;
+  },
+) {
+  const id = randomUUID();
+  const criadoEm = new Date().toISOString();
+  db.prepare(`
+    INSERT INTO ordem_corte_historico (id, empresa_id, ordem_id, usuario_id, acao, descricao, criado_em)
+    VALUES (@id, @empresa_id, @ordem_id, @usuario_id, @acao, @descricao, @criado_em)
+  `).run({
+    id,
+    empresa_id: params.empresaId,
+    ordem_id: params.ordemId,
+    usuario_id: params.usuarioId,
+    acao: params.acao,
+    descricao: params.descricao,
+    criado_em: criadoEm,
+  });
+  enqueueChange(db, {
+    tableName: "ordem_corte_historico",
+    recordId: id,
+    operation: "insert",
+    payload: {
+      id,
+      empresa_id: params.empresaId,
+      ordem_id: params.ordemId,
+      usuario_id: params.usuarioId,
+      acao: params.acao,
+      descricao: params.descricao,
+      criado_em: criadoEm,
+    },
+  });
+}
+
+export function listOrdemCorteHistoricoLocal(
+  db: Database.Database,
+  ordemId: string,
+): OrdemCorteHistoricoEntry[] {
+  return db
+    .prepare<[string], OrdemCorteHistoricoRow>(`
+      SELECT h.*, COALESCE(u.nome, 'Usuário') AS usuario_nome
+      FROM ordem_corte_historico h
+      LEFT JOIN usuarios u ON u.id = h.usuario_id
+      WHERE h.ordem_id = ?
+      ORDER BY h.criado_em DESC
+    `)
+    .all(ordemId);
+}
 
 interface OrdemCorteRow {
   id: string;
@@ -127,6 +201,7 @@ function insertItens(
 export function createOrdemCorteLocal(
   db: Database.Database,
   input: OrdemCorteInput,
+  usuarioId: string,
 ): OrdemCorte {
   const id = randomUUID();
   const now = new Date().toISOString();
@@ -154,6 +229,13 @@ export function createOrdemCorteLocal(
       payload: ordem,
     });
     insertItens(db, input.empresa_id, id, input.itens);
+    registrarHistorico(db, {
+      empresaId: input.empresa_id,
+      ordemId: id,
+      usuarioId,
+      acao: "criacao",
+      descricao: "Ordem de corte criada.",
+    });
   });
   create();
 
@@ -164,6 +246,7 @@ export function updateOrdemCorteLocal(
   db: Database.Database,
   id: string,
   patch: OrdemCorteUpdatePatch,
+  usuarioId: string,
 ): OrdemCorte {
   const fields: string[] = [];
   const params: Record<string, unknown> = { id };
@@ -222,6 +305,33 @@ export function updateOrdemCorteLocal(
       }
       insertItens(db, row.empresa_id, id, patch.itens);
     }
+
+    const statusChanged = patch.status !== undefined && patch.status !== row.status;
+    const outrosCamposMudaram =
+      patch.cliente_id !== undefined ||
+      patch.produto_id !== undefined ||
+      patch.tecido_id !== undefined ||
+      patch.observacoes !== undefined ||
+      patch.itens !== undefined;
+
+    if (statusChanged) {
+      registrarHistorico(db, {
+        empresaId: row.empresa_id,
+        ordemId: id,
+        usuarioId,
+        acao: patch.status === "cancelada" ? "cancelamento" : "mudanca_status",
+        descricao: `Status alterado de "${STATUS_LABEL[row.status] ?? row.status}" para "${STATUS_LABEL[patch.status as string] ?? patch.status}".`,
+      });
+    }
+    if (outrosCamposMudaram) {
+      registrarHistorico(db, {
+        empresaId: row.empresa_id,
+        ordemId: id,
+        usuarioId,
+        acao: "edicao",
+        descricao: "Dados da ordem de corte editados.",
+      });
+    }
   });
   apply();
 
@@ -236,7 +346,11 @@ export function updateOrdemCorteLocal(
  * Duplicar cria uma ordem nova (id novo, status volta para 'aberta')
  * copiando cliente/produto/tecido/observações e os itens da grade.
  */
-export function duplicateOrdemCorteLocal(db: Database.Database, id: string): OrdemCorte {
+export function duplicateOrdemCorteLocal(
+  db: Database.Database,
+  id: string,
+  usuarioId: string,
+): OrdemCorte {
   const original = db
     .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
     .get(id);
@@ -248,12 +362,26 @@ export function duplicateOrdemCorteLocal(db: Database.Database, id: string): Ord
     )
     .all(id);
 
-  return createOrdemCorteLocal(db, {
-    empresa_id: original.empresa_id,
-    cliente_id: original.cliente_id,
-    produto_id: original.produto_id,
-    tecido_id: original.tecido_id,
-    observacoes: original.observacoes,
-    itens,
+  const nova = createOrdemCorteLocal(
+    db,
+    {
+      empresa_id: original.empresa_id,
+      cliente_id: original.cliente_id,
+      produto_id: original.produto_id,
+      tecido_id: original.tecido_id,
+      observacoes: original.observacoes,
+      itens,
+    },
+    usuarioId,
+  );
+
+  registrarHistorico(db, {
+    empresaId: original.empresa_id,
+    ordemId: nova.id,
+    usuarioId,
+    acao: "duplicacao",
+    descricao: `Ordem de corte duplicada a partir de outra ordem (${original.id.slice(0, 8)}).`,
   });
+
+  return nova;
 }

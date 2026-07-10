@@ -150,12 +150,32 @@ implementar.
 ## 7. Estado atual
 
 - Sprint em andamento: Sprint 2 — Ordens de Corte (criar/editar/
-  cancelar/duplicar concluído; faltam entrada automática na fila —
-  depende da Fila de Produção do Sprint 3 — e histórico dedicado).
-  Sprint 1 fica considerado encerrado por decisão do usuário em
-  2026-07-09, com "configurações básicas" deliberadamente adiada sem
-  escopo definido (não é um item esquecido — foi pulado a pedido).
-- Entrega **2026-07-09**: motor mínimo de sincronização (núcleo do
+  cancelar/duplicar concluído; falta só a entrada automática na fila —
+  depende da Fila de Produção do Sprint 3). Sprint 1 fica considerado
+  encerrado por decisão do usuário em 2026-07-09, com "configurações
+  básicas" deliberadamente adiada sem escopo definido (não é um item
+  esquecido — foi pulado a pedido).
+- Última entrega **2026-07-09**: histórico dedicado de Ordens de
+  Corte (fecha o item que faltava do Sprint 2). Nova tabela
+  `ordem_corte_historico` (migration local v12 +
+  `supabase/sql/0014_ordem_corte_historico.sql`, RLS admin/supervisor
+  igual `ordens_corte` — aplicada em produção) registra criação,
+  edição, mudança de status, cancelamento e duplicação, cada uma com
+  usuário + timestamp + descrição (CLAUDE.md 3.5). `registrarHistorico()`
+  em `ordensCorte.ts` é chamado de dentro das mesmas transações de
+  create/update/duplicate; `usuario_id` passa a ser parâmetro explícito
+  dessas funções (IPC/preload atualizados) porque o processo main não
+  tem noção de sessão — só o renderer sabe quem está logado. Exibido
+  como seção "Histórico" dentro do dialog "Info" já existente (sem
+  tela nova). Sincroniza pela mesma `sync_queue`/`runSync()` das outras
+  tabelas. Build/typecheck limpos; **não foi testado manualmente na UI
+  nesta sessão** (a tentativa de automação de tela foi interrompida ao
+  perceber que a janela em foreground era outro aplicativo do usuário,
+  não o Zenith Cutter — parei para não interferir). Revisão de código
+  linha a linha feita como substituto; testar criar/editar/cancelar/
+  duplicar uma ordem e conferir a seção Histórico no Info é o próximo
+  passo antes de considerar isso 100% validado.
+- Entrega anterior: motor mínimo de sincronização (núcleo do
   Sprint 6, adiantado a pedido do usuário — havia ~83 alterações
   locais nunca enviadas ao Supabase, acumuladas desde o início do
   projeto porque nada processava a `sync_queue` ainda).

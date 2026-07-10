@@ -23,6 +23,7 @@ import { CreateOrdemCorteDialog } from "@/components/ordens/CreateOrdemCorteDial
 import { EditOrdemCorteDialog } from "@/components/ordens/EditOrdemCorteDialog";
 import { InfoOrdemCorteDialog } from "@/components/ordens/InfoOrdemCorteDialog";
 import { listOrdensCorte, updateOrdemCorte, duplicateOrdemCorte } from "@/lib/ordensCorte";
+import { useAuth } from "@/lib/auth-context";
 import type { OrdemCorteResumo, StatusOrdemCorte } from "@shared/models";
 
 const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
@@ -38,6 +39,7 @@ const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destru
 };
 
 export function OrdensCortePage() {
+  const { usuario } = useAuth();
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<StatusOrdemCorte | "todos">("todos");
@@ -60,8 +62,9 @@ export function OrdensCortePage() {
   }
 
   async function handleCancelar(ordem: OrdemCorteResumo) {
+    if (!usuario) return;
     try {
-      const updated = await updateOrdemCorte(ordem.id, { status: "cancelada" });
+      const updated = await updateOrdemCorte(ordem.id, { status: "cancelada" }, usuario.id);
       upsertLocal({ ...ordem, ...updated });
       toast.success("Ordem de corte cancelada.");
     } catch {
@@ -70,8 +73,9 @@ export function OrdensCortePage() {
   }
 
   async function handleDuplicar(ordem: OrdemCorteResumo) {
+    if (!usuario) return;
     try {
-      const nova = await duplicateOrdemCorte(ordem.id);
+      const nova = await duplicateOrdemCorte(ordem.id, usuario.id);
       upsertLocal({
         ...nova,
         cliente_nome: ordem.cliente_nome,

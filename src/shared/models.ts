@@ -204,3 +204,26 @@ export interface OrdemCorteUpdatePatch {
   status?: StatusOrdemCorte;
   itens?: OrdemCorteItemInput[];
 }
+
+export type AcaoOrdemCorteHistorico =
+  | "criacao"
+  | "edicao"
+  | "mudanca_status"
+  | "cancelamento"
+  | "duplicacao";
+
+/**
+ * Auditoria da ordem (ver CLAUDE.md 3.5): quem fez o quê e quando.
+ * usuario_nome é resolvido no repositório (join com usuarios) — evita
+ * o renderer precisar de outra consulta só para exibir "quem fez".
+ */
+export interface OrdemCorteHistoricoEntry {
+  id: string;
+  empresa_id: string;
+  ordem_id: string;
+  usuario_id: string;
+  usuario_nome: string;
+  acao: AcaoOrdemCorteHistorico;
+  descricao: string;
+  criado_em: string;
+}

@@ -50,6 +50,7 @@ export const IPC_CHANNELS = {
   ordensCorteUpdateLocal: "ordens-corte:update-local",
   ordensCorteDuplicateLocal: "ordens-corte:duplicate-local",
   ordensCorteItensListLocal: "ordens-corte:itens-list-local",
+  ordensCorteHistoricoListLocal: "ordens-corte:historico-list-local",
   empresasCache: "empresas:cache",
   empresasGetLocal: "empresas:get-local",
 } as const;

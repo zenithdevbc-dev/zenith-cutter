@@ -17,8 +17,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { listOrdemCorteItens } from "@/lib/ordensCorte";
-import type { OrdemCorteItem, OrdemCorteResumo, StatusOrdemCorte } from "@shared/models";
+import { listOrdemCorteItens, listOrdemCorteHistorico } from "@/lib/ordensCorte";
+import type {
+  OrdemCorteHistoricoEntry,
+  OrdemCorteItem,
+  OrdemCorteResumo,
+  StatusOrdemCorte,
+} from "@shared/models";
 
 interface InfoOrdemCorteDialogProps {
   ordem: OrdemCorteResumo;
@@ -39,12 +44,16 @@ const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destru
 export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
   const [open, setOpen] = useState(false);
   const [itens, setItens] = useState<OrdemCorteItem[] | null>(null);
+  const [historico, setHistorico] = useState<OrdemCorteHistoricoEntry[] | null>(null);
 
   useEffect(() => {
     if (!open) return;
     listOrdemCorteItens(ordem.id)
       .then(setItens)
       .catch(() => toast.error("Não foi possível carregar os itens da ordem."));
+    listOrdemCorteHistorico(ordem.id)
+      .then(setHistorico)
+      .catch(() => toast.error("Não foi possível carregar o histórico da ordem."));
   }, [open, ordem.id]);
 
   return (
@@ -117,6 +126,27 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
                   ))}
                 </TableBody>
               </Table>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-muted-foreground">Histórico</p>
+            {historico === null ? (
+              <p className="text-sm text-muted-foreground">Carregando...</p>
+            ) : historico.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem eventos registrados.</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {historico.map((evento) => (
+                  <li key={evento.id} className="border-l-2 pl-3">
+                    <p className="font-medium">{evento.descricao}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {evento.usuario_nome} —{" "}
+                      {new Date(evento.criado_em).toLocaleString("pt-BR")}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>

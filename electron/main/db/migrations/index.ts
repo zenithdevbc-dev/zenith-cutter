@@ -289,4 +289,26 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 12,
+    name: "create_ordem_corte_historico",
+    up: (db) => {
+      db.exec(`
+        -- Histórico dedicado de Ordens de Corte (Sprint 2, CLAUDE.md 3.5:
+        -- toda ação relevante rastreável — usuário, timestamp, ação).
+        -- Registro é imutável: só INSERT, nunca UPDATE/DELETE.
+        CREATE TABLE ordem_corte_historico (
+          id          TEXT PRIMARY KEY,
+          empresa_id  TEXT NOT NULL,
+          ordem_id    TEXT NOT NULL,
+          usuario_id  TEXT NOT NULL,
+          acao        TEXT NOT NULL CHECK (acao IN ('criacao', 'edicao', 'mudanca_status', 'cancelamento', 'duplicacao')),
+          descricao   TEXT NOT NULL,
+          criado_em   TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_ordem_corte_historico_ordem ON ordem_corte_historico (ordem_id);
+      `);
+    },
+  },
 ];

@@ -28,6 +28,7 @@ import type {
   OrdemCorteItem,
   OrdemCorteInput,
   OrdemCorteUpdatePatch,
+  OrdemCorteHistoricoEntry,
   Empresa,
 } from "../../src/shared/models";
 
@@ -116,12 +117,18 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteListLocal),
     itensListLocal: (ordemId: string): Promise<OrdemCorteItem[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteItensListLocal, ordemId),
-    createLocal: (input: OrdemCorteInput): Promise<OrdemCorte> =>
-      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteCreateLocal, input),
-    updateLocal: (id: string, patch: OrdemCorteUpdatePatch): Promise<OrdemCorte> =>
-      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteUpdateLocal, id, patch),
-    duplicateLocal: (id: string): Promise<OrdemCorte> =>
-      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteDuplicateLocal, id),
+    createLocal: (input: OrdemCorteInput, usuarioId: string): Promise<OrdemCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteCreateLocal, input, usuarioId),
+    updateLocal: (
+      id: string,
+      patch: OrdemCorteUpdatePatch,
+      usuarioId: string,
+    ): Promise<OrdemCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteUpdateLocal, id, patch, usuarioId),
+    duplicateLocal: (id: string, usuarioId: string): Promise<OrdemCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteDuplicateLocal, id, usuarioId),
+    historicoListLocal: (ordemId: string): Promise<OrdemCorteHistoricoEntry[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteHistoricoListLocal, ordemId),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

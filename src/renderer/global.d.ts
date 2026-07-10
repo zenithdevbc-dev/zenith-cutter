@@ -22,6 +22,7 @@ import type {
   OrdemCorteItem,
   OrdemCorteInput,
   OrdemCorteUpdatePatch,
+  OrdemCorteHistoricoEntry,
   Empresa,
 } from "@shared/models";
 
@@ -80,9 +81,14 @@ declare global {
       ordensCorte: {
         listLocal: () => Promise<OrdemCorteResumo[]>;
         itensListLocal: (ordemId: string) => Promise<OrdemCorteItem[]>;
-        createLocal: (input: OrdemCorteInput) => Promise<OrdemCorte>;
-        updateLocal: (id: string, patch: OrdemCorteUpdatePatch) => Promise<OrdemCorte>;
-        duplicateLocal: (id: string) => Promise<OrdemCorte>;
+        createLocal: (input: OrdemCorteInput, usuarioId: string) => Promise<OrdemCorte>;
+        updateLocal: (
+          id: string,
+          patch: OrdemCorteUpdatePatch,
+          usuarioId: string,
+        ) => Promise<OrdemCorte>;
+        duplicateLocal: (id: string, usuarioId: string) => Promise<OrdemCorte>;
+        historicoListLocal: (ordemId: string) => Promise<OrdemCorteHistoricoEntry[]>;
       };
       empresas: {
         cache: (empresa: Empresa) => Promise<void>;
