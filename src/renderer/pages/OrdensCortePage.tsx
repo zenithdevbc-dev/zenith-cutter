@@ -24,6 +24,7 @@ import { EditOrdemCorteDialog } from "@/components/ordens/EditOrdemCorteDialog";
 import { InfoOrdemCorteDialog } from "@/components/ordens/InfoOrdemCorteDialog";
 import { listOrdensCorte, updateOrdemCorte, duplicateOrdemCorte } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
+import { usePinConfirm } from "@/components/usePinConfirm";
 import type { OrdemCorteResumo, StatusOrdemCorte } from "@shared/models";
 
 const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
@@ -40,6 +41,7 @@ const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destru
 
 export function OrdensCortePage() {
   const { usuario } = useAuth();
+  const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
   const [busca, setBusca] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<StatusOrdemCorte | "todos">("todos");
@@ -63,6 +65,7 @@ export function OrdensCortePage() {
 
   async function handleCancelar(ordem: OrdemCorteResumo) {
     if (!usuario) return;
+    if (!(await confirmPin())) return;
     try {
       const updated = await updateOrdemCorte(ordem.id, { status: "cancelada" }, usuario.id);
       upsertLocal({ ...ordem, ...updated });
@@ -74,6 +77,7 @@ export function OrdensCortePage() {
 
   async function handleDuplicar(ordem: OrdemCorteResumo) {
     if (!usuario) return;
+    if (!(await confirmPin())) return;
     try {
       const nova = await duplicateOrdemCorte(ordem.id, usuario.id);
       upsertLocal({
@@ -104,6 +108,7 @@ export function OrdensCortePage() {
   }, [ordens, busca, statusFiltro]);
 
   return (
+    <>
     <Card className="flex h-full flex-col">
       <CardHeader className="flex shrink-0 flex-row items-center justify-between">
         <CardTitle>Ordens de Corte</CardTitle>
@@ -180,5 +185,7 @@ export function OrdensCortePage() {
         </div>
       </CardContent>
     </Card>
+    {pinDialog}
+    </>
   );
 }

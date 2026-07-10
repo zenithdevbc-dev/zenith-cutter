@@ -8,6 +8,7 @@ import {
 import type { Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import { runSync } from "./sync";
+import { setSessionPin, clearSessionPin } from "./pin";
 import type { Usuario, Empresa } from "@shared/models";
 
 interface AuthContextValue {
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const perfil = data as Usuario;
         if (!perfil.ativo) {
           // Usuário desativado não pode continuar com sessão ativa.
+          clearSessionPin();
           client.auth.signOut();
           return;
         }
@@ -118,10 +120,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
     });
+    if (!error) {
+      await setSessionPin(password);
+    }
     return { error: error?.message ?? null };
   }
 
   async function signOut() {
+    clearSessionPin();
     await supabase?.auth.signOut();
   }
 

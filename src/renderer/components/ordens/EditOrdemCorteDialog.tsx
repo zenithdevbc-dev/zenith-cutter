@@ -32,6 +32,7 @@ import { listTecidos } from "@/lib/tecidos";
 import { listProdutoTamanhos } from "@/lib/produtoTamanhos";
 import { listOrdemCorteItens, updateOrdemCorte } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
+import { usePinConfirm } from "@/components/usePinConfirm";
 import type {
   Cliente,
   Produto,
@@ -54,6 +55,7 @@ const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
 
 export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogProps) {
   const { usuario } = useAuth();
+  const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
   const [open, setOpen] = useState(false);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -111,6 +113,8 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
       return;
     }
 
+    if (!(await confirmPin())) return;
+
     setSubmitting(true);
     setError(null);
     try {
@@ -147,6 +151,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">Editar</Button>
@@ -265,5 +270,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {pinDialog}
+    </>
   );
 }

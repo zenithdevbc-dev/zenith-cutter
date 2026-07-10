@@ -32,6 +32,7 @@ import { listTecidos } from "@/lib/tecidos";
 import { listProdutoTamanhos } from "@/lib/produtoTamanhos";
 import { createOrdemCorte } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
+import { usePinConfirm } from "@/components/usePinConfirm";
 import type { Cliente, Produto, Tecido, ProdutoTamanho, OrdemCorteResumo } from "@shared/models";
 
 interface CreateOrdemCorteDialogProps {
@@ -40,6 +41,7 @@ interface CreateOrdemCorteDialogProps {
 
 export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProps) {
   const { usuario } = useAuth();
+  const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
   const [open, setOpen] = useState(false);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -105,6 +107,8 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
       return;
     }
 
+    if (!(await confirmPin())) return;
+
     setSubmitting(true);
     setError(null);
     try {
@@ -141,6 +145,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (!next) reset(); }}>
       <DialogTrigger asChild>
         <Button>Nova ordem de corte</Button>
@@ -248,5 +253,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {pinDialog}
+    </>
   );
 }
