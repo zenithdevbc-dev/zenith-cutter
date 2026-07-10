@@ -155,7 +155,22 @@ implementar.
   encerrado por decisão do usuário em 2026-07-09, com "configurações
   básicas" deliberadamente adiada sem escopo definido (não é um item
   esquecido — foi pulado a pedido).
-- Última entrega **2026-07-09**: histórico dedicado de Ordens de
+- Última entrega **2026-07-09**: PIN de confirmação antes de criar/
+  editar/cancelar/duplicar uma Ordem de Corte (pedido do usuário,
+  reforça 3.1 "operador sempre no controle"). Reusa a própria senha de
+  login como PIN — sem cadastro separado. Validação 100% offline: hash
+  SHA-256 da senha fica só em memória (`src/renderer/lib/pin.ts`,
+  capturado no login/limpo no logout via `auth-context.tsx`), nunca em
+  disco nem na rede — chamar o Supabase de novo pra validar (como o
+  próprio login) quebraria o uso offline de Ordens de Corte; esse
+  conflito com a seção 3.2 foi sinalizado e resolvido com o usuário
+  antes de implementar. `usePinConfirm()` é um hook reutilizável
+  (dialog + `Promise<boolean>`) plugado em `CreateOrdemCorteDialog`,
+  `EditOrdemCorteDialog` e `OrdensCortePage`. Build/typecheck limpos;
+  **teste manual na UI ainda pendente** — evitado de propósito nesta
+  sessão porque o usuário estava com outro aplicativo em primeiro
+  plano (automação de teclado/mouse teria risco de interferir).
+- Entrega anterior: histórico dedicado de Ordens de
   Corte (fecha o item que faltava do Sprint 2). Nova tabela
   `ordem_corte_historico` (migration local v12 +
   `supabase/sql/0014_ordem_corte_historico.sql`, RLS admin/supervisor
