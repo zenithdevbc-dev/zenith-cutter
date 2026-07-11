@@ -169,13 +169,39 @@ implementar.
   sprint: fila ordenada + prioridades + reordenação manual +
   visualização de mesas + seleção manual + confirmação de início +
   sessão de produção + bloqueio de mesas ocupadas (todos os itens do
-  roadmap). Falta só o que já está reservado para o Sprint 4:
-  pausar/retomar/finalizar, perdas, observações. Sprint 2 (Ordens de
-  Corte) fica encerrado — o item pendente "entrada automática na fila"
-  foi fechado nesta sprint (ver abaixo). Sprint 1 encerrado por decisão
-  do usuário em 2026-07-09, com "configurações básicas" deliberadamente
-  adiada sem escopo definido.
-- Última entrega **2026-07-11**: Fila de Produção + Produção (Sprint 3).
+  roadmap) — **mais** o pipeline pós-corte (Embalagem/Revisão/
+  Despacho/Pronto, pedido do usuário em 2026-07-11, ver seção 4), que
+  não estava no roadmap original. Falta só o que já está reservado
+  para o Sprint 4: pausar/retomar (dentro de "Em Corte"), registro de
+  perdas e observações. Sprint 2 (Ordens de Corte) fica encerrado — o
+  item pendente "entrada automática na fila" foi fechado nesta sprint
+  (ver abaixo). Sprint 1 encerrado por decisão do usuário em
+  2026-07-09, com "configurações básicas" deliberadamente adiada sem
+  escopo definido.
+- Última entrega **2026-07-11**: pipeline pós-corte (Embalagem →
+  Revisão → Despacho → Pronto), pedido do usuário depois da entrega
+  da Fila de Produção (ver bullet abaixo) — substitui o antigo par
+  "Finalizar → Conferência → Finalizada" da seção 4 por 4 etapas mais
+  granulares, cada uma avançada manualmente uma de cada vez (regra 4,
+  nunca pulando etapa; regra 3.1, sempre com PIN). `StatusOrdemCorte`
+  e `PIPELINE_PRODUCAO` (sequência fixa) em `src/shared/models.ts`.
+  `avancarEtapaOrdemLocal` (`producao.ts`) move a ordem pra próxima
+  etapa; ao sair de `em_corte` finaliza a sessão de produção ativa,
+  liberando a mesa automaticamente (mesa só existe durante o corte —
+  nas demais etapas a ordem não tem mesa). O guard de
+  `updateOrdemCorteLocal` que bloqueava edição livre de `em_corte`
+  foi generalizado pra qualquer etapa de `PIPELINE_PRODUCAO` (mas
+  permite reenviar o patch com o status atual inalterado, já que o
+  form de edição sempre reenvia `status`). Nova seção "Pipeline de
+  Produção" em `ProducaoPage` lista ordens em qualquer etapa com botão
+  "Avançar etapa". Migration local v16 e Supabase
+  `0019_ordens_corte_pipeline_pos_corte.sql` ampliam o CHECK de
+  status; `supabase/sql/0018_ordens_corte_operador_producao.sql`
+  (ainda não executado em produção) foi renomeado pra `0020` — passou
+  a depender da 0019 — e suas policies de Operador estendidas do par
+  fixo `em_fila→em_corte` para o pipeline inteiro. Build e
+  `npm run typecheck` limpos. **Não testado manualmente ainda**.
+- Entrega anterior **2026-07-11**: Fila de Produção + Produção (Sprint 3).
   Ambiguidade de escopo resolvida com o usuário antes de codar: a
   matriz de permissões (3.6) já reservava duas páginas — `fila-producao`
   (admin/supervisor) e `producao` (todos os papéis, incluindo
