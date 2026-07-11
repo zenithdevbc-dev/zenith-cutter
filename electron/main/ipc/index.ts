@@ -31,6 +31,10 @@ import type {
   OrdemCorteUpdatePatch,
   OrdemCorteHistoricoEntry,
   Empresa,
+  MesaCorteComStatus,
+  SessaoProducao,
+  SessaoProducaoResumo,
+  IniciarProducaoInput,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
 import {
@@ -81,6 +85,15 @@ import {
   getNextOrdemCorteNumeroLocal,
 } from "../db/repositories/ordensCorte";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
+import {
+  listFilaProducaoLocal,
+  reorderFilaProducaoLocal,
+} from "../db/repositories/filaProducao";
+import {
+  listMesasComStatusLocal,
+  iniciarProducaoLocal,
+  listSessoesAtivasLocal,
+} from "../db/repositories/producao";
 
 export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.dbGetStatus, (): DbStatus => {
@@ -260,6 +273,32 @@ export function registerIpcHandlers() {
       return getNextOrdemCorteNumeroLocal(getDb(), empresaId);
     },
   );
+
+  ipcMain.handle(IPC_CHANNELS.filaProducaoListLocal, (): OrdemCorteResumo[] => {
+    return listFilaProducaoLocal(getDb());
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.filaProducaoReorderLocal,
+    (_event, orderedIds: string[]): OrdemCorteResumo[] => {
+      return reorderFilaProducaoLocal(getDb(), orderedIds);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.producaoMesasListLocal, (): MesaCorteComStatus[] => {
+    return listMesasComStatusLocal(getDb());
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.producaoIniciarLocal,
+    (_event, input: IniciarProducaoInput, usuarioId: string): SessaoProducao => {
+      return iniciarProducaoLocal(getDb(), input, usuarioId);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.producaoSessoesAtivasListLocal, (): SessaoProducaoResumo[] => {
+    return listSessoesAtivasLocal(getDb());
+  });
 
   ipcMain.handle(IPC_CHANNELS.empresasCache, (_event, empresa: Empresa) => {
     cacheEmpresa(getDb(), empresa);

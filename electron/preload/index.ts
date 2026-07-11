@@ -30,6 +30,10 @@ import type {
   OrdemCorteUpdatePatch,
   OrdemCorteHistoricoEntry,
   Empresa,
+  MesaCorteComStatus,
+  SessaoProducao,
+  SessaoProducaoResumo,
+  IniciarProducaoInput,
 } from "../../src/shared/models";
 
 contextBridge.exposeInMainWorld("zenith", {
@@ -131,6 +135,20 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteHistoricoListLocal, ordemId),
     nextNumeroLocal: (empresaId: string): Promise<number> =>
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteNextNumeroLocal, empresaId),
+  },
+  filaProducao: {
+    listLocal: (): Promise<OrdemCorteResumo[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.filaProducaoListLocal),
+    reorderLocal: (orderedIds: string[]): Promise<OrdemCorteResumo[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.filaProducaoReorderLocal, orderedIds),
+  },
+  producao: {
+    listMesasLocal: (): Promise<MesaCorteComStatus[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoMesasListLocal),
+    iniciarLocal: (input: IniciarProducaoInput, usuarioId: string): Promise<SessaoProducao> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoIniciarLocal, input, usuarioId),
+    listSessoesAtivasLocal: (): Promise<SessaoProducaoResumo[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoSessoesAtivasListLocal),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>
