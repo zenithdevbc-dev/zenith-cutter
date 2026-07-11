@@ -178,10 +178,10 @@ implementar.
   conflito com a seção 3.2 foi sinalizado e resolvido com o usuário
   antes de implementar. `usePinConfirm()` é um hook reutilizável
   (dialog + `Promise<boolean>`) plugado em `CreateOrdemCorteDialog`,
-  `EditOrdemCorteDialog` e `OrdensCortePage`. Build/typecheck limpos;
-  **teste manual na UI ainda pendente** — evitado de propósito nesta
-  sessão porque o usuário estava com outro aplicativo em primeiro
-  plano (automação de teclado/mouse teria risco de interferir).
+  `EditOrdemCorteDialog` e `OrdensCortePage`. Build/typecheck limpos.
+  **Testado manualmente pelo usuário** (junto com a entrega do número
+  sequencial, que só é testável criando/editando uma ordem — o que
+  passa pelo PIN) — confirmado funcionando ("Funcionou.").
 - Entrega anterior: histórico dedicado de Ordens de
   Corte (fecha o item que faltava do Sprint 2). Nova tabela
   `ordem_corte_historico` (migration local v12 +
@@ -195,13 +195,12 @@ implementar.
   tem noção de sessão — só o renderer sabe quem está logado. Exibido
   como seção "Histórico" dentro do dialog "Info" já existente (sem
   tela nova). Sincroniza pela mesma `sync_queue`/`runSync()` das outras
-  tabelas. Build/typecheck limpos; **não foi testado manualmente na UI
-  nesta sessão** (a tentativa de automação de tela foi interrompida ao
-  perceber que a janela em foreground era outro aplicativo do usuário,
-  não o Zenith Cutter — parei para não interferir). Revisão de código
-  linha a linha feita como substituto; testar criar/editar/cancelar/
-  duplicar uma ordem e conferir a seção Histórico no Info é o próximo
-  passo antes de considerar isso 100% validado.
+  tabelas. Build/typecheck limpos. Não foi testado manualmente no
+  momento da entrega (a tentativa de automação de tela foi
+  interrompida ao perceber que a janela em foreground era outro
+  aplicativo do usuário, não o Zenith Cutter — parei para não
+  interferir), mas **foi testado depois pelo usuário**, junto com o
+  PIN e o número sequencial, e confirmado funcionando.
 - Entrega anterior: motor mínimo de sincronização (núcleo do
   Sprint 6, adiantado a pedido do usuário — havia ~83 alterações
   locais nunca enviadas ao Supabase, acumuladas desde o início do
