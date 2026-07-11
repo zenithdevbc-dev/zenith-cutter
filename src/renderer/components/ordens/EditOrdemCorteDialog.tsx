@@ -47,9 +47,15 @@ interface EditOrdemCorteDialogProps {
   onUpdated: (ordem: OrdemCorteResumo) => void;
 }
 
-// 'em_corte' fica de fora: só é setado por iniciarProducaoLocal
-// (seleção de mesa + confirmação), nunca por edição livre (regra 4).
-const STATUS_LABEL: Record<Exclude<StatusOrdemCorte, "em_corte">, string> = {
+// Etapas do pipeline pós-fila ficam de fora: só são setadas por
+// iniciarProducaoLocal/avancarEtapaOrdemLocal, nunca por edição livre
+// (regra 4).
+type StatusEditavel = Exclude<
+  StatusOrdemCorte,
+  "em_corte" | "embalagem" | "revisao" | "despacho" | "pronto"
+>;
+
+const STATUS_LABEL: Record<StatusEditavel, string> = {
   aberta: "Aberta",
   em_fila: "Em Fila",
   cancelada: "Cancelada",
@@ -213,7 +219,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(STATUS_LABEL) as Exclude<StatusOrdemCorte, "em_corte">[]).map((s) => (
+                {(Object.keys(STATUS_LABEL) as StatusEditavel[]).map((s) => (
                   <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
                 ))}
               </SelectContent>

@@ -25,13 +25,17 @@ import { InfoOrdemCorteDialog } from "@/components/ordens/InfoOrdemCorteDialog";
 import { listOrdensCorte, updateOrdemCorte, duplicateOrdemCorte } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
-import type { OrdemCorteResumo, StatusOrdemCorte } from "@shared/models";
+import { PIPELINE_PRODUCAO, type OrdemCorteResumo, type StatusOrdemCorte } from "@shared/models";
 
 const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
   aberta: "Aberta",
   em_fila: "Em Fila",
   cancelada: "Cancelada",
   em_corte: "Em Corte",
+  embalagem: "Embalagem",
+  revisao: "Revisão",
+  despacho: "Despacho",
+  pronto: "Pronto",
 };
 
 const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destructive"> = {
@@ -39,6 +43,10 @@ const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destru
   em_fila: "secondary",
   cancelada: "destructive",
   em_corte: "default",
+  embalagem: "default",
+  revisao: "default",
+  despacho: "default",
+  pronto: "secondary",
 };
 
 export function OrdensCortePage() {
@@ -133,6 +141,10 @@ export function OrdensCortePage() {
               <SelectItem value="aberta">Aberta</SelectItem>
               <SelectItem value="em_fila">Em Fila</SelectItem>
               <SelectItem value="em_corte">Em Corte</SelectItem>
+              <SelectItem value="embalagem">Embalagem</SelectItem>
+              <SelectItem value="revisao">Revisão</SelectItem>
+              <SelectItem value="despacho">Despacho</SelectItem>
+              <SelectItem value="pronto">Pronto</SelectItem>
               <SelectItem value="cancelada">Cancelada</SelectItem>
             </SelectContent>
           </Select>
@@ -175,7 +187,8 @@ export function OrdensCortePage() {
                         <Button variant="outline" size="sm" onClick={() => handleDuplicar(ordem)}>
                           Duplicar
                         </Button>
-                        {ordem.status !== "cancelada" && ordem.status !== "em_corte" && (
+                        {ordem.status !== "cancelada" &&
+                          !PIPELINE_PRODUCAO.includes(ordem.status) && (
                           <Button variant="outline" size="sm" onClick={() => handleCancelar(ordem)}>
                             Cancelar
                           </Button>

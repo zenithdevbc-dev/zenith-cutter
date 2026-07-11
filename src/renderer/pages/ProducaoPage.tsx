@@ -9,28 +9,48 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listFilaProducao } from "@/lib/filaProducao";
-import { listMesasComStatus, listSessoesAtivas } from "@/lib/producao";
+import { listMesasComStatus, listSessoesAtivas, avancarEtapaOrdem } from "@/lib/producao";
+import { listOrdensCorte } from "@/lib/ordensCorte";
 import { IniciarProducaoDialog } from "@/components/producao/IniciarProducaoDialog";
-import type {
-  MesaCorteComStatus,
-  OrdemCorteResumo,
-  SessaoProducao,
-  SessaoProducaoResumo,
+import { useAuth } from "@/lib/auth-context";
+import { usePinConfirm } from "@/components/usePinConfirm";
+import {
+  PIPELINE_PRODUCAO,
+  type MesaCorteComStatus,
+  type OrdemCorteResumo,
+  type SessaoProducao,
+  type SessaoProducaoResumo,
+  type StatusOrdemCorte,
 } from "@shared/models";
+
+const ETAPA_LABEL: Record<StatusOrdemCorte, string> = {
+  aberta: "Aberta",
+  em_fila: "Em Fila",
+  cancelada: "Cancelada",
+  em_corte: "Em Corte",
+  embalagem: "Embalagem",
+  revisao: "Revisão",
+  despacho: "Despacho",
+  pronto: "Pronto",
+};
 
 /**
  * Execução da produção (todos os papéis, ver CLAUDE.md 3.6): a fila
  * (mesma ordem definida em Fila de Produção, aqui só leitura) com o
- * botão "Iniciar", as mesas com status livre/ocupada e as sessões em
- * andamento. Pausar/retomar/finalizar/perdas/observações chegam no
- * Sprint 4 — esta página só cobre o "Iniciar" por enquanto.
+ * botão "Iniciar", as mesas com status livre/ocupada, as sessões em
+ * andamento e o pipeline pós-corte (Embalagem/Revisão/Despacho/
+ * Pronto), avançado uma etapa por vez (decisão de 2026-07-11).
  */
 export function ProducaoPage() {
+  const { usuario } = useAuth();
+  const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
   const [fila, setFila] = useState<OrdemCorteResumo[] | null>(null);
   const [mesas, setMesas] = useState<MesaCorteComStatus[] | null>(null);
   const [sessoes, setSessoes] = useState<SessaoProducaoResumo[] | null>(null);
+  const [emProducao, setEmProducao] = useState<OrdemCorteResumo[] | null>(null);
 
   function reload() {
     listFilaProducao()
@@ -42,6 +62,11 @@ export function ProducaoPage() {
     listSessoesAtivas()
       .then(setSessoes)
       .catch(() => toast.error("Não foi possível carregar as sessões em andamento."));
+    listOrdensCorte()
+      .then((ordens) =>
+        setEmProducao(ordens.filter((o) => PIPELINE_PRODUCAO.includes(o.status))),
+      )
+      .catch(() => toast.error("Não foi possível carregar o pipeline de produção."));
   }
 
   useEffect(reload, []);
@@ -49,6 +74,18 @@ export function ProducaoPage() {
   function handleIniciado(ordemId: string, _sessao: SessaoProducao) {
     setFila((prev) => (prev ?? []).filter((o) => o.id !== ordemId));
     reload();
+  }
+
+  async function handleAvancar(ordem: OrdemCorteResumo) {
+    if (!usuario) return;
+    if (!(await confirmPin())) return;
+    try {
+      await avancarEtapaOrdem(ordem.id, usuario.id);
+      toast.success(`Ordem Nº ${ordem.numero} avançou de etapa.`);
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível avançar a etapa.");
+    }
   }
 
   const mesasLivres = (mesas ?? []).filter((m) => m.ativo && !m.ocupada);
@@ -137,7 +174,49 @@ export function ProducaoPage() {
 
       <Card className="shrink-0">
         <CardHeader>
-          <CardTitle>Em andamento</CardTitle>
+          <CardTitle>Pipeline de Produção</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {emProducao === null ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : emProducao.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma ordem em produção no momento.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nº</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Etapa atual</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {emProducao.map((ordem) => (
+                  <TableRow key={ordem.id}>
+                    <TableCell className="font-medium">{ordem.numero}</TableCell>
+                    <TableCell>{ordem.cliente_nome}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{ETAPA_LABEL[ordem.status]}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {ordem.status !== "pronto" && (
+                        <Button size="sm" variant="outline" onClick={() => handleAvancar(ordem)}>
+                          Avançar etapa
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="shrink-0">
+        <CardHeader>
+          <CardTitle>Em andamento (mesas)</CardTitle>
         </CardHeader>
         <CardContent>
           {sessoes === null ? (
@@ -168,6 +247,7 @@ export function ProducaoPage() {
           )}
         </CardContent>
       </Card>
+      {pinDialog}
     </div>
   );
 }

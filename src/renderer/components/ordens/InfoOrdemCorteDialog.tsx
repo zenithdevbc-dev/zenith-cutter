@@ -34,6 +34,10 @@ const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
   em_fila: "Em Fila",
   cancelada: "Cancelada",
   em_corte: "Em Corte",
+  embalagem: "Embalagem",
+  revisao: "Revisão",
+  despacho: "Despacho",
+  pronto: "Pronto",
 };
 
 const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destructive"> = {
@@ -41,6 +45,10 @@ const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destru
   em_fila: "secondary",
   cancelada: "destructive",
   em_corte: "default",
+  embalagem: "default",
+  revisao: "default",
+  despacho: "default",
+  pronto: "secondary",
 };
 
 export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
