@@ -88,10 +88,26 @@ Nova Ordem
         → Confirma
           → Em Corte
             → Pausar (opcional) → Retomar (opcional)
-          → Finalizar
-            → Conferência
-              → Finalizada
+          → Avança etapa (finaliza a sessão, libera a mesa)
+            → Embalagem
+              → Avança etapa
+                → Revisão
+                  → Avança etapa
+                    → Despacho
+                      → Avança etapa
+                        → Pronto
 ```
+
+Decisão de 2026-07-11 (pedido do usuário): o par "Finalizar → Conferência →
+Finalizada" foi substituído por 4 etapas mais granulares pós-corte — Embalagem,
+Revisão (mesmo papel da antiga "Conferência"), Despacho, Pronto —, cada uma
+avançada manualmente uma de cada vez (nunca pulando etapa, sempre com
+confirmação explícita — reforça 3.1). Mesa de corte só existe durante "Em
+Corte": ao avançar para Embalagem a sessão de produção é finalizada e a mesa
+libera automaticamente; dali em diante a ordem não usa mais mesa. Uma ordem
+nunca é atribuída a mais de uma mesa — garantido no banco pelo índice único
+parcial de `sessoes_producao.ordem_id` (sessão ativa), não só por validação de
+app (ver seção 7).
 
 Nenhuma etapa é iniciada automaticamente. Qualquer implementação de transição de estado
 deve seguir exatamente essa sequência — sem pular etapas, sem atalhos automáticos.
