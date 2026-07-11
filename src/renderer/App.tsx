@@ -3,6 +3,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { CadastrosPage } from "@/pages/CadastrosPage";
 import { OrdensCortePage } from "@/pages/OrdensCortePage";
+import { FilaProducaoPage } from "@/pages/FilaProducaoPage";
+import { ProducaoPage } from "@/pages/ProducaoPage";
 import { DbStatusCard } from "@/components/DbStatusCard";
 import { SyncStatusCard } from "@/components/SyncStatusCard";
 import { LoginPage } from "@/pages/LoginPage";
@@ -11,13 +13,12 @@ import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/lib/auth-context";
 import { getAllowedNavItems, type PageId } from "@/lib/navigation";
 
-const PAGE_DESCRIPTIONS: Record<Exclude<PageId, "cadastros" | "ordens-corte">, string> = {
+const PAGE_DESCRIPTIONS: Record<
+  Exclude<PageId, "cadastros" | "ordens-corte" | "fila-producao" | "producao">,
+  string
+> = {
   dashboard:
     "Visão operacional de ordens por status, mesas livres/ocupadas e indicadores. Chega no Sprint 5.",
-  "fila-producao":
-    "Fila ordenada de produção, seleção de mesa e confirmação de início. Chega no Sprint 3.",
-  producao:
-    "Execução da produção: iniciar/pausar/retomar/finalizar, registro de perdas e observações. Chega no Sprint 4.",
   configuracoes: "Configurações básicas do sistema. Ainda sem escopo definido.",
 };
 
@@ -48,6 +49,10 @@ function App() {
             <CadastrosPage />
           ) : currentPage === "ordens-corte" ? (
             <OrdensCortePage />
+          ) : currentPage === "fila-producao" ? (
+            <FilaProducaoPage />
+          ) : currentPage === "producao" ? (
+            <ProducaoPage />
           ) : (
             <div className="flex flex-col gap-4">
               <PlaceholderPage
