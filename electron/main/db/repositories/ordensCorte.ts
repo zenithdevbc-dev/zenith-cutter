@@ -28,7 +28,7 @@ interface OrdemCorteHistoricoRow {
   criado_em: string;
 }
 
-function registrarHistorico(
+export function registrarHistorico(
   db: Database.Database,
   params: {
     empresaId: string;
@@ -91,6 +91,7 @@ interface OrdemCorteRow {
   produto_id: string;
   tecido_id: string;
   status: string;
+  prioridade: number;
   observacoes: string | null;
   criado_em: string;
   atualizado_em: string;
@@ -121,6 +122,7 @@ function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
     produto_id: row.produto_id,
     tecido_id: row.tecido_id,
     status: row.status as OrdemCorte["status"],
+    prioridade: row.prioridade,
     observacoes: row.observacoes,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
@@ -217,6 +219,22 @@ function insertItens(
   }
 }
 
+function getNextPrioridadeFilaLocal(db: Database.Database, empresaId: string): number {
+  const row = db
+    .prepare<[string], { max_prioridade: number | null }>(
+      "SELECT MAX(prioridade) as max_prioridade FROM ordens_corte WHERE empresa_id = ?",
+    )
+    .get(empresaId);
+  return (row?.max_prioridade ?? -1) + 1;
+}
+
+/**
+ * Ordem entra direto na fila de produção ao ser criada (fecha o item
+ * pendente do Sprint 2 — "entrada automática na fila"): status nasce
+ * 'em_fila', não 'aberta'. 'aberta' continua um status válido (editável
+ * manualmente depois, ex.: puxar a ordem de volta pra rascunho), só
+ * deixa de ser o padrão de criação.
+ */
 export function createOrdemCorteLocal(
   db: Database.Database,
   input: OrdemCorteInput,
@@ -231,7 +249,8 @@ export function createOrdemCorteLocal(
     cliente_id: input.cliente_id,
     produto_id: input.produto_id,
     tecido_id: input.tecido_id,
-    status: "aberta",
+    status: "em_fila",
+    prioridade: getNextPrioridadeFilaLocal(db, input.empresa_id),
     observacoes: input.observacoes ?? null,
     criado_em: now,
     atualizado_em: now,
@@ -239,8 +258,8 @@ export function createOrdemCorteLocal(
 
   const create = db.transaction(() => {
     db.prepare(`
-      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, observacoes, criado_em, atualizado_em)
-      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, 'aberta', @observacoes, @criado_em, @atualizado_em)
+      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @criado_em, @atualizado_em)
     `).run(ordem);
     enqueueChange(db, {
       tableName: "ordens_corte",
@@ -254,7 +273,7 @@ export function createOrdemCorteLocal(
       ordemId: id,
       usuarioId,
       acao: "criacao",
-      descricao: "Ordem de corte criada.",
+      descricao: "Ordem de corte criada e enviada à fila de produção.",
     });
   });
 
@@ -276,6 +295,12 @@ export function updateOrdemCorteLocal(
   patch: OrdemCorteUpdatePatch,
   usuarioId: string,
 ): OrdemCorte {
+  if (patch.status === "em_corte") {
+    throw new Error(
+      "Status 'em_corte' só pode ser definido ao iniciar a produção (seleção de mesa + confirmação), não por edição direta.",
+    );
+  }
+
   const fields: string[] = [];
   const params: Record<string, unknown> = { id };
 
