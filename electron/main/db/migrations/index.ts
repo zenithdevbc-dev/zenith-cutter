@@ -354,4 +354,80 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 14,
+    name: "add_ordem_corte_em_corte_e_prioridade",
+    up: (db) => {
+      db.exec(`
+        -- Sprint 3: novo status 'em_corte' (ordem com sessão de
+        -- produção ativa — só setado por iniciarProducaoLocal, nunca
+        -- por edição livre) e 'prioridade' (ordena a fila manualmente,
+        -- mesmo padrão de produto_tamanhos.ordem). SQLite não permite
+        -- ALTER de CHECK, recria a tabela (mesmo padrão da v11/v13).
+        -- Nenhuma ordem hoje está em 'em_fila' (nada nunca setou isso
+        -- até agora), então não há backfill de prioridade a fazer.
+        CREATE TABLE ordens_corte_new (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          numero        INTEGER NOT NULL,
+          cliente_id    TEXT NOT NULL,
+          produto_id    TEXT NOT NULL,
+          tecido_id     TEXT NOT NULL,
+          status        TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta', 'em_fila', 'cancelada', 'em_corte')),
+          prioridade    INTEGER NOT NULL DEFAULT 0,
+          observacoes   TEXT,
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          UNIQUE (empresa_id, numero)
+        );
+
+        INSERT INTO ordens_corte_new
+          (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, criado_em, atualizado_em)
+          SELECT
+            id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, 0, observacoes, criado_em, atualizado_em
+          FROM ordens_corte;
+
+        DROP TABLE ordens_corte;
+        ALTER TABLE ordens_corte_new RENAME TO ordens_corte;
+
+        CREATE INDEX idx_ordens_corte_empresa ON ordens_corte (empresa_id);
+        CREATE INDEX idx_ordens_corte_status ON ordens_corte (status);
+      `);
+    },
+  },
+  {
+    version: 15,
+    name: "create_sessoes_producao",
+    up: (db) => {
+      db.exec(`
+        -- Sprint 3: sessão de produção — criada ao "Iniciar" (seleciona
+        -- mesa livre + confirma), nunca automaticamente (regra 3.1).
+        -- status já inclui os 3 valores da state machine (seção 4 do
+        -- CLAUDE.md), mas este sprint só produz 'em_andamento';
+        -- 'pausada'/'finalizada' chegam no Sprint 4.
+        CREATE TABLE sessoes_producao (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          ordem_id      TEXT NOT NULL,
+          mesa_id       TEXT NOT NULL,
+          status        TEXT NOT NULL DEFAULT 'em_andamento' CHECK (status IN ('em_andamento', 'pausada', 'finalizada')),
+          iniciado_por  TEXT NOT NULL,
+          iniciado_em   TEXT NOT NULL,
+          finalizado_em TEXT,
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_sessoes_producao_empresa ON sessoes_producao (empresa_id);
+        CREATE INDEX idx_sessoes_producao_ordem ON sessoes_producao (ordem_id);
+
+        -- Garantia no banco (não só validação de app) de que uma mesa
+        -- nunca tem duas sessões ativas ao mesmo tempo, e que uma ordem
+        -- não é iniciada duas vezes — mesmo espírito do
+        -- UNIQUE(empresa_id, numero) de ordens_corte.
+        CREATE UNIQUE INDEX idx_sessoes_producao_mesa_ativa ON sessoes_producao (mesa_id) WHERE status = 'em_andamento';
+        CREATE UNIQUE INDEX idx_sessoes_producao_ordem_ativa ON sessoes_producao (ordem_id) WHERE status = 'em_andamento';
+      `);
+    },
+  },
 ];

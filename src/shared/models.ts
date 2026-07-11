@@ -148,7 +148,7 @@ export interface ProdutoTamanhoUpdatePatch {
   ativo?: boolean;
 }
 
-export type StatusOrdemCorte = "aberta" | "em_fila" | "cancelada";
+export type StatusOrdemCorte = "aberta" | "em_fila" | "cancelada" | "em_corte";
 
 export interface OrdemCorte {
   id: string;
@@ -158,6 +158,7 @@ export interface OrdemCorte {
   produto_id: string;
   tecido_id: string;
   status: StatusOrdemCorte;
+  prioridade: number;
   observacoes: string | null;
   criado_em: string;
   atualizado_em: string;
@@ -228,4 +229,46 @@ export interface OrdemCorteHistoricoEntry {
   acao: AcaoOrdemCorteHistorico;
   descricao: string;
   criado_em: string;
+}
+
+/**
+ * Mesa "livre"/"ocupada" nunca é uma coluna própria — é derivada de
+ * existir (ou não) uma sessão de produção ativa apontando pra ela (ver
+ * migration create_mesas_corte). Este tipo é o resultado já calculado
+ * pelo repositório, pra exibir na Fila de Produção e em Produção.
+ */
+export interface MesaCorteComStatus extends MesaCorte {
+  ocupada: boolean;
+  sessao_id: string | null;
+  ordem_numero: number | null;
+}
+
+export type StatusSessaoProducao = "em_andamento" | "pausada" | "finalizada";
+
+export interface SessaoProducao {
+  id: string;
+  empresa_id: string;
+  ordem_id: string;
+  mesa_id: string;
+  status: StatusSessaoProducao;
+  iniciado_por: string;
+  iniciado_em: string;
+  finalizado_em: string | null;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+/**
+ * Linha já com nomes resolvidos (join no repositório), pra exibir a
+ * lista "Em andamento" na página Produção sem N+1 lookups no renderer.
+ */
+export interface SessaoProducaoResumo extends SessaoProducao {
+  ordem_numero: number;
+  mesa_nome: string;
+  iniciado_por_nome: string;
+}
+
+export interface IniciarProducaoInput {
+  ordem_id: string;
+  mesa_id: string;
 }
