@@ -149,13 +149,50 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: Sprint 2 — Ordens de Corte (criar/editar/
-  cancelar/duplicar concluído; falta só a entrada automática na fila —
-  depende da Fila de Produção do Sprint 3). Sprint 1 fica considerado
-  encerrado por decisão do usuário em 2026-07-09, com "configurações
-  básicas" deliberadamente adiada sem escopo definido (não é um item
-  esquecido — foi pulado a pedido).
-- Última entrega **2026-07-09**: número sequencial de Ordem de Corte
+- Sprint em andamento: Sprint 3 — Fila de Produção. Entregue nesta
+  sprint: fila ordenada + prioridades + reordenação manual +
+  visualização de mesas + seleção manual + confirmação de início +
+  sessão de produção + bloqueio de mesas ocupadas (todos os itens do
+  roadmap). Falta só o que já está reservado para o Sprint 4:
+  pausar/retomar/finalizar, perdas, observações. Sprint 2 (Ordens de
+  Corte) fica encerrado — o item pendente "entrada automática na fila"
+  foi fechado nesta sprint (ver abaixo). Sprint 1 encerrado por decisão
+  do usuário em 2026-07-09, com "configurações básicas" deliberadamente
+  adiada sem escopo definido.
+- Última entrega **2026-07-11**: Fila de Produção + Produção (Sprint 3).
+  Ambiguidade de escopo resolvida com o usuário antes de codar: a
+  matriz de permissões (3.6) já reservava duas páginas — `fila-producao`
+  (admin/supervisor) e `producao` (todos os papéis, incluindo
+  Operador) — e o usuário confirmou que queria o Operador já
+  conseguindo iniciar produção nesta sprint, não só no Sprint 4. Then:
+  **Fila de Produção** (admin/supervisor) gerencia a fila — ordena
+  manualmente por `prioridade` (mesmo padrão de
+  `produto_tamanhos.ordem`, mover pra cima/baixo) e mostra as mesas
+  livre/ocupada, só leitura. **Produção** (todos os papéis) lista a
+  mesma fila com botão "Iniciar" por linha: seleciona mesa livre +
+  confirma com PIN (reusa `usePinConfirm`) → cria a sessão de produção,
+  move a ordem de `em_fila` para `em_corte`, mostra as sessões ativas.
+  Criar uma Ordem de Corte agora entra direto em `em_fila` (fecha o
+  item pendente do Sprint 2 — antes ficava em `aberta` e nada nunca
+  movia pra fila). `em_corte` só é setado por essa ação (nunca por
+  edição livre — regra 4 "sem pular etapas"); botão Cancelar em Ordens
+  de Corte some também para `em_corte`. Nova tabela `sessoes_producao`
+  (migration local v15) com dois índices únicos parciais
+  (`WHERE status='em_andamento'` em `mesa_id` e em `ordem_id`) que
+  garantem no próprio banco que uma mesa não fica ocupada duas vezes
+  nem uma ordem é iniciada duas vezes — mesmo espírito do
+  `UNIQUE(empresa_id, numero)` de ordens. `ordens_corte` ganhou
+  `prioridade` e o status `em_corte` (migration local v14, recria a
+  tabela, mesmo padrão da v11/v13). Migrations Supabase
+  `0016_ordens_corte_em_corte_e_prioridade.sql`,
+  `0017_sessoes_producao.sql` e `0018_ordens_corte_operador_producao.sql`
+  (RLS: admin/supervisor acesso completo; Operador só INSERT+SELECT em
+  `sessoes_producao` e SELECT restrito a `em_fila`/`em_corte` +
+  UPDATE restrito à transição `em_fila`→`em_corte` em `ordens_corte`)
+  **criadas no repo, pendentes de execução manual** no SQL Editor
+  (mesma rotina de sempre). Build e `npm run typecheck` limpos.
+  **Não testado manualmente ainda** — usuário vai validar depois.
+- Entrega anterior **2026-07-09**: número sequencial de Ordem de Corte
   (pedido do usuário). Sugerido automaticamente (maior número já usado
   na empresa + 1), editável na criação, imutável depois — nunca pode
   repetir dentro da mesma empresa, garantido por
