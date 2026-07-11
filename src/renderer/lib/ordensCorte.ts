@@ -25,6 +25,10 @@ export function listOrdemCorteHistorico(ordemId: string): Promise<OrdemCorteHist
   return window.zenith.ordensCorte.historicoListLocal(ordemId);
 }
 
+export function getNextOrdemCorteNumero(empresaId: string): Promise<number> {
+  return window.zenith.ordensCorte.nextNumeroLocal(empresaId);
+}
+
 export function createOrdemCorte(
   input: OrdemCorteInput,
   usuarioId: string,

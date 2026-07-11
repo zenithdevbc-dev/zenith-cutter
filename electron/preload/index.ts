@@ -129,6 +129,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteDuplicateLocal, id, usuarioId),
     historicoListLocal: (ordemId: string): Promise<OrdemCorteHistoricoEntry[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteHistoricoListLocal, ordemId),
+    nextNumeroLocal: (empresaId: string): Promise<number> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteNextNumeroLocal, empresaId),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

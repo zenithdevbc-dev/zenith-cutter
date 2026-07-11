@@ -30,7 +30,7 @@ import { listClientes } from "@/lib/clientes";
 import { listProdutos } from "@/lib/produtos";
 import { listTecidos } from "@/lib/tecidos";
 import { listProdutoTamanhos } from "@/lib/produtoTamanhos";
-import { createOrdemCorte } from "@/lib/ordensCorte";
+import { createOrdemCorte, getNextOrdemCorteNumero } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
 import type { Cliente, Produto, Tecido, ProdutoTamanho, OrdemCorteResumo } from "@shared/models";
@@ -49,6 +49,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
   const [clienteId, setClienteId] = useState("");
   const [produtoId, setProdutoId] = useState("");
   const [tecidoId, setTecidoId] = useState("");
+  const [numero, setNumero] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [grade, setGrade] = useState<ProdutoTamanho[]>([]);
   const [quantidades, setQuantidades] = useState<Record<string, string>>({});
@@ -56,7 +57,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !usuario) return;
     Promise.all([listClientes(), listProdutos(), listTecidos()])
       .then(([c, p, t]) => {
         setClientes(c.filter((x) => x.ativo));
@@ -64,6 +65,10 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
         setTecidos(t.filter((x) => x.ativo));
       })
       .catch(() => toast.error("Não foi possível carregar clientes/produtos/tecidos."));
+    getNextOrdemCorteNumero(usuario.empresa_id)
+      .then((sugestao) => setNumero(String(sugestao)))
+      .catch(() => toast.error("Não foi possível sugerir o número da ordem."));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
@@ -88,6 +93,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
     setClienteId("");
     setProdutoId("");
     setTecidoId("");
+    setNumero("");
     setObservacoes("");
     setGrade([]);
     setQuantidades({});
@@ -97,6 +103,12 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!usuario || !clienteId || !produtoId || !tecidoId) return;
+
+    const numeroValido = Number(numero);
+    if (!Number.isInteger(numeroValido) || numeroValido <= 0) {
+      setError("Informe um número de ordem válido (inteiro maior que zero).");
+      return;
+    }
 
     const itens = grade
       .map((t) => ({ produto_tamanho_id: t.id, quantidade: Number(quantidades[t.id] || 0) }))
@@ -115,6 +127,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
       const ordem = await createOrdemCorte(
         {
           empresa_id: usuario.empresa_id,
+          numero: numeroValido,
           cliente_id: clienteId,
           produto_id: produtoId,
           tecido_id: tecidoId,
@@ -159,6 +172,18 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
           onSubmit={handleSubmit}
           className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto"
         >
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="ordem-numero">Número da ordem</Label>
+            <Input
+              id="ordem-numero"
+              type="number"
+              min={1}
+              step={1}
+              value={numero}
+              onChange={(e) => setNumero(e.target.value)}
+              required
+            />
+          </div>
           <div className="flex flex-col gap-2">
             <Label>Cliente</Label>
             <Select value={clienteId} onValueChange={setClienteId}>

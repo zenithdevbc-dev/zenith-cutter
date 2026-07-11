@@ -63,11 +63,15 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="shrink-0">
-          <DialogTitle>Ordem de corte — {ordem.produto_nome}</DialogTitle>
+          <DialogTitle>Ordem de corte Nº {ordem.numero} — {ordem.produto_nome}</DialogTitle>
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto text-sm">
           <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-muted-foreground">Número</p>
+              <p className="font-medium">{ordem.numero}</p>
+            </div>
             <div>
               <p className="text-muted-foreground">Cliente</p>
               <p className="font-medium">{ordem.cliente_nome}</p>

@@ -86,6 +86,7 @@ export function listOrdemCorteHistoricoLocal(
 interface OrdemCorteRow {
   id: string;
   empresa_id: string;
+  numero: number;
   cliente_id: string;
   produto_id: string;
   tecido_id: string;
@@ -115,6 +116,7 @@ function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
   return {
     id: row.id,
     empresa_id: row.empresa_id,
+    numero: row.numero,
     cliente_id: row.cliente_id,
     produto_id: row.produto_id,
     tecido_id: row.tecido_id,
@@ -148,10 +150,27 @@ export function listOrdensCorteLocal(db: Database.Database): OrdemCorteResumo[] 
       JOIN clientes c ON c.id = oc.cliente_id
       JOIN produtos p ON p.id = oc.produto_id
       JOIN tecidos t ON t.id = oc.tecido_id
-      ORDER BY oc.criado_em DESC
+      ORDER BY oc.numero DESC
     `)
     .all();
   return rows.map(rowToResumo);
+}
+
+/**
+ * Sugestão de número pra próxima ordem: maior número já usado na
+ * própria empresa + 1 (ou 1, se ainda não existir nenhuma). É só
+ * sugestão — o usuário pode digitar outro na criação.
+ */
+export function getNextOrdemCorteNumeroLocal(
+  db: Database.Database,
+  empresaId: string,
+): number {
+  const row = db
+    .prepare<[string], { max_numero: number | null }>(
+      "SELECT MAX(numero) as max_numero FROM ordens_corte WHERE empresa_id = ?",
+    )
+    .get(empresaId);
+  return (row?.max_numero ?? 0) + 1;
 }
 
 export function listOrdemCorteItensLocal(
@@ -208,6 +227,7 @@ export function createOrdemCorteLocal(
   const ordem: OrdemCorte = {
     id,
     empresa_id: input.empresa_id,
+    numero: input.numero,
     cliente_id: input.cliente_id,
     produto_id: input.produto_id,
     tecido_id: input.tecido_id,
@@ -219,8 +239,8 @@ export function createOrdemCorteLocal(
 
   const create = db.transaction(() => {
     db.prepare(`
-      INSERT INTO ordens_corte (id, empresa_id, cliente_id, produto_id, tecido_id, status, observacoes, criado_em, atualizado_em)
-      VALUES (@id, @empresa_id, @cliente_id, @produto_id, @tecido_id, 'aberta', @observacoes, @criado_em, @atualizado_em)
+      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, observacoes, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, 'aberta', @observacoes, @criado_em, @atualizado_em)
     `).run(ordem);
     enqueueChange(db, {
       tableName: "ordens_corte",
@@ -237,7 +257,15 @@ export function createOrdemCorteLocal(
       descricao: "Ordem de corte criada.",
     });
   });
-  create();
+
+  try {
+    create();
+  } catch (err) {
+    if (err instanceof Error && /UNIQUE constraint failed.*numero/.test(err.message)) {
+      throw new Error(`Já existe uma ordem de corte com o número ${input.numero} nesta empresa.`);
+    }
+    throw err;
+  }
 
   return ordem;
 }
@@ -366,6 +394,7 @@ export function duplicateOrdemCorteLocal(
     db,
     {
       empresa_id: original.empresa_id,
+      numero: getNextOrdemCorteNumeroLocal(db, original.empresa_id),
       cliente_id: original.cliente_id,
       produto_id: original.produto_id,
       tecido_id: original.tecido_id,

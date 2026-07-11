@@ -153,6 +153,7 @@ export type StatusOrdemCorte = "aberta" | "em_fila" | "cancelada";
 export interface OrdemCorte {
   id: string;
   empresa_id: string;
+  numero: number;
   cliente_id: string;
   produto_id: string;
   tecido_id: string;
@@ -189,6 +190,7 @@ export interface OrdemCorteItemInput {
 
 export interface OrdemCorteInput {
   empresa_id: string;
+  numero: number;
   cliente_id: string;
   produto_id: string;
   tecido_id: string;

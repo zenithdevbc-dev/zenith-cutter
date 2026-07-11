@@ -311,4 +311,47 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 13,
+    name: "add_ordem_corte_numero",
+    up: (db) => {
+      db.exec(`
+        -- Número sequencial da ordem, exibido pro usuário (pedido
+        -- 2026-07-09): sugerido automaticamente (maior número + 1 da
+        -- própria empresa), mas editável na criação. Nunca pode repetir
+        -- dentro da mesma empresa — por isso UNIQUE(empresa_id, numero),
+        -- não só validação de app. Imutável depois de criado (é um
+        -- identificador, não um dado de negócio editável).
+        -- SQLite não permite ALTER ADD COLUMN NOT NULL sem default
+        -- fixo, então recria a tabela (mesmo padrão da v11).
+        CREATE TABLE ordens_corte_new (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          numero        INTEGER NOT NULL,
+          cliente_id    TEXT NOT NULL,
+          produto_id    TEXT NOT NULL,
+          tecido_id     TEXT NOT NULL,
+          status        TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta', 'em_fila', 'cancelada')),
+          observacoes   TEXT,
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          UNIQUE (empresa_id, numero)
+        );
+
+        INSERT INTO ordens_corte_new
+          (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, observacoes, criado_em, atualizado_em)
+          SELECT
+            id, empresa_id,
+            ROW_NUMBER() OVER (PARTITION BY empresa_id ORDER BY criado_em ASC),
+            cliente_id, produto_id, tecido_id, status, observacoes, criado_em, atualizado_em
+          FROM ordens_corte;
+
+        DROP TABLE ordens_corte;
+        ALTER TABLE ordens_corte_new RENAME TO ordens_corte;
+
+        CREATE INDEX idx_ordens_corte_empresa ON ordens_corte (empresa_id);
+        CREATE INDEX idx_ordens_corte_status ON ordens_corte (status);
+      `);
+    },
+  },
 ];

@@ -89,6 +89,7 @@ declare global {
         ) => Promise<OrdemCorte>;
         duplicateLocal: (id: string, usuarioId: string) => Promise<OrdemCorte>;
         historicoListLocal: (ordemId: string) => Promise<OrdemCorteHistoricoEntry[]>;
+        nextNumeroLocal: (empresaId: string) => Promise<number>;
       };
       empresas: {
         cache: (empresa: Empresa) => Promise<void>;

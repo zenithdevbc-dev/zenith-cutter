@@ -100,6 +100,7 @@ export function OrdensCortePage() {
       if (statusFiltro !== "todos" && o.status !== statusFiltro) return false;
       if (!termo) return true;
       return (
+        String(o.numero).includes(termo) ||
         o.cliente_nome.toLowerCase().includes(termo) ||
         o.produto_nome.toLowerCase().includes(termo) ||
         o.tecido_nome.toLowerCase().includes(termo)
@@ -117,7 +118,7 @@ export function OrdensCortePage() {
       <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
         <div className="flex shrink-0 gap-2">
           <Input
-            placeholder="Pesquisar por cliente, produto ou tecido..."
+            placeholder="Pesquisar por número, cliente, produto ou tecido..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
@@ -143,6 +144,7 @@ export function OrdensCortePage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Nº</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Produto</TableHead>
                   <TableHead>Tecido</TableHead>
@@ -154,7 +156,8 @@ export function OrdensCortePage() {
               <TableBody>
                 {filtradas.map((ordem) => (
                   <TableRow key={ordem.id}>
-                    <TableCell className="font-medium">{ordem.cliente_nome}</TableCell>
+                    <TableCell className="font-medium">{ordem.numero}</TableCell>
+                    <TableCell>{ordem.cliente_nome}</TableCell>
                     <TableCell>{ordem.produto_nome}</TableCell>
                     <TableCell>{ordem.tecido_nome}</TableCell>
                     <TableCell>{ordem.quantidade_total}</TableCell>

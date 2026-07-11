@@ -78,6 +78,7 @@ import {
   updateOrdemCorteLocal,
   duplicateOrdemCorteLocal,
   listOrdemCorteHistoricoLocal,
+  getNextOrdemCorteNumeroLocal,
 } from "../db/repositories/ordensCorte";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
 
@@ -250,6 +251,13 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.ordensCorteHistoricoListLocal,
     (_event, ordemId: string): OrdemCorteHistoricoEntry[] => {
       return listOrdemCorteHistoricoLocal(getDb(), ordemId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.ordensCorteNextNumeroLocal,
+    (_event, empresaId: string): number => {
+      return getNextOrdemCorteNumeroLocal(getDb(), empresaId);
     },
   );
 

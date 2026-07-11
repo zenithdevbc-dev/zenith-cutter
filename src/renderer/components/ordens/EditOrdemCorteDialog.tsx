@@ -158,7 +158,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="shrink-0">
-          <DialogTitle>Editar ordem de corte</DialogTitle>
+          <DialogTitle>Editar ordem de corte Nº {ordem.numero}</DialogTitle>
         </DialogHeader>
         <form
           id={`edit-ordem-corte-form-${ordem.id}`}
