@@ -33,12 +33,14 @@ const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
   aberta: "Aberta",
   em_fila: "Em Fila",
   cancelada: "Cancelada",
+  em_corte: "Em Corte",
 };
 
 const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destructive"> = {
   aberta: "default",
   em_fila: "secondary",
   cancelada: "destructive",
+  em_corte: "default",
 };
 
 export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {

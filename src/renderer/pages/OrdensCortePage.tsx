@@ -31,12 +31,14 @@ const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
   aberta: "Aberta",
   em_fila: "Em Fila",
   cancelada: "Cancelada",
+  em_corte: "Em Corte",
 };
 
 const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destructive"> = {
   aberta: "default",
   em_fila: "secondary",
   cancelada: "destructive",
+  em_corte: "default",
 };
 
 export function OrdensCortePage() {
@@ -130,6 +132,7 @@ export function OrdensCortePage() {
               <SelectItem value="todos">Todos os status</SelectItem>
               <SelectItem value="aberta">Aberta</SelectItem>
               <SelectItem value="em_fila">Em Fila</SelectItem>
+              <SelectItem value="em_corte">Em Corte</SelectItem>
               <SelectItem value="cancelada">Cancelada</SelectItem>
             </SelectContent>
           </Select>
@@ -172,7 +175,7 @@ export function OrdensCortePage() {
                         <Button variant="outline" size="sm" onClick={() => handleDuplicar(ordem)}>
                           Duplicar
                         </Button>
-                        {ordem.status !== "cancelada" && (
+                        {ordem.status !== "cancelada" && ordem.status !== "em_corte" && (
                           <Button variant="outline" size="sm" onClick={() => handleCancelar(ordem)}>
                             Cancelar
                           </Button>

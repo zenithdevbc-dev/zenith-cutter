@@ -295,12 +295,6 @@ export function updateOrdemCorteLocal(
   patch: OrdemCorteUpdatePatch,
   usuarioId: string,
 ): OrdemCorte {
-  if (patch.status === "em_corte") {
-    throw new Error(
-      "Status 'em_corte' só pode ser definido ao iniciar a produção (seleção de mesa + confirmação), não por edição direta.",
-    );
-  }
-
   const fields: string[] = [];
   const params: Record<string, unknown> = { id };
 
@@ -331,6 +325,16 @@ export function updateOrdemCorteLocal(
     .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
     .get(id);
   if (!row) throw new Error(`Ordem de Corte ${id} não encontrada.`);
+
+  // 'em_corte' só é setado por iniciarProducaoLocal (seleção de mesa +
+  // confirmação) — bloqueia só a transição real pra esse status por
+  // edição livre, não o reenvio do próprio patch com o status atual
+  // inalterado (o form de edição sempre reenvia 'status').
+  if (patch.status === "em_corte" && row.status !== "em_corte") {
+    throw new Error(
+      "Status 'em_corte' só pode ser definido ao iniciar a produção (seleção de mesa + confirmação), não por edição direta.",
+    );
+  }
 
   const apply = db.transaction(() => {
     db.prepare(`UPDATE ordens_corte SET ${fields.join(", ")} WHERE id = @id`).run(params);
