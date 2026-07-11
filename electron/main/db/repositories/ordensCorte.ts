@@ -1,20 +1,26 @@
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
-import type {
-  AcaoOrdemCorteHistorico,
-  OrdemCorte,
-  OrdemCorteHistoricoEntry,
-  OrdemCorteInput,
-  OrdemCorteItem,
-  OrdemCorteResumo,
-  OrdemCorteUpdatePatch,
+import {
+  PIPELINE_PRODUCAO,
+  type AcaoOrdemCorteHistorico,
+  type OrdemCorte,
+  type OrdemCorteHistoricoEntry,
+  type OrdemCorteInput,
+  type OrdemCorteItem,
+  type OrdemCorteResumo,
+  type OrdemCorteUpdatePatch,
 } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
 
-const STATUS_LABEL: Record<string, string> = {
+export const STATUS_LABEL: Record<string, string> = {
   aberta: "Aberta",
   em_fila: "Em Fila",
   cancelada: "Cancelada",
+  em_corte: "Em Corte",
+  embalagem: "Embalagem",
+  revisao: "Revisão",
+  despacho: "Despacho",
+  pronto: "Pronto",
 };
 
 interface OrdemCorteHistoricoRow {
@@ -83,7 +89,7 @@ export function listOrdemCorteHistoricoLocal(
     .all(ordemId);
 }
 
-interface OrdemCorteRow {
+export interface OrdemCorteRow {
   id: string;
   empresa_id: string;
   numero: number;
@@ -113,7 +119,7 @@ interface OrdemCorteItemRow {
   quantidade: number;
 }
 
-function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
+export function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
   return {
     id: row.id,
     empresa_id: row.empresa_id,
@@ -326,13 +332,19 @@ export function updateOrdemCorteLocal(
     .get(id);
   if (!row) throw new Error(`Ordem de Corte ${id} não encontrada.`);
 
-  // 'em_corte' só é setado por iniciarProducaoLocal (seleção de mesa +
-  // confirmação) — bloqueia só a transição real pra esse status por
-  // edição livre, não o reenvio do próprio patch com o status atual
+  // Etapas do pipeline de execução (em_corte/embalagem/revisao/
+  // despacho/pronto) só são setadas por iniciarProducaoLocal ou
+  // avancarEtapaOrdemLocal — nunca por edição livre (regra 4: sem
+  // pular etapas). Bloqueia só a transição real pra uma dessas
+  // etapas, não o reenvio do próprio patch com o status atual
   // inalterado (o form de edição sempre reenvia 'status').
-  if (patch.status === "em_corte" && row.status !== "em_corte") {
+  if (
+    patch.status !== undefined &&
+    PIPELINE_PRODUCAO.includes(patch.status) &&
+    patch.status !== row.status
+  ) {
     throw new Error(
-      "Status 'em_corte' só pode ser definido ao iniciar a produção (seleção de mesa + confirmação), não por edição direta.",
+      `Status '${STATUS_LABEL[patch.status] ?? patch.status}' só pode ser definido pelo fluxo de produção (Iniciar / Avançar etapa), não por edição direta.`,
     );
   }
 

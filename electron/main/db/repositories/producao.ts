@@ -1,13 +1,15 @@
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
-import type {
-  IniciarProducaoInput,
-  MesaCorteComStatus,
-  SessaoProducao,
-  SessaoProducaoResumo,
+import {
+  PIPELINE_PRODUCAO,
+  type IniciarProducaoInput,
+  type MesaCorteComStatus,
+  type OrdemCorte,
+  type SessaoProducao,
+  type SessaoProducaoResumo,
 } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
-import { registrarHistorico } from "./ordensCorte";
+import { registrarHistorico, rowToOrdemCorte, STATUS_LABEL, type OrdemCorteRow } from "./ordensCorte";
 
 interface MesaCorteComStatusRow {
   id: string;
@@ -210,4 +212,80 @@ export function iniciarProducaoLocal(
   }
 
   return sessao;
+}
+
+/**
+ * Avança a ordem uma etapa do pipeline pós-fila (PIPELINE_PRODUCAO:
+ * em_corte → embalagem → revisao → despacho → pronto), sempre uma de
+ * cada vez — nunca pulando etapa (regra 4, decisão de 2026-07-11).
+ * Ao sair de 'em_corte', finaliza a sessão de produção ativa, o que
+ * libera a mesa automaticamente (mesa só existe durante o corte).
+ */
+export function avancarEtapaOrdemLocal(
+  db: Database.Database,
+  ordemId: string,
+  usuarioId: string,
+): OrdemCorte {
+  const row = db
+    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
+    .get(ordemId);
+  if (!row) throw new Error("Ordem de corte não encontrada.");
+
+  const index = PIPELINE_PRODUCAO.indexOf(row.status as OrdemCorte["status"]);
+  if (index === -1) {
+    throw new Error("Esta ordem não está em uma etapa do pipeline de produção.");
+  }
+  if (index === PIPELINE_PRODUCAO.length - 1) {
+    throw new Error("Esta ordem já está pronta — não há próxima etapa.");
+  }
+  const proximo = PIPELINE_PRODUCAO[index + 1];
+  const now = new Date().toISOString();
+
+  const avancar = db.transaction(() => {
+    if (row.status === "em_corte") {
+      const sessaoAtiva = db
+        .prepare<[string], { id: string }>(
+          "SELECT id FROM sessoes_producao WHERE ordem_id = ? AND status = 'em_andamento'",
+        )
+        .get(ordemId);
+      if (sessaoAtiva) {
+        db.prepare(
+          "UPDATE sessoes_producao SET status = 'finalizada', finalizado_em = ?, atualizado_em = ? WHERE id = ?",
+        ).run(now, now, sessaoAtiva.id);
+        enqueueChange(db, {
+          tableName: "sessoes_producao",
+          recordId: sessaoAtiva.id,
+          operation: "update",
+          payload: { status: "finalizada", finalizado_em: now },
+        });
+      }
+    }
+
+    db.prepare("UPDATE ordens_corte SET status = ?, atualizado_em = ? WHERE id = ?").run(
+      proximo,
+      now,
+      ordemId,
+    );
+    enqueueChange(db, {
+      tableName: "ordens_corte",
+      recordId: ordemId,
+      operation: "update",
+      payload: { status: proximo },
+    });
+
+    registrarHistorico(db, {
+      empresaId: row.empresa_id,
+      ordemId,
+      usuarioId,
+      acao: "mudanca_status",
+      descricao: `Status alterado de "${STATUS_LABEL[row.status] ?? row.status}" para "${STATUS_LABEL[proximo] ?? proximo}".`,
+    });
+  });
+  avancar();
+
+  const updatedRow = db
+    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
+    .get(ordemId);
+  if (!updatedRow) throw new Error("Ordem de corte não encontrada após atualização.");
+  return rowToOrdemCorte(updatedRow);
 }
