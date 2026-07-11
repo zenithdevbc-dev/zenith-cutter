@@ -149,6 +149,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.producaoIniciarLocal, input, usuarioId),
     listSessoesAtivasLocal: (): Promise<SessaoProducaoResumo[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.producaoSessoesAtivasListLocal),
+    avancarEtapaLocal: (ordemId: string, usuarioId: string): Promise<OrdemCorte> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoAvancarEtapaLocal, ordemId, usuarioId),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

@@ -106,6 +106,7 @@ declare global {
           usuarioId: string,
         ) => Promise<SessaoProducao>;
         listSessoesAtivasLocal: () => Promise<SessaoProducaoResumo[]>;
+        avancarEtapaLocal: (ordemId: string, usuarioId: string) => Promise<OrdemCorte>;
       };
       empresas: {
         cache: (empresa: Empresa) => Promise<void>;

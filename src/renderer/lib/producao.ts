@@ -1,6 +1,7 @@
 import type {
   IniciarProducaoInput,
   MesaCorteComStatus,
+  OrdemCorte,
   SessaoProducao,
   SessaoProducaoResumo,
 } from "@shared/models";
@@ -23,4 +24,12 @@ export function iniciarProducao(
 
 export function listSessoesAtivas(): Promise<SessaoProducaoResumo[]> {
   return window.zenith.producao.listSessoesAtivasLocal();
+}
+
+/**
+ * Avança a ordem uma etapa do pipeline pós-fila (em_corte→embalagem→
+ * revisao→despacho→pronto), nunca pulando etapa.
+ */
+export function avancarEtapaOrdem(ordemId: string, usuarioId: string): Promise<OrdemCorte> {
+  return window.zenith.producao.avancarEtapaLocal(ordemId, usuarioId);
 }

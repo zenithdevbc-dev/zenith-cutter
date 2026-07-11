@@ -93,6 +93,7 @@ import {
   listMesasComStatusLocal,
   iniciarProducaoLocal,
   listSessoesAtivasLocal,
+  avancarEtapaOrdemLocal,
 } from "../db/repositories/producao";
 
 export function registerIpcHandlers() {
@@ -299,6 +300,13 @@ export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.producaoSessoesAtivasListLocal, (): SessaoProducaoResumo[] => {
     return listSessoesAtivasLocal(getDb());
   });
+
+  ipcMain.handle(
+    IPC_CHANNELS.producaoAvancarEtapaLocal,
+    (_event, ordemId: string, usuarioId: string): OrdemCorte => {
+      return avancarEtapaOrdemLocal(getDb(), ordemId, usuarioId);
+    },
+  );
 
   ipcMain.handle(IPC_CHANNELS.empresasCache, (_event, empresa: Empresa) => {
     cacheEmpresa(getDb(), empresa);
