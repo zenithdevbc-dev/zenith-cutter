@@ -148,7 +148,29 @@ export interface ProdutoTamanhoUpdatePatch {
   ativo?: boolean;
 }
 
-export type StatusOrdemCorte = "aberta" | "em_fila" | "cancelada" | "em_corte";
+export type StatusOrdemCorte =
+  | "aberta"
+  | "em_fila"
+  | "cancelada"
+  | "em_corte"
+  | "embalagem"
+  | "revisao"
+  | "despacho"
+  | "pronto";
+
+/**
+ * Sequência pós-fila (seção 4 do CLAUDE.md, decisão de 2026-07-11):
+ * cada etapa avança manualmente pra próxima, uma de cada vez, nunca
+ * pulando (regra 4). 'aberta'/'em_fila'/'cancelada' ficam fora — não
+ * fazem parte deste pipeline de execução.
+ */
+export const PIPELINE_PRODUCAO: readonly StatusOrdemCorte[] = [
+  "em_corte",
+  "embalagem",
+  "revisao",
+  "despacho",
+  "pronto",
+];
 
 export interface OrdemCorte {
   id: string;

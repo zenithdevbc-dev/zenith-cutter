@@ -430,4 +430,43 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 16,
+    name: "add_ordem_corte_pipeline_pos_corte",
+    up: (db) => {
+      db.exec(`
+        -- Pipeline pós-corte (decisão de 2026-07-11, seção 4 do
+        -- CLAUDE.md): 'em_corte' avança manualmente por 'embalagem',
+        -- 'revisao', 'despacho' até 'pronto' — cada etapa avançada uma
+        -- de cada vez (regra 4), nunca automaticamente. Recria a
+        -- tabela pra ampliar o CHECK (mesmo padrão da v11/v13/v14).
+        CREATE TABLE ordens_corte_new (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          numero        INTEGER NOT NULL,
+          cliente_id    TEXT NOT NULL,
+          produto_id    TEXT NOT NULL,
+          tecido_id     TEXT NOT NULL,
+          status        TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta', 'em_fila', 'cancelada', 'em_corte', 'embalagem', 'revisao', 'despacho', 'pronto')),
+          prioridade    INTEGER NOT NULL DEFAULT 0,
+          observacoes   TEXT,
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          UNIQUE (empresa_id, numero)
+        );
+
+        INSERT INTO ordens_corte_new
+          (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, criado_em, atualizado_em)
+          SELECT
+            id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, criado_em, atualizado_em
+          FROM ordens_corte;
+
+        DROP TABLE ordens_corte;
+        ALTER TABLE ordens_corte_new RENAME TO ordens_corte;
+
+        CREATE INDEX idx_ordens_corte_empresa ON ordens_corte (empresa_id);
+        CREATE INDEX idx_ordens_corte_status ON ordens_corte (status);
+      `);
+    },
+  },
 ];
