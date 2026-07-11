@@ -155,7 +155,19 @@ implementar.
   encerrado por decisão do usuário em 2026-07-09, com "configurações
   básicas" deliberadamente adiada sem escopo definido (não é um item
   esquecido — foi pulado a pedido).
-- Última entrega **2026-07-09**: PIN de confirmação antes de criar/
+- Última entrega **2026-07-09**: número sequencial de Ordem de Corte
+  (pedido do usuário). Sugerido automaticamente (maior número já usado
+  na empresa + 1), editável na criação, imutável depois — nunca pode
+  repetir dentro da mesma empresa, garantido por
+  `UNIQUE(empresa_id, numero)` no banco (local e Supabase), não só
+  validação de app. Migration local v13 (recria `ordens_corte`, mesmo
+  padrão da v11) e `supabase/sql/0015_ordens_corte_numero.sql`
+  (backfill sequencial das ordens já existentes) **aplicadas em
+  produção e local, verificadas** (números batendo dos dois lados).
+  Duplicar uma ordem sempre gera número novo. Exibido na lista (coluna
+  "Nº", pesquisável), nos títulos de Info/Editar, e como campo
+  editável no dialog de criação.
+- Entrega anterior: PIN de confirmação antes de criar/
   editar/cancelar/duplicar uma Ordem de Corte (pedido do usuário,
   reforça 3.1 "operador sempre no controle"). Reusa a própria senha de
   login como PIN — sem cadastro separado. Validação 100% offline: hash
