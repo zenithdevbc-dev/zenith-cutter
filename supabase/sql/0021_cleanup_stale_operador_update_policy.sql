@@ -1,0 +1,11 @@
+-- Zenith Cutter — limpeza de policy órfã
+-- Rodar no SQL Editor do painel do Supabase, depois de 0020.
+--
+-- Durante o desenvolvimento do pipeline pós-corte, a policy de UPDATE
+-- do Operador em ordens_corte foi reescrita de
+-- "ordens_corte_update_operador_iniciar" (só em_fila -> em_corte) para
+-- "ordens_corte_update_operador_pipeline" (todo o pipeline). A versão
+-- antiga chegou a ser executada em produção antes da reescrita e ficou
+-- órfã — não quebra nada (policies são OR'd e a nova já cobre o mesmo
+-- caso), mas não corresponde mais a nenhum arquivo do repo.
+drop policy if exists "ordens_corte_update_operador_iniciar" on public.ordens_corte;
