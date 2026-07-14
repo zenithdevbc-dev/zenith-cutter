@@ -3,7 +3,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { CadastrosPage } from "@/pages/CadastrosPage";
 import { OrdensCortePage } from "@/pages/OrdensCortePage";
-import { FilaProducaoPage } from "@/pages/FilaProducaoPage";
 import { ProducaoPage } from "@/pages/ProducaoPage";
 import { DbStatusCard } from "@/components/DbStatusCard";
 import { SyncStatusCard } from "@/components/SyncStatusCard";
@@ -14,7 +13,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getAllowedNavItems, type PageId } from "@/lib/navigation";
 
 const PAGE_DESCRIPTIONS: Record<
-  Exclude<PageId, "cadastros" | "ordens-corte" | "fila-producao" | "producao">,
+  Exclude<PageId, "cadastros" | "ordens-corte" | "producao">,
   string
 > = {
   dashboard:
@@ -49,8 +48,6 @@ function App() {
             <CadastrosPage />
           ) : currentPage === "ordens-corte" ? (
             <OrdensCortePage />
-          ) : currentPage === "fila-producao" ? (
-            <FilaProducaoPage />
           ) : currentPage === "producao" ? (
             <ProducaoPage />
           ) : (

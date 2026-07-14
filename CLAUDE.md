@@ -64,8 +64,7 @@ Três papéis (`usuarios.papel`), decisão de 2026-07-09:
 |---|---|---|---|
 | Dashboard | ✅ | ✅ | ✅ |
 | Ordens de Corte | ✅ | ✅ | ❌ |
-| Fila de Produção | ✅ | ✅ | ❌ |
-| Produção (execução: iniciar/pausar/retomar/finalizar/perdas/observações) | ✅ | ✅ | ✅ |
+| Produção (fila + execução: iniciar/avançar etapa/pausar/retomar/finalizar/perdas/observações) | ✅ | ✅ | ✅ |
 | Cadastros — Clientes/Produtos/Tecidos/Mesas de Corte | ✅ | ✅ | ❌ |
 | Cadastros — Usuários | ✅ | ❌ | ❌ |
 | Configurações | ✅ | ❌ | ❌ |
@@ -75,8 +74,13 @@ Aplicado em duas camadas, nunca só uma (ver 3.1): navegação/UI
 Usuários para quem não é admin) **e** RLS no Supabase (função
 `current_papel()`, ver `supabase/sql/0011_add_supervisor_role.sql`) —
 um operador não acessa essas tabelas nem chamando a API diretamente.
-Ao criar a Fila de Produção (Sprint 3) e a Produção/execução (Sprint
-4), replicar a mesma regra nas novas tabelas.
+
+Decisão de 2026-07-14 (pedido do usuário): a página dedicada "Fila de
+Produção" foi removida por ser redundante — a página "Produção" já
+mostrava a mesma fila. A reordenação manual de prioridade continua
+exclusiva de administrador/supervisor, mas agora dentro da própria
+página Produção (gate por papel no componente, não por rota/nav
+separada); Operador vê a fila só como lista (sem os botões de mover).
 
 ## 4. Fluxo oficial da produção (state machine de referência)
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -11,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listFilaProducao } from "@/lib/filaProducao";
+import { listFilaProducao, reorderFilaProducao } from "@/lib/filaProducao";
 import { listMesasComStatus, listSessoesAtivas, avancarEtapaOrdem } from "@/lib/producao";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { IniciarProducaoDialog } from "@/components/producao/IniciarProducaoDialog";
@@ -39,14 +40,19 @@ const ETAPA_LABEL: Record<StatusOrdemCorte, string> = {
 
 /**
  * Execução da produção (todos os papéis, ver CLAUDE.md 3.6): a fila
- * (mesma ordem definida em Fila de Produção, aqui só leitura) com o
- * botão "Iniciar", as mesas com status livre/ocupada, as sessões em
- * andamento e o pipeline pós-corte (Embalagem/Revisão/Despacho/
- * Pronto), avançado uma etapa por vez (decisão de 2026-07-11).
+ * com o botão "Iniciar", as mesas com status livre/ocupada, as
+ * sessões em andamento e o pipeline pós-corte (Embalagem/Revisão/
+ * Despacho/Pronto), avançado uma etapa por vez (decisão de
+ * 2026-07-11). A reordenação manual de prioridade da fila (antes numa
+ * página "Fila de Produção" separada, removida em 2026-07-14 por ser
+ * redundante) fica só visível/ativa pra admin/supervisor — Operador
+ * vê a mesma fila sem os botões de mover.
  */
 export function ProducaoPage() {
   const { usuario } = useAuth();
   const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
+  const podeReordenar =
+    usuario?.papel === "administrador" || usuario?.papel === "supervisor";
   const [fila, setFila] = useState<OrdemCorteResumo[] | null>(null);
   const [mesas, setMesas] = useState<MesaCorteComStatus[] | null>(null);
   const [sessoes, setSessoes] = useState<SessaoProducaoResumo[] | null>(null);
@@ -74,6 +80,23 @@ export function ProducaoPage() {
   function handleIniciado(ordemId: string, _sessao: SessaoProducao) {
     setFila((prev) => (prev ?? []).filter((o) => o.id !== ordemId));
     reload();
+  }
+
+  async function handleMove(index: number, direction: -1 | 1) {
+    if (!fila) return;
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= fila.length) return;
+
+    const reordered = [...fila];
+    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+    setFila(reordered);
+
+    try {
+      const updated = await reorderFilaProducao(reordered.map((o) => o.id));
+      setFila(updated);
+    } catch {
+      toast.error("Não foi possível reordenar a fila.");
+    }
   }
 
   async function handleAvancar(ordem: OrdemCorteResumo) {
@@ -111,17 +134,42 @@ export function ProducaoPage() {
                     <TableHead>Produto</TableHead>
                     <TableHead>Tecido</TableHead>
                     <TableHead>Qtd. total</TableHead>
+                    {podeReordenar && <TableHead>Mover</TableHead>}
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {fila.map((ordem) => (
+                  {fila.map((ordem, index) => (
                     <TableRow key={ordem.id}>
                       <TableCell className="font-medium">{ordem.numero}</TableCell>
                       <TableCell>{ordem.cliente_nome}</TableCell>
                       <TableCell>{ordem.produto_nome}</TableCell>
                       <TableCell>{ordem.tecido_nome}</TableCell>
                       <TableCell>{ordem.quantidade_total}</TableCell>
+                      {podeReordenar && (
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              disabled={index === 0}
+                              onClick={() => handleMove(index, -1)}
+                            >
+                              <ArrowUp className="size-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              disabled={index === fila.length - 1}
+                              onClick={() => handleMove(index, 1)}
+                            >
+                              <ArrowDown className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
                       <TableCell className="text-right">
                         <IniciarProducaoDialog
                           ordem={ordem}
