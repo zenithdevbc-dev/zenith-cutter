@@ -58,6 +58,8 @@ export const IPC_CHANNELS = {
   producaoIniciarLocal: "producao:iniciar-local",
   producaoSessoesAtivasListLocal: "producao:sessoes-ativas-list-local",
   producaoAvancarEtapaLocal: "producao:avancar-etapa-local",
+  producaoPausarLocal: "producao:pausar-local",
+  producaoRetomarLocal: "producao:retomar-local",
   empresasCache: "empresas:cache",
   empresasGetLocal: "empresas:get-local",
 } as const;

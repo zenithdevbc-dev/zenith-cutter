@@ -151,6 +151,10 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.producaoSessoesAtivasListLocal),
     avancarEtapaLocal: (ordemId: string, usuarioId: string): Promise<OrdemCorte> =>
       ipcRenderer.invoke(IPC_CHANNELS.producaoAvancarEtapaLocal, ordemId, usuarioId),
+    pausarLocal: (ordemId: string, usuarioId: string): Promise<SessaoProducao> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoPausarLocal, ordemId, usuarioId),
+    retomarLocal: (ordemId: string, usuarioId: string): Promise<SessaoProducao> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoRetomarLocal, ordemId, usuarioId),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

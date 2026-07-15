@@ -33,3 +33,11 @@ export function listSessoesAtivas(): Promise<SessaoProducaoResumo[]> {
 export function avancarEtapaOrdem(ordemId: string, usuarioId: string): Promise<OrdemCorte> {
   return window.zenith.producao.avancarEtapaLocal(ordemId, usuarioId);
 }
+
+export function pausarProducao(ordemId: string, usuarioId: string): Promise<SessaoProducao> {
+  return window.zenith.producao.pausarLocal(ordemId, usuarioId);
+}
+
+export function retomarProducao(ordemId: string, usuarioId: string): Promise<SessaoProducao> {
+  return window.zenith.producao.retomarLocal(ordemId, usuarioId);
+}
