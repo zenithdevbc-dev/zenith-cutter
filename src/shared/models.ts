@@ -235,7 +235,9 @@ export type AcaoOrdemCorteHistorico =
   | "edicao"
   | "mudanca_status"
   | "cancelamento"
-  | "duplicacao";
+  | "duplicacao"
+  | "pausa"
+  | "retomada";
 
 /**
  * Auditoria da ordem (ver CLAUDE.md 3.5): quem fez o quê e quando.
@@ -276,6 +278,8 @@ export interface SessaoProducao {
   iniciado_por: string;
   iniciado_em: string;
   finalizado_em: string | null;
+  pausado_em: string | null;
+  tempo_pausado_segundos: number;
   criado_em: string;
   atualizado_em: string;
 }

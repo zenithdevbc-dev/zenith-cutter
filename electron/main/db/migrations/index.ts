@@ -469,4 +469,50 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 17,
+    name: "add_sessoes_producao_pausa",
+    up: (db) => {
+      db.exec(`
+        -- Sprint 4: pausar/retomar dentro de 'Em Corte'. pausado_em
+        -- marca o início da pausa atual (NULL fora de pausa);
+        -- tempo_pausado_segundos acumula o total pausado da sessão
+        -- (somado a cada retomada), usado depois pra calcular o tempo
+        -- de produção efetivo. Não precisa recriar a tabela — sem
+        -- CHECK novo, só colunas com default fixo.
+        ALTER TABLE sessoes_producao ADD COLUMN pausado_em TEXT;
+        ALTER TABLE sessoes_producao ADD COLUMN tempo_pausado_segundos INTEGER NOT NULL DEFAULT 0;
+      `);
+    },
+  },
+  {
+    version: 18,
+    name: "add_ordem_corte_historico_pausa_retomada",
+    up: (db) => {
+      db.exec(`
+        -- Sprint 4: novas ações de auditoria pra pausar/retomar
+        -- produção (CLAUDE.md 3.5). Recria a tabela pra ampliar o
+        -- CHECK (mesmo padrão da v11/v13/v14/v16).
+        CREATE TABLE ordem_corte_historico_new (
+          id          TEXT PRIMARY KEY,
+          empresa_id  TEXT NOT NULL,
+          ordem_id    TEXT NOT NULL,
+          usuario_id  TEXT NOT NULL,
+          acao        TEXT NOT NULL CHECK (acao IN ('criacao', 'edicao', 'mudanca_status', 'cancelamento', 'duplicacao', 'pausa', 'retomada')),
+          descricao   TEXT NOT NULL,
+          criado_em   TEXT NOT NULL
+        );
+
+        INSERT INTO ordem_corte_historico_new
+          (id, empresa_id, ordem_id, usuario_id, acao, descricao, criado_em)
+          SELECT id, empresa_id, ordem_id, usuario_id, acao, descricao, criado_em
+          FROM ordem_corte_historico;
+
+        DROP TABLE ordem_corte_historico;
+        ALTER TABLE ordem_corte_historico_new RENAME TO ordem_corte_historico;
+
+        CREATE INDEX idx_ordem_corte_historico_ordem ON ordem_corte_historico (ordem_id);
+      `);
+    },
+  },
 ];
