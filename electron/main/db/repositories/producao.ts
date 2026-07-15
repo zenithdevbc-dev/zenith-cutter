@@ -71,6 +71,8 @@ interface SessaoProducaoResumoRow {
   iniciado_por: string;
   iniciado_em: string;
   finalizado_em: string | null;
+  pausado_em: string | null;
+  tempo_pausado_segundos: number;
   criado_em: string;
   atualizado_em: string;
   ordem_numero: number;
@@ -88,6 +90,8 @@ function rowToSessaoResumo(row: SessaoProducaoResumoRow): SessaoProducaoResumo {
     iniciado_por: row.iniciado_por,
     iniciado_em: row.iniciado_em,
     finalizado_em: row.finalizado_em,
+    pausado_em: row.pausado_em,
+    tempo_pausado_segundos: row.tempo_pausado_segundos,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
     ordem_numero: row.ordem_numero,
@@ -108,7 +112,7 @@ export function listSessoesAtivasLocal(db: Database.Database): SessaoProducaoRes
       JOIN ordens_corte oc ON oc.id = sp.ordem_id
       JOIN mesas_corte m ON m.id = sp.mesa_id
       LEFT JOIN usuarios u ON u.id = sp.iniciado_por
-      WHERE sp.status = 'em_andamento'
+      WHERE sp.status IN ('em_andamento', 'pausada')
       ORDER BY sp.iniciado_em DESC
     `)
     .all();
@@ -164,14 +168,16 @@ export function iniciarProducaoLocal(
     iniciado_por: usuarioId,
     iniciado_em: now,
     finalizado_em: null,
+    pausado_em: null,
+    tempo_pausado_segundos: 0,
     criado_em: now,
     atualizado_em: now,
   };
 
   const iniciar = db.transaction(() => {
     db.prepare(`
-      INSERT INTO sessoes_producao (id, empresa_id, ordem_id, mesa_id, status, iniciado_por, iniciado_em, finalizado_em, criado_em, atualizado_em)
-      VALUES (@id, @empresa_id, @ordem_id, @mesa_id, @status, @iniciado_por, @iniciado_em, @finalizado_em, @criado_em, @atualizado_em)
+      INSERT INTO sessoes_producao (id, empresa_id, ordem_id, mesa_id, status, iniciado_por, iniciado_em, finalizado_em, pausado_em, tempo_pausado_segundos, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @ordem_id, @mesa_id, @status, @iniciado_por, @iniciado_em, @finalizado_em, @pausado_em, @tempo_pausado_segundos, @criado_em, @atualizado_em)
     `).run(sessao);
     enqueueChange(db, {
       tableName: "sessoes_producao",
@@ -300,4 +306,142 @@ export function avancarEtapaOrdemLocal(
     .get(ordemId);
   if (!updatedRow) throw new Error("Ordem de corte não encontrada após atualização.");
   return rowToOrdemCorte(updatedRow);
+}
+
+interface SessaoProducaoRow {
+  id: string;
+  empresa_id: string;
+  ordem_id: string;
+  mesa_id: string;
+  status: string;
+  iniciado_por: string;
+  iniciado_em: string;
+  finalizado_em: string | null;
+  pausado_em: string | null;
+  tempo_pausado_segundos: number;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+function rowToSessao(row: SessaoProducaoRow): SessaoProducao {
+  return {
+    id: row.id,
+    empresa_id: row.empresa_id,
+    ordem_id: row.ordem_id,
+    mesa_id: row.mesa_id,
+    status: row.status as SessaoProducao["status"],
+    iniciado_por: row.iniciado_por,
+    iniciado_em: row.iniciado_em,
+    finalizado_em: row.finalizado_em,
+    pausado_em: row.pausado_em,
+    tempo_pausado_segundos: row.tempo_pausado_segundos,
+    criado_em: row.criado_em,
+    atualizado_em: row.atualizado_em,
+  };
+}
+
+/**
+ * Pausa a sessão ativa de uma ordem 'em_corte' (regra 3.1: ação
+ * explícita, nunca automática). A mesa continua ocupada — pausar não
+ * é finalizar (ver índices únicos que cobrem 'pausada' também).
+ */
+export function pausarProducaoLocal(
+  db: Database.Database,
+  ordemId: string,
+  usuarioId: string,
+): SessaoProducao {
+  const sessao = db
+    .prepare<[string], SessaoProducaoRow>(
+      "SELECT * FROM sessoes_producao WHERE ordem_id = ? AND status = 'em_andamento'",
+    )
+    .get(ordemId);
+  if (!sessao) throw new Error("Esta ordem não tem uma sessão de produção em andamento.");
+
+  const now = new Date().toISOString();
+  const ordem = db
+    .prepare<[string], { empresa_id: string }>("SELECT empresa_id FROM ordens_corte WHERE id = ?")
+    .get(ordemId);
+  if (!ordem) throw new Error("Ordem de corte não encontrada.");
+
+  const pausar = db.transaction(() => {
+    db.prepare(
+      "UPDATE sessoes_producao SET status = 'pausada', pausado_em = ?, atualizado_em = ? WHERE id = ?",
+    ).run(now, now, sessao.id);
+    enqueueChange(db, {
+      tableName: "sessoes_producao",
+      recordId: sessao.id,
+      operation: "update",
+      payload: { status: "pausada", pausado_em: now },
+    });
+    registrarHistorico(db, {
+      empresaId: ordem.empresa_id,
+      ordemId,
+      usuarioId,
+      acao: "pausa",
+      descricao: "Produção pausada.",
+    });
+  });
+  pausar();
+
+  const updated = db
+    .prepare<[string], SessaoProducaoRow>("SELECT * FROM sessoes_producao WHERE id = ?")
+    .get(sessao.id);
+  if (!updated) throw new Error("Sessão de produção não encontrada após atualização.");
+  return rowToSessao(updated);
+}
+
+/**
+ * Retoma a sessão pausada de uma ordem, acumulando o tempo pausado
+ * (usado depois pra calcular o tempo de produção efetivo).
+ */
+export function retomarProducaoLocal(
+  db: Database.Database,
+  ordemId: string,
+  usuarioId: string,
+): SessaoProducao {
+  const sessao = db
+    .prepare<[string], SessaoProducaoRow>(
+      "SELECT * FROM sessoes_producao WHERE ordem_id = ? AND status = 'pausada'",
+    )
+    .get(ordemId);
+  if (!sessao) throw new Error("Esta ordem não tem uma sessão de produção pausada.");
+  if (!sessao.pausado_em) throw new Error("Sessão pausada sem registro de início da pausa.");
+
+  const now = new Date().toISOString();
+  const segundosPausados = Math.max(
+    0,
+    Math.round((new Date(now).getTime() - new Date(sessao.pausado_em).getTime()) / 1000),
+  );
+  const novoTempoPausado = sessao.tempo_pausado_segundos + segundosPausados;
+
+  const ordem = db
+    .prepare<[string], { empresa_id: string }>("SELECT empresa_id FROM ordens_corte WHERE id = ?")
+    .get(ordemId);
+  if (!ordem) throw new Error("Ordem de corte não encontrada.");
+
+  const retomar = db.transaction(() => {
+    db.prepare(
+      "UPDATE sessoes_producao SET status = 'em_andamento', pausado_em = NULL, tempo_pausado_segundos = ?, atualizado_em = ? WHERE id = ?",
+    ).run(novoTempoPausado, now, sessao.id);
+    enqueueChange(db, {
+      tableName: "sessoes_producao",
+      recordId: sessao.id,
+      operation: "update",
+      payload: { status: "em_andamento", pausado_em: null, tempo_pausado_segundos: novoTempoPausado },
+    });
+    registrarHistorico(db, {
+      empresaId: ordem.empresa_id,
+      ordemId,
+      usuarioId,
+      acao: "retomada",
+      descricao: "Produção retomada.",
+    });
+  });
+  retomar();
+
+  const updated = db
+    .prepare<[string], SessaoProducaoRow>("SELECT * FROM sessoes_producao WHERE id = ?")
+    .get(sessao.id);
+  if (!updated) throw new Error("Sessão de produção não encontrada após atualização.");
+  return rowToSessao(updated);
 }
