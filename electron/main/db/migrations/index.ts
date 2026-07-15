@@ -515,4 +515,23 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 19,
+    name: "fix_sessoes_producao_indices_pausada",
+    up: (db) => {
+      db.exec(`
+        -- Bug encontrado ao implementar pausar/retomar: os índices
+        -- únicos parciais só cobriam status='em_andamento', então uma
+        -- sessão pausada não bloqueava a mesa/ordem contra um novo
+        -- "Iniciar" — mas pausar não libera a mesa (a peça continua
+        -- fisicamente na mesa, só o corte parou). Recria os índices
+        -- cobrindo 'em_andamento' e 'pausada'.
+        DROP INDEX idx_sessoes_producao_mesa_ativa;
+        DROP INDEX idx_sessoes_producao_ordem_ativa;
+
+        CREATE UNIQUE INDEX idx_sessoes_producao_mesa_ativa ON sessoes_producao (mesa_id) WHERE status IN ('em_andamento', 'pausada');
+        CREATE UNIQUE INDEX idx_sessoes_producao_ordem_ativa ON sessoes_producao (ordem_id) WHERE status IN ('em_andamento', 'pausada');
+      `);
+    },
+  },
 ];

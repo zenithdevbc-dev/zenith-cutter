@@ -41,8 +41,9 @@ function rowToMesaComStatus(row: MesaCorteComStatusRow): MesaCorteComStatus {
 
 /**
  * "Ocupada" nunca é uma coluna de mesas_corte — é derivada de existir
- * (ou não) uma sessão de produção com status 'em_andamento' apontando
- * pra ela (ver comentário da migration create_mesas_corte).
+ * (ou não) uma sessão de produção ativa (em_andamento OU pausada —
+ * pausar não libera a mesa, só interrompe o corte) apontando pra ela
+ * (ver comentário da migration create_mesas_corte).
  */
 export function listMesasComStatusLocal(db: Database.Database): MesaCorteComStatus[] {
   const rows = db
@@ -53,7 +54,7 @@ export function listMesasComStatusLocal(db: Database.Database): MesaCorteComStat
         sp.id AS sessao_id,
         oc.numero AS ordem_numero
       FROM mesas_corte m
-      LEFT JOIN sessoes_producao sp ON sp.mesa_id = m.id AND sp.status = 'em_andamento'
+      LEFT JOIN sessoes_producao sp ON sp.mesa_id = m.id AND sp.status IN ('em_andamento', 'pausada')
       LEFT JOIN ordens_corte oc ON oc.id = sp.ordem_id
       ORDER BY m.nome ASC
     `)
@@ -147,7 +148,7 @@ export function iniciarProducaoLocal(
 
   const mesaOcupada = db
     .prepare<[string], { id: string }>(
-      "SELECT id FROM sessoes_producao WHERE mesa_id = ? AND status = 'em_andamento'",
+      "SELECT id FROM sessoes_producao WHERE mesa_id = ? AND status IN ('em_andamento', 'pausada')",
     )
     .get(input.mesa_id);
   if (mesaOcupada) throw new Error("Esta mesa já está ocupada.");
@@ -240,6 +241,17 @@ export function avancarEtapaOrdemLocal(
   }
   const proximo = PIPELINE_PRODUCAO[index + 1];
   const now = new Date().toISOString();
+
+  if (row.status === "em_corte") {
+    const sessaoPausada = db
+      .prepare<[string], { id: string }>(
+        "SELECT id FROM sessoes_producao WHERE ordem_id = ? AND status = 'pausada'",
+      )
+      .get(ordemId);
+    if (sessaoPausada) {
+      throw new Error("Retome a produção antes de avançar de etapa.");
+    }
+  }
 
   const avancar = db.transaction(() => {
     if (row.status === "em_corte") {
