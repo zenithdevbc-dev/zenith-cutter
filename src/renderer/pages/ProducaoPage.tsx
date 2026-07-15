@@ -13,7 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listFilaProducao, reorderFilaProducao } from "@/lib/filaProducao";
-import { listMesasComStatus, listSessoesAtivas, avancarEtapaOrdem } from "@/lib/producao";
+import {
+  listMesasComStatus,
+  listSessoesAtivas,
+  avancarEtapaOrdem,
+  pausarProducao,
+  retomarProducao,
+} from "@/lib/producao";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { IniciarProducaoDialog } from "@/components/producao/IniciarProducaoDialog";
 import { useAuth } from "@/lib/auth-context";
@@ -108,6 +114,30 @@ export function ProducaoPage() {
       reload();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível avançar a etapa.");
+    }
+  }
+
+  async function handlePausar(sessao: SessaoProducaoResumo) {
+    if (!usuario) return;
+    if (!(await confirmPin())) return;
+    try {
+      await pausarProducao(sessao.ordem_id, usuario.id);
+      toast.success(`Produção da ordem Nº ${sessao.ordem_numero} pausada.`);
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível pausar a produção.");
+    }
+  }
+
+  async function handleRetomar(sessao: SessaoProducaoResumo) {
+    if (!usuario) return;
+    if (!(await confirmPin())) return;
+    try {
+      await retomarProducao(sessao.ordem_id, usuario.id);
+      toast.success(`Produção da ordem Nº ${sessao.ordem_numero} retomada.`);
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível retomar a produção.");
     }
   }
 
@@ -277,8 +307,10 @@ export function ProducaoPage() {
                 <TableRow>
                   <TableHead>Ordem Nº</TableHead>
                   <TableHead>Mesa</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Iniciado por</TableHead>
                   <TableHead>Iniciado em</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -286,8 +318,24 @@ export function ProducaoPage() {
                   <TableRow key={sessao.id}>
                     <TableCell className="font-medium">{sessao.ordem_numero}</TableCell>
                     <TableCell>{sessao.mesa_nome}</TableCell>
+                    <TableCell>
+                      <Badge variant={sessao.status === "pausada" ? "destructive" : "secondary"}>
+                        {sessao.status === "pausada" ? "Pausada" : "Em Andamento"}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{sessao.iniciado_por_nome}</TableCell>
                     <TableCell>{new Date(sessao.iniciado_em).toLocaleString("pt-BR")}</TableCell>
+                    <TableCell className="text-right">
+                      {sessao.status === "em_andamento" ? (
+                        <Button size="sm" variant="outline" onClick={() => handlePausar(sessao)}>
+                          Pausar
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => handleRetomar(sessao)}>
+                          Retomar
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
