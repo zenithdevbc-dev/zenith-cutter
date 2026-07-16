@@ -22,6 +22,7 @@ import {
 } from "@/lib/producao";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { IniciarProducaoDialog } from "@/components/producao/IniciarProducaoDialog";
+import { PerdasObservacoesDialog } from "@/components/producao/PerdasObservacoesDialog";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
 import {
@@ -326,15 +327,18 @@ export function ProducaoPage() {
                     <TableCell>{sessao.iniciado_por_nome}</TableCell>
                     <TableCell>{new Date(sessao.iniciado_em).toLocaleString("pt-BR")}</TableCell>
                     <TableCell className="text-right">
-                      {sessao.status === "em_andamento" ? (
-                        <Button size="sm" variant="outline" onClick={() => handlePausar(sessao)}>
-                          Pausar
-                        </Button>
-                      ) : (
-                        <Button size="sm" variant="outline" onClick={() => handleRetomar(sessao)}>
-                          Retomar
-                        </Button>
-                      )}
+                      <div className="flex justify-end gap-2">
+                        <PerdasObservacoesDialog sessao={sessao} />
+                        {sessao.status === "em_andamento" ? (
+                          <Button size="sm" variant="outline" onClick={() => handlePausar(sessao)}>
+                            Pausar
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="outline" onClick={() => handleRetomar(sessao)}>
+                            Retomar
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
