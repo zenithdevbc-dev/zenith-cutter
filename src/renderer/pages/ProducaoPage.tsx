@@ -34,6 +34,26 @@ import {
   type StatusOrdemCorte,
 } from "@shared/models";
 
+/**
+ * Tempo de produção efetivo: tempo decorrido desde o início, menos o
+ * tempo acumulado em pausas (e, se pausada agora, menos a pausa em
+ * andamento também). Cálculo estático no momento do reload — não é um
+ * cronômetro ao vivo (simplicidade).
+ */
+function formatTempoProducao(sessao: SessaoProducaoResumo): string {
+  const inicio = new Date(sessao.iniciado_em).getTime();
+  const agora = Date.now();
+  let pausadoMs = sessao.tempo_pausado_segundos * 1000;
+  if (sessao.status === "pausada" && sessao.pausado_em) {
+    pausadoMs += agora - new Date(sessao.pausado_em).getTime();
+  }
+  const efetivoMs = Math.max(0, agora - inicio - pausadoMs);
+  const totalMin = Math.floor(efetivoMs / 60000);
+  const horas = Math.floor(totalMin / 60);
+  const minutos = totalMin % 60;
+  return horas > 0 ? `${horas}h${String(minutos).padStart(2, "0")}min` : `${minutos}min`;
+}
+
 const ETAPA_LABEL: Record<StatusOrdemCorte, string> = {
   aberta: "Aberta",
   em_fila: "Em Fila",
@@ -311,6 +331,7 @@ export function ProducaoPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Iniciado por</TableHead>
                   <TableHead>Iniciado em</TableHead>
+                  <TableHead>Tempo em produção</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -326,6 +347,7 @@ export function ProducaoPage() {
                     </TableCell>
                     <TableCell>{sessao.iniciado_por_nome}</TableCell>
                     <TableCell>{new Date(sessao.iniciado_em).toLocaleString("pt-BR")}</TableCell>
+                    <TableCell>{formatTempoProducao(sessao)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <PerdasObservacoesDialog sessao={sessao} />
