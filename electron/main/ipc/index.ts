@@ -35,6 +35,10 @@ import type {
   SessaoProducao,
   SessaoProducaoResumo,
   IniciarProducaoInput,
+  ProducaoPerda,
+  ProducaoPerdaInput,
+  ProducaoObservacao,
+  ProducaoObservacaoInput,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
 import {
@@ -96,6 +100,10 @@ import {
   avancarEtapaOrdemLocal,
   pausarProducaoLocal,
   retomarProducaoLocal,
+  listProducaoPerdasLocal,
+  registrarProducaoPerdaLocal,
+  listProducaoObservacoesLocal,
+  registrarProducaoObservacaoLocal,
 } from "../db/repositories/producao";
 
 export function registerIpcHandlers() {
@@ -321,6 +329,34 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.producaoRetomarLocal,
     (_event, ordemId: string, usuarioId: string): SessaoProducao => {
       return retomarProducaoLocal(getDb(), ordemId, usuarioId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.producaoPerdasListLocal,
+    (_event, sessaoId: string): ProducaoPerda[] => {
+      return listProducaoPerdasLocal(getDb(), sessaoId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.producaoPerdasRegistrarLocal,
+    (_event, input: ProducaoPerdaInput, usuarioId: string): ProducaoPerda => {
+      return registrarProducaoPerdaLocal(getDb(), input, usuarioId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.producaoObservacoesListLocal,
+    (_event, sessaoId: string): ProducaoObservacao[] => {
+      return listProducaoObservacoesLocal(getDb(), sessaoId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.producaoObservacoesRegistrarLocal,
+    (_event, input: ProducaoObservacaoInput, usuarioId: string): ProducaoObservacao => {
+      return registrarProducaoObservacaoLocal(getDb(), input, usuarioId);
     },
   );
 

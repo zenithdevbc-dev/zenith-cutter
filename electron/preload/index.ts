@@ -34,6 +34,10 @@ import type {
   SessaoProducao,
   SessaoProducaoResumo,
   IniciarProducaoInput,
+  ProducaoPerda,
+  ProducaoPerdaInput,
+  ProducaoObservacao,
+  ProducaoObservacaoInput,
 } from "../../src/shared/models";
 
 contextBridge.exposeInMainWorld("zenith", {
@@ -155,6 +159,20 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.producaoPausarLocal, ordemId, usuarioId),
     retomarLocal: (ordemId: string, usuarioId: string): Promise<SessaoProducao> =>
       ipcRenderer.invoke(IPC_CHANNELS.producaoRetomarLocal, ordemId, usuarioId),
+    perdasListLocal: (sessaoId: string): Promise<ProducaoPerda[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoPerdasListLocal, sessaoId),
+    perdasRegistrarLocal: (
+      input: ProducaoPerdaInput,
+      usuarioId: string,
+    ): Promise<ProducaoPerda> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoPerdasRegistrarLocal, input, usuarioId),
+    observacoesListLocal: (sessaoId: string): Promise<ProducaoObservacao[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoObservacoesListLocal, sessaoId),
+    observacoesRegistrarLocal: (
+      input: ProducaoObservacaoInput,
+      usuarioId: string,
+    ): Promise<ProducaoObservacao> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoObservacoesRegistrarLocal, input, usuarioId),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

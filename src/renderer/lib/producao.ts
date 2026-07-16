@@ -2,6 +2,10 @@ import type {
   IniciarProducaoInput,
   MesaCorteComStatus,
   OrdemCorte,
+  ProducaoObservacao,
+  ProducaoObservacaoInput,
+  ProducaoPerda,
+  ProducaoPerdaInput,
   SessaoProducao,
   SessaoProducaoResumo,
 } from "@shared/models";
@@ -40,4 +44,26 @@ export function pausarProducao(ordemId: string, usuarioId: string): Promise<Sess
 
 export function retomarProducao(ordemId: string, usuarioId: string): Promise<SessaoProducao> {
   return window.zenith.producao.retomarLocal(ordemId, usuarioId);
+}
+
+export function listProducaoPerdas(sessaoId: string): Promise<ProducaoPerda[]> {
+  return window.zenith.producao.perdasListLocal(sessaoId);
+}
+
+export function registrarProducaoPerda(
+  input: ProducaoPerdaInput,
+  usuarioId: string,
+): Promise<ProducaoPerda> {
+  return window.zenith.producao.perdasRegistrarLocal(input, usuarioId);
+}
+
+export function listProducaoObservacoes(sessaoId: string): Promise<ProducaoObservacao[]> {
+  return window.zenith.producao.observacoesListLocal(sessaoId);
+}
+
+export function registrarProducaoObservacao(
+  input: ProducaoObservacaoInput,
+  usuarioId: string,
+): Promise<ProducaoObservacao> {
+  return window.zenith.producao.observacoesRegistrarLocal(input, usuarioId);
 }

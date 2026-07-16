@@ -28,6 +28,10 @@ import type {
   SessaoProducao,
   SessaoProducaoResumo,
   IniciarProducaoInput,
+  ProducaoPerda,
+  ProducaoPerdaInput,
+  ProducaoObservacao,
+  ProducaoObservacaoInput,
 } from "@shared/models";
 
 declare global {
@@ -109,6 +113,16 @@ declare global {
         avancarEtapaLocal: (ordemId: string, usuarioId: string) => Promise<OrdemCorte>;
         pausarLocal: (ordemId: string, usuarioId: string) => Promise<SessaoProducao>;
         retomarLocal: (ordemId: string, usuarioId: string) => Promise<SessaoProducao>;
+        perdasListLocal: (sessaoId: string) => Promise<ProducaoPerda[]>;
+        perdasRegistrarLocal: (
+          input: ProducaoPerdaInput,
+          usuarioId: string,
+        ) => Promise<ProducaoPerda>;
+        observacoesListLocal: (sessaoId: string) => Promise<ProducaoObservacao[]>;
+        observacoesRegistrarLocal: (
+          input: ProducaoObservacaoInput,
+          usuarioId: string,
+        ) => Promise<ProducaoObservacao>;
       };
       empresas: {
         cache: (empresa: Empresa) => Promise<void>;
