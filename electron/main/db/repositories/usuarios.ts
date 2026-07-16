@@ -41,6 +41,15 @@ export function listUsuariosLocal(db: Database.Database): Usuario[] {
  * não uma alteração local pendente de envio.
  */
 export function cacheUsuarios(db: Database.Database, usuarios: Usuario[]) {
+  // "login" tem índice único próprio (não é o conflict target do upsert,
+  // que é "id"). Se um usuário foi excluído e recriado no Supabase com o
+  // mesmo login mas id novo, a linha antiga (id velho) continua no cache
+  // local segurando aquele login e bate de frente com o UPSERT da linha
+  // nova — limpa qualquer linha órfã presa nesse login antes de gravar.
+  const clearOrphanLogin = db.prepare(
+    "DELETE FROM usuarios WHERE login = @login AND login IS NOT NULL AND id != @id",
+  );
+
   const stmt = db.prepare(`
     INSERT INTO usuarios (id, empresa_id, nome, email, login, papel, ativo, criado_em, atualizado_em)
     VALUES (@id, @empresa_id, @nome, @email, @login, @papel, @ativo, @criado_em, @atualizado_em)
@@ -58,6 +67,9 @@ export function cacheUsuarios(db: Database.Database, usuarios: Usuario[]) {
 
   const cacheAll = db.transaction((items: Usuario[]) => {
     for (const usuario of items) {
+      if (usuario.login) {
+        clearOrphanLogin.run({ login: usuario.login, id: usuario.id });
+      }
       stmt.run({ ...usuario, ativo: usuario.ativo ? 1 : 0 });
     }
   });
