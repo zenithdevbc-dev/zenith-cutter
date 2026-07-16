@@ -169,22 +169,51 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: Sprint 3 — Fila de Produção. Entregue nesta
-  sprint: fila ordenada + prioridades + reordenação manual +
-  visualização de mesas + seleção manual + confirmação de início +
-  sessão de produção + bloqueio de mesas ocupadas (todos os itens do
-  roadmap) — **mais** o pipeline pós-corte (Embalagem/Revisão/
-  Despacho/Pronto, pedido do usuário em 2026-07-11, ver seção 4), que
-  não estava no roadmap original. Falta só o que já está reservado
-  para o Sprint 4: pausar/retomar (dentro de "Em Corte"), registro de
-  perdas e observações. Sprint 2 (Ordens de Corte) fica encerrado — o
-  item pendente "entrada automática na fila" foi fechado nesta sprint
-  (ver abaixo). Sprint 1 encerrado por decisão do usuário em
-  2026-07-09, com "configurações básicas" deliberadamente adiada sem
-  escopo definido.
-- Última entrega **2026-07-11**: pipeline pós-corte (Embalagem →
+- Sprint em andamento: Sprint 4 — Execução da Produção. Todos os itens
+  do roadmap entregues: iniciar/pausar/retomar/finalizar (finalizar =
+  avançar etapa saindo de "Em Corte"), registro de perdas e
+  observações, tempo de produção (exibido, cálculo estático — não é
+  cronômetro ao vivo), liberação automática da mesa ao finalizar,
+  histórico da sessão (via `ordem_corte_historico`: mudança de status,
+  pausa, retomada). Sprint 3 (Fila de Produção) fica encerrado —
+  concluído nesta mesma sessão, junto com o pipeline pós-corte
+  (Embalagem/Revisão/Despacho/Pronto, fora do roadmap original,
+  pedido do usuário em 2026-07-11). Sprint 2 encerrado (item pendente
+  "entrada automática na fila" fechado no Sprint 3). Sprint 1
+  encerrado por decisão do usuário em 2026-07-09, com "configurações
+  básicas" deliberadamente adiada sem escopo definido.
+- Última entrega **2026-07-14**: pausar/retomar/perdas/observações/
+  tempo de produção (Sprint 4). `sessoes_producao` ganha `pausado_em` +
+  `tempo_pausado_segundos` (migration local v17, Supabase 0022);
+  `pausarProducaoLocal`/`retomarProducaoLocal` (`producao.ts`)
+  registram no histórico da ordem (novas ações `pausa`/`retomada`,
+  migration local v18, Supabase 0023). **Bug encontrado e corrigido no
+  caminho**: os índices únicos parciais de `sessoes_producao` só
+  cobriam `status='em_andamento'`, deixando iniciar uma ordem nova
+  numa mesa cuja sessão estava só pausada (pausar não libera a mesa —
+  a peça continua fisicamente nela); migration local v19 + Supabase
+  0024 recriam os índices cobrindo `'em_andamento'` e `'pausada'`.
+  Duas tabelas novas — `producao_perdas` (quantidade livre + motivo) e
+  `producao_observacoes` (texto), ambas por sessão, log cronológico
+  só-INSERT (migration local v20, Supabase 0026) — alimentam o dialog
+  `PerdasObservacoesDialog` (abas, sem PIN — não é transição de estado
+  listada em 3.1, mas rastreável por usuário+timestamp via 3.5),
+  plugado na seção "Em andamento" de `ProducaoPage`. RLS de
+  `sessoes_producao` para Operador tinha um gap desde o Sprint 3 (só
+  INSERT+SELECT, sem UPDATE — pausar/retomar/finalizar precisam de
+  UPDATE); fechado na Supabase `0025`. Build e `npm run typecheck`
+  limpos. **Não testado manualmente ainda**.
+- Entrega anterior **2026-07-14**: página "Fila de Produção" removida
+  por ser redundante com "Produção" (pedido do usuário) — a
+  reordenação manual de prioridade (única capacidade exclusiva dela)
+  migrou pra dentro do card "Fila de Produção" já existente em
+  `ProducaoPage`, visível/ativa só pra admin/supervisor (gate por
+  papel no componente, não mais rota separada). `navigation.ts` e
+  CLAUDE.md 3.6 atualizados; nenhuma dependência (IPC/repo/lib de
+  `filaProducao`) ficou órfã.
+- Entrega anterior **2026-07-11**: pipeline pós-corte (Embalagem →
   Revisão → Despacho → Pronto), pedido do usuário depois da entrega
-  da Fila de Produção (ver bullet abaixo) — substitui o antigo par
+  da Fila de Produção (ver bullets mais abaixo, mesma data) — substitui o antigo par
   "Finalizar → Conferência → Finalizada" da seção 4 por 4 etapas mais
   granulares, cada uma avançada manualmente uma de cada vez (regra 4,
   nunca pulando etapa; regra 3.1, sempre com PIN). `StatusOrdemCorte`
