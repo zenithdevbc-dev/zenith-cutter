@@ -298,3 +298,44 @@ export interface IniciarProducaoInput {
   ordem_id: string;
   mesa_id: string;
 }
+
+/**
+ * Perda de material registrada durante uma sessão de produção
+ * (Sprint 4). quantidade é um número livre (sem unidade fixa — o
+ * motivo descreve o que foi perdido, ex.: "2.5m de tecido rasgado").
+ */
+export interface ProducaoPerda {
+  id: string;
+  empresa_id: string;
+  sessao_id: string;
+  quantidade: number;
+  motivo: string | null;
+  usuario_id: string;
+  usuario_nome: string;
+  criado_em: string;
+}
+
+export interface ProducaoPerdaInput {
+  sessao_id: string;
+  quantidade: number;
+  motivo?: string | null;
+}
+
+/**
+ * Observação registrada durante uma sessão de produção (Sprint 4) —
+ * log cronológico, diferente do campo estático `ordens_corte.observacoes`.
+ */
+export interface ProducaoObservacao {
+  id: string;
+  empresa_id: string;
+  sessao_id: string;
+  texto: string;
+  usuario_id: string;
+  usuario_nome: string;
+  criado_em: string;
+}
+
+export interface ProducaoObservacaoInput {
+  sessao_id: string;
+  texto: string;
+}

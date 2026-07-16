@@ -534,4 +534,40 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 20,
+    name: "create_producao_perdas_e_observacoes",
+    up: (db) => {
+      db.exec(`
+        -- Sprint 4: registro de perdas e observações durante uma
+        -- sessão de produção. Log cronológico, imutável (só INSERT) —
+        -- mesmo padrão de ordem_corte_historico. quantidade é livre
+        -- (sem unidade fixa; o motivo descreve o que foi perdido).
+        CREATE TABLE producao_perdas (
+          id          TEXT PRIMARY KEY,
+          empresa_id  TEXT NOT NULL,
+          sessao_id   TEXT NOT NULL,
+          quantidade  REAL NOT NULL CHECK (quantidade > 0),
+          motivo      TEXT,
+          usuario_id  TEXT NOT NULL,
+          criado_em   TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_producao_perdas_sessao ON producao_perdas (sessao_id);
+
+        -- Observação diferente do campo estático ordens_corte.observacoes
+        -- — é um log cronológico de notas feitas durante a produção.
+        CREATE TABLE producao_observacoes (
+          id          TEXT PRIMARY KEY,
+          empresa_id  TEXT NOT NULL,
+          sessao_id   TEXT NOT NULL,
+          texto       TEXT NOT NULL,
+          usuario_id  TEXT NOT NULL,
+          criado_em   TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_producao_observacoes_sessao ON producao_observacoes (sessao_id);
+      `);
+    },
+  },
 ];
