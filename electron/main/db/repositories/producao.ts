@@ -5,6 +5,10 @@ import {
   type IniciarProducaoInput,
   type MesaCorteComStatus,
   type OrdemCorte,
+  type ProducaoObservacao,
+  type ProducaoObservacaoInput,
+  type ProducaoPerda,
+  type ProducaoPerdaInput,
   type SessaoProducao,
   type SessaoProducaoResumo,
 } from "../../../../src/shared/models";
@@ -444,4 +448,166 @@ export function retomarProducaoLocal(
     .get(sessao.id);
   if (!updated) throw new Error("Sessão de produção não encontrada após atualização.");
   return rowToSessao(updated);
+}
+
+interface ProducaoPerdaRow {
+  id: string;
+  empresa_id: string;
+  sessao_id: string;
+  quantidade: number;
+  motivo: string | null;
+  usuario_id: string;
+  usuario_nome: string;
+  criado_em: string;
+}
+
+function rowToPerda(row: ProducaoPerdaRow): ProducaoPerda {
+  return {
+    id: row.id,
+    empresa_id: row.empresa_id,
+    sessao_id: row.sessao_id,
+    quantidade: row.quantidade,
+    motivo: row.motivo,
+    usuario_id: row.usuario_id,
+    usuario_nome: row.usuario_nome,
+    criado_em: row.criado_em,
+  };
+}
+
+export function listProducaoPerdasLocal(
+  db: Database.Database,
+  sessaoId: string,
+): ProducaoPerda[] {
+  const rows = db
+    .prepare<[string], ProducaoPerdaRow>(`
+      SELECT pp.*, COALESCE(u.nome, 'Usuário') AS usuario_nome
+      FROM producao_perdas pp
+      LEFT JOIN usuarios u ON u.id = pp.usuario_id
+      WHERE pp.sessao_id = ?
+      ORDER BY pp.criado_em DESC
+    `)
+    .all(sessaoId);
+  return rows.map(rowToPerda);
+}
+
+/**
+ * Registro de perda de material durante a sessão (Sprint 4). Log só
+ * de INSERT — não é uma transição de estado (regra 3.1 lista
+ * iniciar/pausar/retomar/finalizar como exigindo confirmação
+ * explícita; perda é um registro de dados, não muda o status da
+ * ordem/sessão), mas fica rastreável por usuário+timestamp (3.5).
+ */
+export function registrarProducaoPerdaLocal(
+  db: Database.Database,
+  input: ProducaoPerdaInput,
+  usuarioId: string,
+): ProducaoPerda {
+  const sessao = db
+    .prepare<[string], { empresa_id: string }>("SELECT empresa_id FROM sessoes_producao WHERE id = ?")
+    .get(input.sessao_id);
+  if (!sessao) throw new Error("Sessão de produção não encontrada.");
+
+  const id = randomUUID();
+  const now = new Date().toISOString();
+  const row = {
+    id,
+    empresa_id: sessao.empresa_id,
+    sessao_id: input.sessao_id,
+    quantidade: input.quantidade,
+    motivo: input.motivo ?? null,
+    usuario_id: usuarioId,
+    criado_em: now,
+  };
+
+  db.prepare(`
+    INSERT INTO producao_perdas (id, empresa_id, sessao_id, quantidade, motivo, usuario_id, criado_em)
+    VALUES (@id, @empresa_id, @sessao_id, @quantidade, @motivo, @usuario_id, @criado_em)
+  `).run(row);
+  enqueueChange(db, {
+    tableName: "producao_perdas",
+    recordId: id,
+    operation: "insert",
+    payload: row,
+  });
+
+  const usuario = db
+    .prepare<[string], { nome: string }>("SELECT nome FROM usuarios WHERE id = ?")
+    .get(usuarioId);
+  return { ...row, usuario_nome: usuario?.nome ?? "Usuário" };
+}
+
+interface ProducaoObservacaoRow {
+  id: string;
+  empresa_id: string;
+  sessao_id: string;
+  texto: string;
+  usuario_id: string;
+  usuario_nome: string;
+  criado_em: string;
+}
+
+function rowToObservacao(row: ProducaoObservacaoRow): ProducaoObservacao {
+  return {
+    id: row.id,
+    empresa_id: row.empresa_id,
+    sessao_id: row.sessao_id,
+    texto: row.texto,
+    usuario_id: row.usuario_id,
+    usuario_nome: row.usuario_nome,
+    criado_em: row.criado_em,
+  };
+}
+
+export function listProducaoObservacoesLocal(
+  db: Database.Database,
+  sessaoId: string,
+): ProducaoObservacao[] {
+  const rows = db
+    .prepare<[string], ProducaoObservacaoRow>(`
+      SELECT po.*, COALESCE(u.nome, 'Usuário') AS usuario_nome
+      FROM producao_observacoes po
+      LEFT JOIN usuarios u ON u.id = po.usuario_id
+      WHERE po.sessao_id = ?
+      ORDER BY po.criado_em DESC
+    `)
+    .all(sessaoId);
+  return rows.map(rowToObservacao);
+}
+
+export function registrarProducaoObservacaoLocal(
+  db: Database.Database,
+  input: ProducaoObservacaoInput,
+  usuarioId: string,
+): ProducaoObservacao {
+  const sessao = db
+    .prepare<[string], { empresa_id: string }>("SELECT empresa_id FROM sessoes_producao WHERE id = ?")
+    .get(input.sessao_id);
+  if (!sessao) throw new Error("Sessão de produção não encontrada.");
+
+  const id = randomUUID();
+  const now = new Date().toISOString();
+  const row = {
+    id,
+    empresa_id: sessao.empresa_id,
+    sessao_id: input.sessao_id,
+    texto: input.texto,
+    usuario_id: usuarioId,
+    criado_em: now,
+  };
+
+  db.prepare(`
+    INSERT INTO producao_observacoes (id, empresa_id, sessao_id, texto, usuario_id, criado_em)
+    VALUES (@id, @empresa_id, @sessao_id, @texto, @usuario_id, @criado_em)
+  `).run(row);
+  enqueueChange(db, {
+    tableName: "producao_observacoes",
+    recordId: id,
+    operation: "insert",
+    payload: row,
+  });
+
+  const usuario = db
+    .prepare<[string], { nome: string }>("SELECT nome FROM usuarios WHERE id = ?")
+    .get(usuarioId);
+  return { ...row, usuario_nome: usuario?.nome ?? "Usuário" };
 }
