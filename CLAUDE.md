@@ -186,6 +186,19 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-16**: **card de resumo inteligente no Dashboard**
+  (pedido explícito do usuário — saudação por horário + destaques da
+  produção em texto corrido, tipo "Bom dia! ..."). Sem dado novo: só
+  narra o que o Dashboard já busca (mesas pra todos os papéis; ordens/
+  produção só quando `podeVerOrdens`, mesma regra do resto da
+  página — Operador vê só o resumo de mesas). Geração do texto pura em
+  `lib/resumoProducao.ts` (saudação Bom dia/Boa tarde/Boa noite por
+  horário local + frases sobre mesas ocupadas, ordens em andamento/
+  fila, concluídas hoje e atrasadas — reusa `isOrdemAtrasada` já
+  existente do Relatório de Produção); componente
+  `components/dashboard/ResumoProducaoCard.tsx` só decide loading e
+  renderiza. Build e `npm run typecheck` limpos. **Não testado
+  manualmente ainda**.
 - Entrega **2026-07-16**: **microinterações** (pedido explícito do
   usuário — "não exagerar, só deixar vivo"). Hover em cards (sombra
   leve, `Card` global em `components/ui/card.tsx` — cobre o app
