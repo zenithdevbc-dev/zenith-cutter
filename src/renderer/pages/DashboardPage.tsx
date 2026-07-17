@@ -23,6 +23,7 @@ import {
 } from "@/lib/dashboardCharts";
 import { ProducaoUltimos30DiasChart } from "@/components/dashboard/ProducaoUltimos30DiasChart";
 import { DistribuicaoStatusChart } from "@/components/dashboard/DistribuicaoStatusChart";
+import { ResumoProducaoCard } from "@/components/dashboard/ResumoProducaoCard";
 import type {
   MesaCorteComStatus,
   OrdemCorteResumo,
@@ -91,6 +92,13 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <ResumoProducaoCard
+        mesas={mesas}
+        podeVerOrdens={podeVerOrdens}
+        ordens={ordens}
+        producao={producao}
+      />
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
