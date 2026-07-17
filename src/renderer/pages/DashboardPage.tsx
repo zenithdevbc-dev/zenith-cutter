@@ -14,8 +14,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { listMesasComStatus } from "@/lib/producao";
 import { useAuth } from "@/lib/auth-context";
-import { DbStatusCard } from "@/components/DbStatusCard";
-import { SyncStatusCard } from "@/components/SyncStatusCard";
 import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
 import type { MesaCorteComStatus, OrdemCorteResumo, StatusOrdemCorte } from "@shared/models";
 
@@ -192,9 +190,6 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       )}
-
-      <DbStatusCard />
-      <SyncStatusCard />
     </div>
   );
 }

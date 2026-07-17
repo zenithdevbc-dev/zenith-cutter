@@ -1,23 +1,16 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { CadastrosPage } from "@/pages/CadastrosPage";
 import { OrdensCortePage } from "@/pages/OrdensCortePage";
 import { ProducaoPage } from "@/pages/ProducaoPage";
 import { DashboardPage } from "@/pages/DashboardPage";
+import { ConfiguracoesPage } from "@/pages/ConfiguracoesPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { SplashScreen } from "@/components/SplashScreen";
 import { UpdateNotifier } from "@/components/UpdateNotifier";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/lib/auth-context";
 import { getAllowedNavItems, type PageId } from "@/lib/navigation";
-
-const PAGE_DESCRIPTIONS: Record<
-  Exclude<PageId, "cadastros" | "ordens-corte" | "producao" | "dashboard">,
-  string
-> = {
-  configuracoes: "Configurações básicas do sistema. Ainda sem escopo definido.",
-};
 
 function App() {
   const { session, usuario, loading } = useAuth();
@@ -51,10 +44,7 @@ function App() {
           ) : currentPage === "dashboard" ? (
             <DashboardPage />
           ) : (
-            <PlaceholderPage
-              title="Em construção"
-              description={PAGE_DESCRIPTIONS[currentPage]}
-            />
+            <ConfiguracoesPage />
           )}
         </AppShell>
       )}
