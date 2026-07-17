@@ -15,12 +15,11 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex flex-col items-center gap-1 border-b border-sidebar-border px-4 py-3">
-        {/* Fundo sampleado do próprio arquivo da logo (#FBF7F3), não
-            --background (#FAFAF8) — evita o efeito de caixa visível
-            ao redor da imagem (mesmo motivo do SplashScreen). */}
-        <div className="w-full rounded-md p-1.5" style={{ backgroundColor: "#FBF7F3" }}>
-          <img src={logo} alt="Zenith Cutter" className="h-16 w-full object-contain" />
-        </div>
+        {/* Logo atual (2026-07-16) tem fundo em degradê cinza, não cor
+            lisa — não dá mais pra "casar" com uma cor fixa de fundo
+            (ver SplashScreen). Sem moldura clara: o cinza da imagem já
+            fica razoável direto sobre o fundo escuro da sidebar. */}
+        <img src={logo} alt="Zenith Cutter" className="h-16 w-full rounded-md object-contain" />
         {empresa && (
           <span className="truncate text-xs text-sidebar-foreground">
             {empresa.nome}

@@ -26,13 +26,10 @@ export function LoginPage() {
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-background">
       <Card className="w-full max-w-sm">
-        {/* Fundo sampleado do próprio arquivo da logo (#FBF7F3), não
-            bg-card (#FFFFFF) — evita o efeito de caixa visível ao
-            redor da imagem (mesmo motivo do SplashScreen/Sidebar). */}
-        <CardHeader
-          className="flex items-center justify-center rounded-t-xl"
-          style={{ backgroundColor: "#FBF7F3" }}
-        >
+        {/* Logo atual (2026-07-16) tem fundo em degradê cinza, não cor
+            lisa — não dá pra "casar" com uma cor fixa (ver
+            SplashScreen/Sidebar). Fica visível como um card cinza. */}
+        <CardHeader className="flex items-center justify-center">
           <img src={logo} alt="Zenith Cutter" className="h-32 w-32 object-contain" />
         </CardHeader>
         <CardContent>
