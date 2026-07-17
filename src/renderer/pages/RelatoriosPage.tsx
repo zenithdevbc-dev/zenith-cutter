@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RelatorioProducaoTab } from "@/components/relatorios/RelatorioProducaoTab";
 import { HistoricoOrdensTab } from "@/components/relatorios/HistoricoOrdensTab";
 import { MateriaisTab } from "@/components/relatorios/MateriaisTab";
+import { ClientesTab } from "@/components/relatorios/ClientesTab";
 import { listRelatorioProducao, listRelatorioPerdas } from "@/lib/relatorios";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { listClientes } from "@/lib/clientes";
@@ -20,13 +21,14 @@ import type {
 } from "@shared/models";
 
 /**
- * Relatórios (admin/supervisor) — três abas: "Produção" (visão
+ * Relatórios (admin/supervisor) — quatro abas: "Produção" (visão
  * gerencial de um período, com KPIs), "Histórico de Ordens" (consulta
- * de toda ordem já registrada) e "Materiais" (consumo/perdas por
- * material, pedido do usuário 2026-07-16). Dados compartilhados
- * (ordens, sessões de produção, perdas, cadastros pra filtro) são
- * buscados uma única vez aqui e passados como props — cada aba só
- * filtra/renderiza, sem lógica de negócio nem chamada IPC própria.
+ * de toda ordem já registrada), "Materiais" (consumo/perdas por
+ * material) e "Clientes" (atividade/volume por cliente, pedido do
+ * usuário 2026-07-16). Dados compartilhados (ordens, sessões de
+ * produção, perdas, cadastros pra filtro) são buscados uma única vez
+ * aqui e passados como props — cada aba só filtra/renderiza, sem
+ * lógica de negócio nem chamada IPC própria.
  */
 export function RelatoriosPage() {
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
@@ -76,6 +78,7 @@ export function RelatoriosPage() {
           <TabsTrigger value="producao">Produção</TabsTrigger>
           <TabsTrigger value="historico">Histórico de Ordens</TabsTrigger>
           <TabsTrigger value="materiais">Materiais</TabsTrigger>
+          <TabsTrigger value="clientes">Clientes</TabsTrigger>
         </TabsList>
         <TabsContent value="producao" className="min-h-0 overflow-y-auto">
           <RelatorioProducaoTab
@@ -100,6 +103,9 @@ export function RelatoriosPage() {
             clientes={clientes}
             tecidos={tecidos}
           />
+        </TabsContent>
+        <TabsContent value="clientes" className="min-h-0 overflow-y-auto">
+          <ClientesTab linhas={producao} clientes={clientes} tecidos={tecidos} />
         </TabsContent>
       </Tabs>
     </div>

@@ -28,11 +28,10 @@ import {
 import {
   FILTROS_HISTORICO_VAZIOS,
   filtrarHistoricoOrdens,
-  paginar,
-  totalPaginas,
   type OrdemHistoricoLinha,
   type HistoricoOrdensFiltros,
 } from "@/lib/historicoOrdens";
+import { paginar, totalPaginas } from "@/lib/pagination";
 import {
   exportarHistoricoOrdensCsv,
   exportarHistoricoOrdensExcel,
