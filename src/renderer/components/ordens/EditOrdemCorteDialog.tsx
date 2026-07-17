@@ -18,14 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { listClientes } from "@/lib/clientes";
 import { listProdutos } from "@/lib/produtos";
 import { listTecidos } from "@/lib/tecidos";
@@ -34,6 +26,7 @@ import { listOrdemCorteItens, updateOrdemCorte } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
 import { STATUS_ORDEM_CORTE_LABEL } from "@/lib/statusOrdemCorte";
+import { GradeQuantidadeInput } from "@/components/ordens/GradeQuantidadeInput";
 import type {
   Cliente,
   Produto,
@@ -235,40 +228,13 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label>Quantidade por tamanho</Label>
-            {grade.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Este produto ainda não tem grade de tamanhos cadastrada.
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tamanho</TableHead>
-                    <TableHead>Quantidade</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {grade.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell>{t.tamanho}</TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={quantidades[t.id] ?? ""}
-                          onChange={(e) =>
-                            setQuantidades((prev) => ({ ...prev, [t.id]: e.target.value }))
-                          }
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </div>
+          <GradeQuantidadeInput
+            grade={grade}
+            quantidades={quantidades}
+            onChange={(id, value) =>
+              setQuantidades((prev) => ({ ...prev, [id]: value }))
+            }
+          />
 
           {error && <p className="text-sm text-destructive">{error}</p>}
         </form>
