@@ -5,6 +5,7 @@ import { RelatorioProducaoTab } from "@/components/relatorios/RelatorioProducaoT
 import { HistoricoOrdensTab } from "@/components/relatorios/HistoricoOrdensTab";
 import { MateriaisTab } from "@/components/relatorios/MateriaisTab";
 import { ClientesTab } from "@/components/relatorios/ClientesTab";
+import { OperadoresTab } from "@/components/relatorios/OperadoresTab";
 import { listRelatorioProducao, listRelatorioPerdas } from "@/lib/relatorios";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { listClientes } from "@/lib/clientes";
@@ -21,14 +22,15 @@ import type {
 } from "@shared/models";
 
 /**
- * Relatórios (admin/supervisor) — quatro abas: "Produção" (visão
+ * Relatórios (admin/supervisor) — cinco abas: "Produção" (visão
  * gerencial de um período, com KPIs), "Histórico de Ordens" (consulta
  * de toda ordem já registrada), "Materiais" (consumo/perdas por
- * material) e "Clientes" (atividade/volume por cliente, pedido do
- * usuário 2026-07-16). Dados compartilhados (ordens, sessões de
- * produção, perdas, cadastros pra filtro) são buscados uma única vez
- * aqui e passados como props — cada aba só filtra/renderiza, sem
- * lógica de negócio nem chamada IPC própria.
+ * material), "Clientes" (atividade/volume por cliente) e "Operadores"
+ * (produtividade/carga de trabalho por operador, pedido do usuário
+ * 2026-07-16). Dados compartilhados (ordens, sessões de produção,
+ * perdas, cadastros pra filtro) são buscados uma única vez aqui e
+ * passados como props — cada aba só filtra/renderiza, sem lógica de
+ * negócio nem chamada IPC própria.
  */
 export function RelatoriosPage() {
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
@@ -79,6 +81,7 @@ export function RelatoriosPage() {
           <TabsTrigger value="historico">Histórico de Ordens</TabsTrigger>
           <TabsTrigger value="materiais">Materiais</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
+          <TabsTrigger value="operadores">Operadores</TabsTrigger>
         </TabsList>
         <TabsContent value="producao" className="min-h-0 overflow-y-auto">
           <RelatorioProducaoTab
@@ -106,6 +109,9 @@ export function RelatoriosPage() {
         </TabsContent>
         <TabsContent value="clientes" className="min-h-0 overflow-y-auto">
           <ClientesTab linhas={producao} clientes={clientes} tecidos={tecidos} />
+        </TabsContent>
+        <TabsContent value="operadores" className="min-h-0 overflow-y-auto">
+          <OperadoresTab linhas={producao} />
         </TabsContent>
       </Tabs>
     </div>
