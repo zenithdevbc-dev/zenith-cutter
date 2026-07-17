@@ -6,6 +6,7 @@ import { OrdensCortePage } from "@/pages/OrdensCortePage";
 import { ProducaoPage } from "@/pages/ProducaoPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { LoginPage } from "@/pages/LoginPage";
+import { SplashScreen } from "@/components/SplashScreen";
 import { UpdateNotifier } from "@/components/UpdateNotifier";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -36,7 +37,7 @@ function App() {
       <Toaster />
       <UpdateNotifier />
       {loading ? (
-        <div className="h-screen w-screen bg-background" />
+        <SplashScreen />
       ) : !session ? (
         <LoginPage />
       ) : (
