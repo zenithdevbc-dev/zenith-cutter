@@ -4,6 +4,7 @@ import {
   Users,
   Settings,
   PlayCircle,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import type { PapelUsuario } from "@shared/models";
@@ -13,6 +14,7 @@ export type PageId =
   | "ordens-corte"
   | "producao"
   | "cadastros"
+  | "relatorios"
   | "configuracoes";
 
 export interface NavItem {
@@ -60,6 +62,12 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["administrador", "supervisor", "operador"],
   },
   { id: "cadastros", label: "Cadastros", icon: Users, roles: ["administrador", "supervisor"] },
+  {
+    id: "relatorios",
+    label: "Relatórios",
+    icon: BarChart3,
+    roles: ["administrador", "supervisor"],
+  },
   { id: "configuracoes", label: "Configurações", icon: Settings, roles: ["administrador"] },
 ];
 

@@ -5,6 +5,7 @@ import { OrdensCortePage } from "@/pages/OrdensCortePage";
 import { ProducaoPage } from "@/pages/ProducaoPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ConfiguracoesPage } from "@/pages/ConfiguracoesPage";
+import { RelatoriosPage } from "@/pages/RelatoriosPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { SplashScreen } from "@/components/SplashScreen";
 import { UpdateNotifier } from "@/components/UpdateNotifier";
@@ -43,6 +44,8 @@ function App() {
             <ProducaoPage />
           ) : currentPage === "dashboard" ? (
             <DashboardPage />
+          ) : currentPage === "relatorios" ? (
+            <RelatoriosPage />
           ) : (
             <ConfiguracoesPage />
           )}
