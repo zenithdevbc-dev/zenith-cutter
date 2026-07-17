@@ -28,6 +28,14 @@ Não introduza frameworks, bibliotecas de estado, ORMs ou padrões de arquitetur
 lista sem perguntar antes. Se uma tarefa parecer exigir isso, pare e explique o motivo antes
 de implementar.
 
+Exceções já aprovadas (pontuais, não abrem precedente geral): `jspdf` +
+`jspdf-autotable` e `exceljs`, usadas só pela exportação do Relatório
+de Produção (seção 7, decisão de 2026-07-16) — `exceljs` no lugar de
+`xlsx` porque a `xlsx` do npm tem vulnerabilidades sem correção
+disponível (SheetJS parou de publicar patches nesse registro). Nenhuma
+biblioteca de gráficos foi adicionada ainda — pendente de decisão (ver
+seção 7).
+
 ## 3. Princípios do produto — regras que TODO código deve respeitar
 
 ### 3.1 O operador sempre possui o controle
@@ -139,6 +147,14 @@ escopo dentro do próprio multiempresa: tela de auto-cadastro/signup de empresas
 empresa dentro do app (um usuário pertence a uma única empresa), billing/cobrança por
 empresa.
 
+Exceção pontual (decisão de 2026-07-16, pedido explícito do usuário): o
+**Relatório de Produção** (seção 7) foi implementado como um recorte
+enxuto de "Relatórios avançados" — filtros, KPIs, tabela e exportação
+CSV/Excel/PDF, sem gráficos (decisão explícita de adiar, sem
+biblioteca de gráficos aprovada ainda). "Relatórios avançados" no
+sentido amplo (múltiplos relatórios, dashboards analíticos, gráficos)
+continua fora de escopo até nova decisão.
+
 Se uma tarefa pedida se sobrepuser a um desses itens fora de escopo, avise antes de
 implementar.
 
@@ -169,6 +185,31 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-16**: **Relatório de Produção** (aba "Relatórios",
+  admin/supervisor), pedido explícito do usuário — esbarra em
+  "Relatórios avançados" (fora de escopo, seção 5); decisões de escopo
+  e biblioteca alinhadas com o usuário antes de codar (ver exceção na
+  seção 5 e nas exceções de stack na seção 2). Escopo desta entrega:
+  filtros (período por `criado_em`, cliente, operador, material/tecido,
+  status), 5 KPIs (Total, Concluídas, Em Andamento, Atrasadas, Tempo
+  Médio de Produção) e tabela detalhada (Nº, Cliente, Material,
+  Operador, Início, Conclusão, Tempo, Status). **Sem gráficos** — adiado
+  por decisão do usuário, sem biblioteca de gráficos aprovada ainda.
+  Exportação CSV (sem dependência)/Excel/PDF via `exceljs` + `jspdf`/
+  `jspdf-autotable` (trocou `xlsx` por `exceljs` no meio da instalação:
+  `xlsx` do npm tem 2 CVEs sem correção disponível). "Atrasada" exigiu
+  campo novo — `ordens_corte.prazo` (data limite opcional, migration
+  local v23 + Supabase 0029), editável em Criar/Editar Ordem e visível
+  no dialog Info; atrasada = prazo passou e status não é
+  `pronto`/`cancelada`. "Operador" = quem iniciou a sessão de produção
+  da ordem (`sessoes_producao.iniciado_por`); ordens nunca iniciadas
+  aparecem no relatório com operador/tempo/datas vazios. Toda a lógica
+  de filtro/KPI/duração vive em `lib/relatorioProducao.ts` (puro, sem
+  UI) e a de exportação em `lib/relatorioExport.ts` — a página só busca
+  dados e renderiza. Novo repositório `relatorios.ts` (main) faz um
+  LEFT JOIN por ordem com a sessão de produção mais recente dela (uma
+  ordem tem no máximo uma na prática). Build e `npm run typecheck`
+  limpos. **Não testado manualmente ainda**.
 - Sprint em andamento: Sprint 5 — Dashboard Operacional. Entregue:
   visão de mesas livres/ocupadas (todos os papéis) e ordens por
   status + pesquisa rápida (admin/supervisor — leitura local não
