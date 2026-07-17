@@ -13,26 +13,28 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { listMesasComStatus } from "@/lib/producao";
+import { listRelatorioProducao } from "@/lib/relatorios";
 import { useAuth } from "@/lib/auth-context";
 import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
-import type { MesaCorteComStatus, OrdemCorteResumo, StatusOrdemCorte } from "@shared/models";
-
-const STATUS_ORDEM: StatusOrdemCorte[] = [
-  "aberta",
-  "em_fila",
-  "em_corte",
-  "embalagem",
-  "revisao",
-  "despacho",
-  "pronto",
-  "cancelada",
-];
+import {
+  calcularDistribuicaoStatus,
+  calcularProducaoUltimos30Dias,
+} from "@/lib/dashboardCharts";
+import { ProducaoUltimos30DiasChart } from "@/components/dashboard/ProducaoUltimos30DiasChart";
+import { DistribuicaoStatusChart } from "@/components/dashboard/DistribuicaoStatusChart";
+import type {
+  MesaCorteComStatus,
+  OrdemCorteResumo,
+  RelatorioProducaoLinha,
+} from "@shared/models";
 
 /**
  * Dashboard (Sprint 5, todos os papéis — CLAUDE.md 3.6): visão geral
- * de ordens por status e mesas livres/ocupadas. "Ordens por status" e
- * a pesquisa rápida ficam restritas a admin/supervisor (mesma regra
- * de Ordens de Corte — leitura local não passa por RLS, então a
+ * de mesas livres/ocupadas, distribuição de ordens por status (gráfico
+ * de rosca), produção dos últimos 30 dias (gráfico de barras, decisão
+ * de 2026-07-16 — biblioteca `recharts`, ver seção 2) e pesquisa
+ * rápida. Tudo além de mesas fica restrito a admin/supervisor (mesma
+ * regra de Ordens de Corte — leitura local não passa por RLS, então a
  * restrição de papel precisa acontecer aqui no componente também).
  */
 export function DashboardPage() {
@@ -41,6 +43,7 @@ export function DashboardPage() {
     usuario?.papel === "administrador" || usuario?.papel === "supervisor";
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
   const [mesas, setMesas] = useState<MesaCorteComStatus[] | null>(null);
+  const [producao, setProducao] = useState<RelatorioProducaoLinha[] | null>(null);
   const [busca, setBusca] = useState("");
 
   useEffect(() => {
@@ -48,6 +51,9 @@ export function DashboardPage() {
       listOrdensCorte()
         .then(setOrdens)
         .catch(() => toast.error("Não foi possível carregar as ordens de corte."));
+      listRelatorioProducao()
+        .then(setProducao)
+        .catch(() => toast.error("Não foi possível carregar os dados de produção."));
     }
     listMesasComStatus()
       .then(setMesas)
@@ -55,13 +61,15 @@ export function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [podeVerOrdens]);
 
-  const contagemPorStatus = useMemo(() => {
-    const contagem: Partial<Record<StatusOrdemCorte, number>> = {};
-    for (const ordem of ordens ?? []) {
-      contagem[ordem.status] = (contagem[ordem.status] ?? 0) + 1;
-    }
-    return contagem;
-  }, [ordens]);
+  const distribuicaoStatus = useMemo(
+    () => calcularDistribuicaoStatus(ordens ?? []),
+    [ordens],
+  );
+
+  const producaoUltimos30Dias = useMemo(
+    () => calcularProducaoUltimos30Dias(producao ?? []),
+    [producao],
+  );
 
   const resultadosBusca = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -124,27 +132,35 @@ export function DashboardPage() {
         {podeVerOrdens && (
           <Card>
             <CardHeader>
-              <CardTitle>Ordens por Status</CardTitle>
+              <CardTitle>Distribuição de Ordens por Status</CardTitle>
             </CardHeader>
             <CardContent>
               {ordens === null ? (
                 <p className="text-sm text-muted-foreground">Carregando...</p>
+              ) : distribuicaoStatus.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma ordem cadastrada.</p>
               ) : (
-                <div className="flex flex-col gap-1">
-                  {STATUS_ORDEM.map((status) => (
-                    <div key={status} className="flex items-center justify-between text-sm">
-                      <span>{STATUS_ORDEM_CORTE_LABEL[status]}</span>
-                      <Badge variant={STATUS_ORDEM_CORTE_VARIANT[status]}>
-                        {contagemPorStatus[status] ?? 0}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+                <DistribuicaoStatusChart dados={distribuicaoStatus} />
               )}
             </CardContent>
           </Card>
         )}
       </div>
+
+      {podeVerOrdens && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Produção dos Últimos 30 Dias</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {producao === null ? (
+              <p className="text-sm text-muted-foreground">Carregando...</p>
+            ) : (
+              <ProducaoUltimos30DiasChart dados={producaoUltimos30Dias} />
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {podeVerOrdens && (
         <Card>
