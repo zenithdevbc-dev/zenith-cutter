@@ -186,6 +186,33 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-16**: **Relatório de Operadores** — quinta aba
+  dentro de "Relatórios" (Tabs: "Produção" | "Histórico de Ordens" |
+  "Materiais" | "Clientes" | "Operadores"), pra gestão de produção.
+  Mesmo padrão do Relatório de Clientes: sem conflito de domínio, sem
+  IPC novo (reusa `listRelatorioProducao()`). Nota do pedido —
+  "nenhuma feature de gestão de pessoas/RH, só análise operacional" —
+  já era o comportamento natural, já que tudo vem de
+  `sessoes_producao`, não de um cadastro de funcionários. Filtros:
+  Operador (opções vêm só de quem já operou de verdade — filtra
+  `RelatorioProducaoLinha` por `operador_id` presente, não a lista
+  completa de usuários, que incluiria admin/supervisor sem nenhuma
+  sessão), período (por `criado_em`), status. KPIs: Total de
+  Operadores (universo completo, não filtrado — mesmo espírito de
+  "Total de Clientes"), Ordens Concluídas, Tempo Médio de Produção
+  (calculado direto sobre as ordens concluídas do período, não é média
+  das médias por operador — evita enviesar operador com poucas
+  ordens), Média de Ordens por Operador. Tabela (uma linha por
+  operador, sem paginação — poucos operadores, diferente de Clientes/
+  Histórico): Operador, Concluídas, Em Andamento, Tempo Médio de
+  Produção, Última Atividade (início de sessão mais recente, não
+  conclusão — reflete quando o operador atuou por último mesmo com a
+  ordem ainda em andamento). Gráficos: "Ordens por Operador" e
+  "Comparação de Tempo de Produção" (barras horizontais) e
+  "Produtividade Diária" (linha, ordens concluídas por dia agregado).
+  Lógica pura em `lib/relatorioOperadores.ts`; exportação em
+  `lib/relatorioOperadoresExport.ts`. Build e `npm run typecheck`
+  limpos. **Não testado manualmente ainda**.
 - Entrega **2026-07-16**: **Relatório de Clientes** — quarta aba
   dentro de "Relatórios" (Tabs: "Produção" | "Histórico de Ordens" |
   "Materiais" | "Clientes"). Sem conflito de domínio como o de
