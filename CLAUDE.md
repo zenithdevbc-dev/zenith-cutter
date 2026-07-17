@@ -186,6 +186,24 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-16**: **microinterações** (pedido explícito do
+  usuário — "não exagerar, só deixar vivo"). Hover em cards (sombra
+  leve, `Card` global em `components/ui/card.tsx` — cobre o app
+  inteiro automaticamente) e fade entre páginas (`App.tsx`, `div`
+  com `key={currentPage}` reaproveitando `tailwindcss-animate`, já
+  instalado). Hover de linha de tabela e abertura suave de diálogos
+  **já existiam** no design system (shadcn/`tailwindcss-animate`) —
+  conferido, sem mudança necessária. Skeleton loading novo
+  (`components/ui/skeleton.tsx` + `table-skeleton.tsx`,
+  `TableSkeletonRows`) aplicado nos três pontos de maior tráfego —
+  Dashboard, Ordens de Corte, Produção — no lugar do texto
+  "Carregando..."; as demais páginas (cadastros, abas de Relatórios)
+  não foram tocadas nesta rodada — deliberado, pra não exagerar o
+  escopo de um pedido de polimento pontual. Build e
+  `npm run typecheck` limpos. **Não testado manualmente ainda** — não
+  tentei automação de GUI por causa do risco já registrado de
+  interferir em outra janela em primeiro plano do usuário (ver
+  `feedback_gui_automation_foreground_risk.md`).
 - Entrega **2026-07-16**: **Relatório de Operadores** — quinta aba
   dentro de "Relatórios" (Tabs: "Produção" | "Histórico de Ordens" |
   "Materiais" | "Clientes" | "Operadores"), pra gestão de produção.
