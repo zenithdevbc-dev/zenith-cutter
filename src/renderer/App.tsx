@@ -4,8 +4,7 @@ import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { CadastrosPage } from "@/pages/CadastrosPage";
 import { OrdensCortePage } from "@/pages/OrdensCortePage";
 import { ProducaoPage } from "@/pages/ProducaoPage";
-import { DbStatusCard } from "@/components/DbStatusCard";
-import { SyncStatusCard } from "@/components/SyncStatusCard";
+import { DashboardPage } from "@/pages/DashboardPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { UpdateNotifier } from "@/components/UpdateNotifier";
 import { Toaster } from "@/components/ui/sonner";
@@ -13,11 +12,9 @@ import { useAuth } from "@/lib/auth-context";
 import { getAllowedNavItems, type PageId } from "@/lib/navigation";
 
 const PAGE_DESCRIPTIONS: Record<
-  Exclude<PageId, "cadastros" | "ordens-corte" | "producao">,
+  Exclude<PageId, "cadastros" | "ordens-corte" | "producao" | "dashboard">,
   string
 > = {
-  dashboard:
-    "Visão operacional de ordens por status, mesas livres/ocupadas e indicadores. Chega no Sprint 5.",
   configuracoes: "Configurações básicas do sistema. Ainda sem escopo definido.",
 };
 
@@ -50,19 +47,13 @@ function App() {
             <OrdensCortePage />
           ) : currentPage === "producao" ? (
             <ProducaoPage />
+          ) : currentPage === "dashboard" ? (
+            <DashboardPage />
           ) : (
-            <div className="flex flex-col gap-4">
-              <PlaceholderPage
-                title="Em construção"
-                description={PAGE_DESCRIPTIONS[currentPage]}
-              />
-              {currentPage === "dashboard" && (
-                <>
-                  <DbStatusCard />
-                  <SyncStatusCard />
-                </>
-              )}
-            </div>
+            <PlaceholderPage
+              title="Em construção"
+              description={PAGE_DESCRIPTIONS[currentPage]}
+            />
           )}
         </AppShell>
       )}
