@@ -17,7 +17,7 @@ export function SplashScreen() {
       <img
         src={logoZenithDev}
         alt="Zenith DEV"
-        className="h-40 w-40 animate-pulse object-contain"
+        className="h-80 w-80 animate-pulse object-contain"
       />
     </div>
   );
