@@ -176,6 +176,30 @@ implementar.
   regra de Ordens de Corte). "Indicadores" fica raso por enquanto (só
   contagem por status) — sem gráficos/métricas avançadas, fora de
   escopo do MVP (seção 5). Sprint 4 fica encerrado (ver abaixo).
+- Entregas **2026-07-16** (mesma sessão, várias peças pequenas):
+  identidade visual completa (paleta de marca em `index.css`, logos
+  Zenith Cutter/Zenith DEV — splash screen só com a logo Zenith DEV,
+  ícone do app/taskbar/instalador recortado só com o símbolo pra não
+  distorcer/ficar ilegível); grade de quantidade por tamanho nas
+  Ordens de Corte trocada de lista contínua pra grid
+  (`GradeQuantidadeInput`, compartilhado entre Criar/Editar/registro
+  de perdas); Dashboard perde o card "Banco de dados local" (removido,
+  sem utilidade operacional) e o card de sincronização migra pra
+  dentro da nova página Configurações (seção "Sincronização");
+  registro de perdas de produção passa a ser por tamanho da grade do
+  produto (mesmo componente da criação de ordem, produto_tamanho_id
+  nullable em `producao_perdas`, migration local v21 + Supabase 0027)
+  e fica visível no dialog "Info" da lista de Ordens de Corte; Mesas de
+  Corte ganham um menu próprio (clicar na mesa abre a fila de produção
+  pré-atribuída especificamente a ela, com Iniciar direto ali) —
+  `ordens_corte.mesa_atribuida_id` novo (nullable, migration local v22
+  + Supabase 0028), editável só por admin/supervisor numa coluna da
+  Fila de Produção, sem PIN (organização de fila, não transição de
+  estado); filtro "Aberta" de Ordens de Corte deixa de casar só o
+  status literal (que quase nunca ocorre, ordem já nasce em `em_fila`)
+  e vira agregado — qualquer ordem que não seja `pronto` nem
+  `cancelada`. Build e `npm run typecheck` limpos a cada entrega.
+  **Não testado manualmente ainda** (menu de mesa e perdas em grid).
 - Correção **2026-07-16**: bug pré-existente (não relacionado às
   entregas desta sessão) travava o carregamento de Cadastros >
   Usuários com "Não foi possível carregar a lista de usuários".
