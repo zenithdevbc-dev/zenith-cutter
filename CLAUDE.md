@@ -186,6 +186,38 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-16**: **Relatório de Materiais** — terceira aba
+  dentro de "Relatórios" (Tabs: "Produção" | "Histórico de Ordens" |
+  "Materiais"). Pedido original pedia conceitos de corte de **chapa
+  rígida** (espessura, chapas usadas, % de utilização, desperdício
+  estimado) que não existem no domínio deste projeto — Zenith Cutter
+  modela corte de **tecido** (confecção), sem noção de "chapa", e
+  utilização/desperdício em % exigiria saber quanto material foi
+  alocado por ordem, que é controle de **estoque** (fora de escopo,
+  seção 5). Parado antes de codar e resolvido com o usuário (2
+  perguntas): **espessura removida** do relatório (sem novo campo em
+  Tecidos) e **KPIs/gráficos redefinidos com dado real** — Total de
+  Ordens, Total de Peças Produzidas, Total de Perdas Registradas
+  (soma de `producao_perdas.quantidade`, ainda sem unidade fixa) e
+  Material Mais Usado (por peças produzidas), em vez de "chapas
+  usadas"/"% utilização"/"% desperdício". Gráficos: "Consumo de
+  Material" e "Materiais Mais Usados" (barras horizontais, mesma cor
+  primária da marca) substituem "Material Consumption"/"Most Used
+  Materials" quase 1:1 (volume de peças vs. frequência de ordens);
+  "Tendência de Perdas" (linha, âmbar — `--status-pending`) substitui
+  "Utilization Trend" (não computável sem estoque). Tabela: Material,
+  Cor, Ordens, Peças Produzidas, Perdas Registradas — uma linha por
+  material, agregada a partir de Ordens de Corte + `producao_perdas`
+  já existentes. Filtro "Cor" é novo mas usa campo que já existia em
+  `Tecido.cor`; filtro "Espessura" não entrou (não existe). Nova
+  consulta `listRelatorioPerdasLocal` (repositório `relatorios.ts`)
+  junta `producao_perdas` com sessão/ordem/tecido/cliente — mesmo
+  padrão de `listRelatorioProducaoLocal`, sem filtro no SQL (filtra em
+  memória no renderer). Toda lógica de filtro/agregação/série de
+  gráfico vive em `lib/relatorioMateriais.ts` (puro); exportação em
+  `lib/relatorioMateriaisExport.ts` (mesmos helpers genéricos de
+  `exportUtils.ts`). Build e `npm run typecheck` limpos. **Não testado
+  manualmente ainda**.
 - Entrega **2026-07-16**: **Histórico de Ordens** — segunda aba dentro
   de "Relatórios" (Tabs: "Produção" | "Histórico de Ordens"), pedido
   explícito do usuário como "tela de consulta principal". Mesma
