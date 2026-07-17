@@ -33,6 +33,7 @@ import type {
   ProducaoObservacao,
   ProducaoObservacaoInput,
   RelatorioProducaoLinha,
+  RelatorioPerdaLinha,
 } from "@shared/models";
 
 declare global {
@@ -137,6 +138,7 @@ declare global {
       };
       relatorios: {
         producaoListLocal: () => Promise<RelatorioProducaoLinha[]>;
+        perdasListLocal: () => Promise<RelatorioPerdaLinha[]>;
       };
     };
   }

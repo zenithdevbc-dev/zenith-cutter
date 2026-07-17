@@ -390,3 +390,22 @@ export interface RelatorioProducaoLinha {
   finalizado_em: string | null;
   tempo_pausado_segundos: number;
 }
+
+/**
+ * Uma linha do Relatório de Materiais: uma perda de produção
+ * (`producao_perdas`) + os dados da ordem/tecido/cliente dela, pra
+ * agregar consumo e perdas por material sem precisar de N chamadas
+ * IPC (uma por ordem). `criado_em` aqui é o da perda (não da ordem) —
+ * alimenta a tendência de perdas ao longo do tempo.
+ */
+export interface RelatorioPerdaLinha {
+  perda_id: string;
+  ordem_id: string;
+  numero: number;
+  cliente_id: string;
+  cliente_nome: string;
+  tecido_id: string;
+  tecido_nome: string;
+  quantidade: number;
+  criado_em: string;
+}

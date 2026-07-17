@@ -39,6 +39,7 @@ import type {
   ProducaoObservacao,
   ProducaoObservacaoInput,
   RelatorioProducaoLinha,
+  RelatorioPerdaLinha,
 } from "../../src/shared/models";
 
 contextBridge.exposeInMainWorld("zenith", {
@@ -197,5 +198,7 @@ contextBridge.exposeInMainWorld("zenith", {
   relatorios: {
     producaoListLocal: (): Promise<RelatorioProducaoLinha[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.relatoriosProducaoListLocal),
+    perdasListLocal: (): Promise<RelatorioPerdaLinha[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.relatoriosPerdasListLocal),
   },
 });

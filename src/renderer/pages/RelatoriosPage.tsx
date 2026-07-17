@@ -3,7 +3,8 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RelatorioProducaoTab } from "@/components/relatorios/RelatorioProducaoTab";
 import { HistoricoOrdensTab } from "@/components/relatorios/HistoricoOrdensTab";
-import { listRelatorioProducao } from "@/lib/relatorios";
+import { MateriaisTab } from "@/components/relatorios/MateriaisTab";
+import { listRelatorioProducao, listRelatorioPerdas } from "@/lib/relatorios";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { listClientes } from "@/lib/clientes";
 import { listTecidos } from "@/lib/tecidos";
@@ -12,22 +13,25 @@ import { mesclarHistoricoOrdens } from "@/lib/historicoOrdens";
 import type {
   Cliente,
   OrdemCorteResumo,
+  RelatorioPerdaLinha,
   RelatorioProducaoLinha,
   Tecido,
   Usuario,
 } from "@shared/models";
 
 /**
- * Relatórios (admin/supervisor) — duas abas: "Produção" (visão
- * gerencial de um período, com KPIs) e "Histórico de Ordens" (consulta
- * de toda ordem já registrada, pedido do usuário 2026-07-16). Dados
- * compartilhados (ordens, sessões de produção, cadastros pra filtro)
- * são buscados uma única vez aqui e passados como props — cada aba só
+ * Relatórios (admin/supervisor) — três abas: "Produção" (visão
+ * gerencial de um período, com KPIs), "Histórico de Ordens" (consulta
+ * de toda ordem já registrada) e "Materiais" (consumo/perdas por
+ * material, pedido do usuário 2026-07-16). Dados compartilhados
+ * (ordens, sessões de produção, perdas, cadastros pra filtro) são
+ * buscados uma única vez aqui e passados como props — cada aba só
  * filtra/renderiza, sem lógica de negócio nem chamada IPC própria.
  */
 export function RelatoriosPage() {
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
   const [producao, setProducao] = useState<RelatorioProducaoLinha[] | null>(null);
+  const [perdas, setPerdas] = useState<RelatorioPerdaLinha[] | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [tecidos, setTecidos] = useState<Tecido[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -39,6 +43,9 @@ export function RelatoriosPage() {
     listRelatorioProducao()
       .then(setProducao)
       .catch(() => toast.error("Não foi possível carregar os dados de produção."));
+    listRelatorioPerdas()
+      .then(setPerdas)
+      .catch(() => toast.error("Não foi possível carregar as perdas registradas."));
     listClientes()
       .then((c) => setClientes(c.filter((x) => x.ativo)))
       .catch(() => toast.error("Não foi possível carregar os clientes."));
@@ -68,6 +75,7 @@ export function RelatoriosPage() {
         <TabsList className="shrink-0">
           <TabsTrigger value="producao">Produção</TabsTrigger>
           <TabsTrigger value="historico">Histórico de Ordens</TabsTrigger>
+          <TabsTrigger value="materiais">Materiais</TabsTrigger>
         </TabsList>
         <TabsContent value="producao" className="min-h-0 overflow-y-auto">
           <RelatorioProducaoTab
@@ -83,6 +91,14 @@ export function RelatoriosPage() {
             clientes={clientes}
             tecidos={tecidos}
             usuarios={usuarios}
+          />
+        </TabsContent>
+        <TabsContent value="materiais" className="min-h-0 overflow-y-auto">
+          <MateriaisTab
+            ordens={ordens}
+            perdas={perdas}
+            clientes={clientes}
+            tecidos={tecidos}
           />
         </TabsContent>
       </Tabs>

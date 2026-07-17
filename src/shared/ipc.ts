@@ -69,4 +69,5 @@ export const IPC_CHANNELS = {
   empresasCache: "empresas:cache",
   empresasGetLocal: "empresas:get-local",
   relatoriosProducaoListLocal: "relatorios:producao-list-local",
+  relatoriosPerdasListLocal: "relatorios:perdas-list-local",
 } as const;
