@@ -29,12 +29,13 @@ lista sem perguntar antes. Se uma tarefa parecer exigir isso, pare e explique o 
 de implementar.
 
 Exceções já aprovadas (pontuais, não abrem precedente geral): `jspdf` +
-`jspdf-autotable` e `exceljs`, usadas só pela exportação do Relatório
-de Produção (seção 7, decisão de 2026-07-16) — `exceljs` no lugar de
+`jspdf-autotable` e `exceljs`, usadas só pela exportação dos
+relatórios (seção 7, decisão de 2026-07-16) — `exceljs` no lugar de
 `xlsx` porque a `xlsx` do npm tem vulnerabilidades sem correção
-disponível (SheetJS parou de publicar patches nesse registro). Nenhuma
-biblioteca de gráficos foi adicionada ainda — pendente de decisão (ver
-seção 7).
+disponível (SheetJS parou de publicar patches nesse registro). E
+`recharts`, usada nos gráficos do Dashboard (seção 7, decisão de
+2026-07-16, mesmo dia — pedido do usuário reabriu a decisão de "sem
+gráficos" tomada horas antes na entrega do Relatório de Produção).
 
 ## 3. Princípios do produto — regras que TODO código deve respeitar
 
@@ -234,13 +235,28 @@ implementar.
   LEFT JOIN por ordem com a sessão de produção mais recente dela (uma
   ordem tem no máximo uma na prática). Build e `npm run typecheck`
   limpos. **Não testado manualmente ainda**.
+- Entrega **2026-07-16**: **gráficos no Dashboard** — pedido explícito
+  do usuário reabriu a decisão de "sem gráficos ainda" tomada horas
+  antes na entrega do Relatório de Produção (mesma sessão); escolhida
+  `recharts` (era a opção recomendada quando a decisão foi adiada) —
+  nova exceção de stack, seção 2. Dois gráficos, ambos admin/supervisor
+  (mesmo gate de "Ordens por Status"): "Distribuição de Ordens por
+  Status" (rosca, substitui a lista de badges — cores distintas por
+  status, diferente do mapeamento de badge.tsx que reusa cor pra vários
+  status do pipeline, o que confundiria fatias vizinhas) e "Produção
+  dos Últimos 30 Dias" (barras, ordens concluídas por dia — dia sem
+  conclusão aparece com 0, eixo contínuo). Fonte do segundo:
+  `listRelatorioProducao()`, já existente, sem IPC novo. Cálculo em
+  `lib/dashboardCharts.ts` (puro); componentes em
+  `components/dashboard/` só renderizam. Build e `npm run typecheck`
+  limpos. **Não testado manualmente ainda**.
 - Sprint em andamento: Sprint 5 — Dashboard Operacional. Entregue:
-  visão de mesas livres/ocupadas (todos os papéis) e ordens por
-  status + pesquisa rápida (admin/supervisor — leitura local não
-  passa por RLS, restrição de papel replicada no componente, mesma
-  regra de Ordens de Corte). "Indicadores" fica raso por enquanto (só
-  contagem por status) — sem gráficos/métricas avançadas, fora de
-  escopo do MVP (seção 5). Sprint 4 fica encerrado (ver abaixo).
+  visão de mesas livres/ocupadas (todos os papéis), distribuição de
+  ordens por status e produção dos últimos 30 dias em gráfico (ver
+  entrega 2026-07-16 acima — supera o "sem gráficos" original) e
+  pesquisa rápida (admin/supervisor — leitura local não passa por RLS,
+  restrição de papel replicada no componente, mesma regra de Ordens de
+  Corte). Sprint 4 fica encerrado (ver abaixo).
 - Entregas **2026-07-16** (mesma sessão, várias peças pequenas):
   identidade visual completa (paleta de marca em `index.css`, logos
   Zenith Cutter/Zenith DEV — splash screen só com a logo Zenith DEV,
