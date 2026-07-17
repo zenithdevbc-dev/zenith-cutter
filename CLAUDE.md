@@ -169,7 +169,28 @@ implementar.
 
 ## 7. Estado atual
 
-- Sprint em andamento: Sprint 4 — Execução da Produção. Todos os itens
+- Sprint em andamento: Sprint 5 — Dashboard Operacional. Entregue:
+  visão de mesas livres/ocupadas (todos os papéis) e ordens por
+  status + pesquisa rápida (admin/supervisor — leitura local não
+  passa por RLS, restrição de papel replicada no componente, mesma
+  regra de Ordens de Corte). "Indicadores" fica raso por enquanto (só
+  contagem por status) — sem gráficos/métricas avançadas, fora de
+  escopo do MVP (seção 5). Sprint 4 fica encerrado (ver abaixo).
+- Correção **2026-07-16**: bug pré-existente (não relacionado às
+  entregas desta sessão) travava o carregamento de Cadastros >
+  Usuários com "Não foi possível carregar a lista de usuários".
+  Causa raiz achada com `console.error` temporário: `cacheUsuarios`
+  faz upsert por `id`, mas `login` tem índice único próprio; em
+  produção "Operador de Teste" foi excluído e recriado com `id` novo
+  mantendo o mesmo `login`, e o cache local nunca apaga linhas que
+  sumiram do Supabase — a linha antiga ficou presa segurando o login
+  e colidia com o upsert da linha nova, quebrando `listUsuarios()`
+  inteiro (nunca chegava no fallback pro cache local). Corrigido:
+  `cacheUsuarios` limpa qualquer linha órfã (id diferente) presa no
+  mesmo login antes de cada upsert. Exige reiniciar `npm run dev`
+  (mudança no processo main, sem hot-reload) — **usuário ainda vai
+  confirmar se resolveu**.
+- Última entrega **2026-07-14**: Sprint 4 — Execução da Produção. Todos os itens
   do roadmap entregues: iniciar/pausar/retomar/finalizar (finalizar =
   avançar etapa saindo de "Em Corte"), registro de perdas e
   observações, tempo de produção (exibido, cálculo estático — não é
