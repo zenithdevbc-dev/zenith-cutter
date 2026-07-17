@@ -25,13 +25,13 @@ import { IniciarProducaoDialog } from "@/components/producao/IniciarProducaoDial
 import { PerdasObservacoesDialog } from "@/components/producao/PerdasObservacoesDialog";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
+import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
 import {
   PIPELINE_PRODUCAO,
   type MesaCorteComStatus,
   type OrdemCorteResumo,
   type SessaoProducao,
   type SessaoProducaoResumo,
-  type StatusOrdemCorte,
 } from "@shared/models";
 
 /**
@@ -53,17 +53,6 @@ function formatTempoProducao(sessao: SessaoProducaoResumo): string {
   const minutos = totalMin % 60;
   return horas > 0 ? `${horas}h${String(minutos).padStart(2, "0")}min` : `${minutos}min`;
 }
-
-const ETAPA_LABEL: Record<StatusOrdemCorte, string> = {
-  aberta: "Aberta",
-  em_fila: "Em Fila",
-  cancelada: "Cancelada",
-  em_corte: "Em Corte",
-  embalagem: "Embalagem",
-  revisao: "Revisão",
-  despacho: "Despacho",
-  pronto: "Pronto",
-};
 
 /**
  * Execução da produção (todos os papéis, ver CLAUDE.md 3.6): a fila
@@ -296,7 +285,9 @@ export function ProducaoPage() {
                     <TableCell className="font-medium">{ordem.numero}</TableCell>
                     <TableCell>{ordem.cliente_nome}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{ETAPA_LABEL[ordem.status]}</Badge>
+                      <Badge variant={STATUS_ORDEM_CORTE_VARIANT[ordem.status]}>
+                        {STATUS_ORDEM_CORTE_LABEL[ordem.status]}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       {ordem.status !== "pronto" && (
@@ -341,7 +332,7 @@ export function ProducaoPage() {
                     <TableCell className="font-medium">{sessao.ordem_numero}</TableCell>
                     <TableCell>{sessao.mesa_nome}</TableCell>
                     <TableCell>
-                      <Badge variant={sessao.status === "pausada" ? "destructive" : "secondary"}>
+                      <Badge variant={sessao.status === "pausada" ? "paused" : "production"}>
                         {sessao.status === "pausada" ? "Pausada" : "Em Andamento"}
                       </Badge>
                     </TableCell>

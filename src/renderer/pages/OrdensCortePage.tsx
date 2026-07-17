@@ -25,29 +25,8 @@ import { InfoOrdemCorteDialog } from "@/components/ordens/InfoOrdemCorteDialog";
 import { listOrdensCorte, updateOrdemCorte, duplicateOrdemCorte } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
+import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
 import { PIPELINE_PRODUCAO, type OrdemCorteResumo, type StatusOrdemCorte } from "@shared/models";
-
-const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
-  aberta: "Aberta",
-  em_fila: "Em Fila",
-  cancelada: "Cancelada",
-  em_corte: "Em Corte",
-  embalagem: "Embalagem",
-  revisao: "Revisão",
-  despacho: "Despacho",
-  pronto: "Pronto",
-};
-
-const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destructive"> = {
-  aberta: "default",
-  em_fila: "secondary",
-  cancelada: "destructive",
-  em_corte: "default",
-  embalagem: "default",
-  revisao: "default",
-  despacho: "default",
-  pronto: "secondary",
-};
 
 export function OrdensCortePage() {
   const { usuario } = useAuth();
@@ -177,8 +156,8 @@ export function OrdensCortePage() {
                     <TableCell>{ordem.tecido_nome}</TableCell>
                     <TableCell>{ordem.quantidade_total}</TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANT[ordem.status]}>
-                        {STATUS_LABEL[ordem.status]}
+                      <Badge variant={STATUS_ORDEM_CORTE_VARIANT[ordem.status]}>
+                        {STATUS_ORDEM_CORTE_LABEL[ordem.status]}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

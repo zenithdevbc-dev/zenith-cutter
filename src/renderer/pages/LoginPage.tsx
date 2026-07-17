@@ -2,9 +2,10 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import logo from "@/assets/logo.png";
 
 export function LoginPage() {
   const { signIn } = useAuth();
@@ -25,8 +26,8 @@ export function LoginPage() {
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-background">
       <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Zenith Cutter</CardTitle>
+        <CardHeader className="flex items-center justify-center">
+          <img src={logo} alt="Zenith Cutter" className="h-32 w-32 object-contain" />
         </CardHeader>
         <CardContent>
           {!isSupabaseConfigured ? (

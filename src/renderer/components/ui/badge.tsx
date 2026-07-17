@@ -18,6 +18,14 @@ const badgeVariants = cva(
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
+        // Cores semânticas de status (identidade visual, 2026-07-16):
+        // usadas nos badges de etapa/status de Ordens de Corte e
+        // sessões de produção em todo o app.
+        production: "bg-status-production text-white",
+        completed: "bg-status-completed text-white",
+        pending: "bg-status-pending text-white",
+        delayed: "bg-status-delayed text-white",
+        paused: "bg-status-paused text-white",
       },
     },
     defaultVariants: {

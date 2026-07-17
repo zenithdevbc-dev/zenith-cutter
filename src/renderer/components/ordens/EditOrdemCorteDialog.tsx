@@ -33,6 +33,7 @@ import { listProdutoTamanhos } from "@/lib/produtoTamanhos";
 import { listOrdemCorteItens, updateOrdemCorte } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
+import { STATUS_ORDEM_CORTE_LABEL } from "@/lib/statusOrdemCorte";
 import type {
   Cliente,
   Produto,
@@ -56,9 +57,9 @@ type StatusEditavel = Exclude<
 >;
 
 const STATUS_LABEL: Record<StatusEditavel, string> = {
-  aberta: "Aberta",
-  em_fila: "Em Fila",
-  cancelada: "Cancelada",
+  aberta: STATUS_ORDEM_CORTE_LABEL.aberta,
+  em_fila: STATUS_ORDEM_CORTE_LABEL.em_fila,
+  cancelada: STATUS_ORDEM_CORTE_LABEL.cancelada,
 };
 
 export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogProps) {

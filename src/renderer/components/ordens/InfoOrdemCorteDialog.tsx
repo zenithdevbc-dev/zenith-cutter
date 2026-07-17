@@ -18,38 +18,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listOrdemCorteItens, listOrdemCorteHistorico } from "@/lib/ordensCorte";
+import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
 import type {
   OrdemCorteHistoricoEntry,
   OrdemCorteItem,
   OrdemCorteResumo,
-  StatusOrdemCorte,
 } from "@shared/models";
 
 interface InfoOrdemCorteDialogProps {
   ordem: OrdemCorteResumo;
 }
-
-const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
-  aberta: "Aberta",
-  em_fila: "Em Fila",
-  cancelada: "Cancelada",
-  em_corte: "Em Corte",
-  embalagem: "Embalagem",
-  revisao: "Revisão",
-  despacho: "Despacho",
-  pronto: "Pronto",
-};
-
-const STATUS_VARIANT: Record<StatusOrdemCorte, "default" | "secondary" | "destructive"> = {
-  aberta: "default",
-  em_fila: "secondary",
-  cancelada: "destructive",
-  em_corte: "default",
-  embalagem: "default",
-  revisao: "default",
-  despacho: "default",
-  pronto: "secondary",
-};
 
 export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
   const [open, setOpen] = useState(false);
@@ -96,8 +74,8 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
             </div>
             <div>
               <p className="text-muted-foreground">Status</p>
-              <Badge variant={STATUS_VARIANT[ordem.status]}>
-                {STATUS_LABEL[ordem.status]}
+              <Badge variant={STATUS_ORDEM_CORTE_VARIANT[ordem.status]}>
+                {STATUS_ORDEM_CORTE_LABEL[ordem.status]}
               </Badge>
             </div>
             <div>

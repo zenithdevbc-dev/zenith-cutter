@@ -16,18 +16,8 @@ import { listMesasComStatus } from "@/lib/producao";
 import { useAuth } from "@/lib/auth-context";
 import { DbStatusCard } from "@/components/DbStatusCard";
 import { SyncStatusCard } from "@/components/SyncStatusCard";
+import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
 import type { MesaCorteComStatus, OrdemCorteResumo, StatusOrdemCorte } from "@shared/models";
-
-const STATUS_LABEL: Record<StatusOrdemCorte, string> = {
-  aberta: "Aberta",
-  em_fila: "Em Fila",
-  cancelada: "Cancelada",
-  em_corte: "Em Corte",
-  embalagem: "Embalagem",
-  revisao: "Revisão",
-  despacho: "Despacho",
-  pronto: "Pronto",
-};
 
 const STATUS_ORDEM: StatusOrdemCorte[] = [
   "aberta",
@@ -145,8 +135,10 @@ export function DashboardPage() {
                 <div className="flex flex-col gap-1">
                   {STATUS_ORDEM.map((status) => (
                     <div key={status} className="flex items-center justify-between text-sm">
-                      <span>{STATUS_LABEL[status]}</span>
-                      <Badge variant="outline">{contagemPorStatus[status] ?? 0}</Badge>
+                      <span>{STATUS_ORDEM_CORTE_LABEL[status]}</span>
+                      <Badge variant={STATUS_ORDEM_CORTE_VARIANT[status]}>
+                        {contagemPorStatus[status] ?? 0}
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -187,7 +179,9 @@ export function DashboardPage() {
                         <TableCell>{ordem.cliente_nome}</TableCell>
                         <TableCell>{ordem.produto_nome}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{STATUS_LABEL[ordem.status]}</Badge>
+                          <Badge variant={STATUS_ORDEM_CORTE_VARIANT[ordem.status]}>
+                            {STATUS_ORDEM_CORTE_LABEL[ordem.status]}
+                          </Badge>
                         </TableCell>
                       </TableRow>
                     ))}

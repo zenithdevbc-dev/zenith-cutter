@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { getAllowedNavItems, type PageId } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
+import logo from "@/assets/logo.png";
 
 interface SidebarProps {
   currentPage: PageId;
@@ -12,13 +13,13 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   const items = getAllowedNavItems(usuario?.papel);
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-card">
-      <div className="flex h-14 flex-col justify-center border-b px-4">
-        <span className="text-sm font-semibold tracking-tight">
-          Zenith Cutter
-        </span>
+    <aside className="flex h-full w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
+      <div className="flex flex-col items-center gap-1 border-b border-sidebar-border px-4 py-3">
+        <div className="w-full rounded-md bg-background p-1.5">
+          <img src={logo} alt="Zenith Cutter" className="h-16 w-full object-contain" />
+        </div>
         {empresa && (
-          <span className="truncate text-xs text-muted-foreground">
+          <span className="truncate text-xs text-sidebar-foreground">
             {empresa.nome}
           </span>
         )}
@@ -36,8 +37,8 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                  : "text-sidebar-foreground hover:text-sidebar-accent-foreground",
               )}
             >
               <Icon className="size-4" />
