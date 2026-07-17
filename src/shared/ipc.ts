@@ -52,6 +52,7 @@ export const IPC_CHANNELS = {
   ordensCorteItensListLocal: "ordens-corte:itens-list-local",
   ordensCorteHistoricoListLocal: "ordens-corte:historico-list-local",
   ordensCorteNextNumeroLocal: "ordens-corte:next-numero-local",
+  ordensCorteAtribuirMesaLocal: "ordens-corte:atribuir-mesa-local",
   filaProducaoListLocal: "fila-producao:list-local",
   filaProducaoReorderLocal: "fila-producao:reorder-local",
   producaoMesasListLocal: "producao:mesas-list-local",

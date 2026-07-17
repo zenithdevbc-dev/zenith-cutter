@@ -75,6 +75,7 @@ export function OrdensCortePage() {
         produto_nome: ordem.produto_nome,
         tecido_nome: ordem.tecido_nome,
         quantidade_total: ordem.quantidade_total,
+        mesa_atribuida_nome: null,
       });
       toast.success("Ordem de corte duplicada.");
     } catch {
@@ -86,7 +87,15 @@ export function OrdensCortePage() {
     if (!ordens) return null;
     const termo = busca.trim().toLowerCase();
     return ordens.filter((o) => {
-      if (statusFiltro !== "todos" && o.status !== statusFiltro) return false;
+      // "Aberta" é um filtro agregado (não status literal): qualquer
+      // ordem que ainda não terminou nem foi cancelada — cobre
+      // aberta/em_fila/em_corte/embalagem/revisao/despacho de uma vez
+      // (pedido do usuário, 2026-07-16).
+      if (statusFiltro === "aberta") {
+        if (o.status === "pronto" || o.status === "cancelada") return false;
+      } else if (statusFiltro !== "todos" && o.status !== statusFiltro) {
+        return false;
+      }
       if (!termo) return true;
       return (
         String(o.numero).includes(termo) ||

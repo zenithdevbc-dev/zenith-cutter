@@ -98,6 +98,11 @@ declare global {
         duplicateLocal: (id: string, usuarioId: string) => Promise<OrdemCorte>;
         historicoListLocal: (ordemId: string) => Promise<OrdemCorteHistoricoEntry[]>;
         nextNumeroLocal: (empresaId: string) => Promise<number>;
+        atribuirMesaLocal: (
+          ordemId: string,
+          mesaAtribuidaId: string | null,
+          usuarioId: string,
+        ) => Promise<OrdemCorteResumo>;
       };
       filaProducao: {
         listLocal: () => Promise<OrdemCorteResumo[]>;

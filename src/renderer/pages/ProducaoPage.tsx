@@ -12,15 +12,29 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { listFilaProducao, reorderFilaProducao } from "@/lib/filaProducao";
 import {
   listMesasComStatus,
   listSessoesAtivas,
+  iniciarProducao,
   avancarEtapaOrdem,
   pausarProducao,
   retomarProducao,
 } from "@/lib/producao";
-import { listOrdensCorte } from "@/lib/ordensCorte";
+import { listOrdensCorte, atribuirMesaOrdem } from "@/lib/ordensCorte";
 import { IniciarProducaoDialog } from "@/components/producao/IniciarProducaoDialog";
 import { PerdasObservacoesDialog } from "@/components/producao/PerdasObservacoesDialog";
 import { useAuth } from "@/lib/auth-context";
@@ -73,6 +87,7 @@ export function ProducaoPage() {
   const [mesas, setMesas] = useState<MesaCorteComStatus[] | null>(null);
   const [sessoes, setSessoes] = useState<SessaoProducaoResumo[] | null>(null);
   const [emProducao, setEmProducao] = useState<OrdemCorteResumo[] | null>(null);
+  const [mesaAberta, setMesaAberta] = useState<MesaCorteComStatus | null>(null);
 
   function reload() {
     listFilaProducao()
@@ -112,6 +127,29 @@ export function ProducaoPage() {
       setFila(updated);
     } catch {
       toast.error("Não foi possível reordenar a fila.");
+    }
+  }
+
+  async function handleAtribuirMesa(ordem: OrdemCorteResumo, mesaAtribuidaId: string | null) {
+    if (!usuario) return;
+    try {
+      const updated = await atribuirMesaOrdem(ordem.id, mesaAtribuidaId, usuario.id);
+      setFila((prev) => (prev ?? []).map((o) => (o.id === ordem.id ? updated : o)));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível atribuir a mesa.");
+    }
+  }
+
+  async function handleIniciarNaMesa(ordem: OrdemCorteResumo, mesa: MesaCorteComStatus) {
+    if (!usuario || mesa.ocupada) return;
+    if (!(await confirmPin())) return;
+    try {
+      const sessao = await iniciarProducao({ ordem_id: ordem.id, mesa_id: mesa.id }, usuario.id);
+      handleIniciado(ordem.id, sessao);
+      setMesaAberta(null);
+      toast.success(`Produção iniciada para a ordem Nº ${ordem.numero}.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível iniciar a produção.");
     }
   }
 
@@ -174,6 +212,7 @@ export function ProducaoPage() {
                     <TableHead>Produto</TableHead>
                     <TableHead>Tecido</TableHead>
                     <TableHead>Qtd. total</TableHead>
+                    <TableHead>Mesa atribuída</TableHead>
                     {podeReordenar && <TableHead>Mover</TableHead>}
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -186,6 +225,32 @@ export function ProducaoPage() {
                       <TableCell>{ordem.produto_nome}</TableCell>
                       <TableCell>{ordem.tecido_nome}</TableCell>
                       <TableCell>{ordem.quantidade_total}</TableCell>
+                      <TableCell>
+                        {podeReordenar ? (
+                          <Select
+                            value={ordem.mesa_atribuida_id ?? "nenhuma"}
+                            onValueChange={(v) =>
+                              handleAtribuirMesa(ordem, v === "nenhuma" ? null : v)
+                            }
+                          >
+                            <SelectTrigger className="h-8 w-36">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="nenhuma">Nenhuma</SelectItem>
+                              {(mesas ?? [])
+                                .filter((m) => m.ativo)
+                                .map((mesa) => (
+                                  <SelectItem key={mesa.id} value={mesa.id}>
+                                    {mesa.nome}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          ordem.mesa_atribuida_nome ?? "—"
+                        )}
+                      </TableCell>
                       {podeReordenar && (
                         <TableCell>
                           <div className="flex gap-1">
@@ -236,24 +301,34 @@ export function ProducaoPage() {
               <p className="text-sm text-muted-foreground">Nenhuma mesa de corte cadastrada.</p>
             ) : (
               <div className="flex flex-col gap-2">
-                {mesas.map((mesa) => (
-                  <div
-                    key={mesa.id}
-                    className="flex items-center justify-between rounded-md border p-3"
-                  >
-                    <div>
-                      <p className="font-medium">{mesa.nome}</p>
-                      {mesa.ocupada && mesa.ordem_numero !== null && (
-                        <p className="text-xs text-muted-foreground">
-                          Ordem Nº {mesa.ordem_numero}
-                        </p>
-                      )}
-                    </div>
-                    <Badge variant={mesa.ocupada ? "destructive" : "secondary"}>
-                      {mesa.ocupada ? "Ocupada" : "Livre"}
-                    </Badge>
-                  </div>
-                ))}
+                {mesas.map((mesa) => {
+                  const filaDaMesa = (fila ?? []).filter((o) => o.mesa_atribuida_id === mesa.id);
+                  return (
+                    <button
+                      key={mesa.id}
+                      type="button"
+                      onClick={() => setMesaAberta(mesa)}
+                      className="flex items-center justify-between rounded-md border p-3 text-left transition-colors hover:bg-accent"
+                    >
+                      <div>
+                        <p className="font-medium">{mesa.nome}</p>
+                        {mesa.ocupada && mesa.ordem_numero !== null && (
+                          <p className="text-xs text-muted-foreground">
+                            Ordem Nº {mesa.ordem_numero}
+                          </p>
+                        )}
+                        {filaDaMesa.length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {filaDaMesa.length} na fila
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant={mesa.ocupada ? "destructive" : "secondary"}>
+                        {mesa.ocupada ? "Ocupada" : "Livre"}
+                      </Badge>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -360,6 +435,66 @@ export function ProducaoPage() {
           )}
         </CardContent>
       </Card>
+      <Dialog open={mesaAberta !== null} onOpenChange={(v) => !v && setMesaAberta(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mesa {mesaAberta?.nome}</DialogTitle>
+          </DialogHeader>
+          {mesaAberta && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <Badge variant={mesaAberta.ocupada ? "destructive" : "secondary"}>
+                  {mesaAberta.ocupada ? "Ocupada" : "Livre"}
+                </Badge>
+                {mesaAberta.ocupada && mesaAberta.ordem_numero !== null && (
+                  <span className="text-sm text-muted-foreground">
+                    Ordem Nº {mesaAberta.ordem_numero}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium">Fila desta mesa</p>
+                {(() => {
+                  const filaDaMesa = (fila ?? []).filter(
+                    (o) => o.mesa_atribuida_id === mesaAberta.id,
+                  );
+                  return filaDaMesa.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhuma ordem atribuída a esta mesa.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {filaDaMesa.map((ordem) => (
+                        <div
+                          key={ordem.id}
+                          className="flex items-center justify-between rounded-md border p-2"
+                        >
+                          <div>
+                            <p className="text-sm font-medium">
+                              Nº {ordem.numero} — {ordem.cliente_nome}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {ordem.produto_nome} · {ordem.tecido_nome}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            disabled={mesaAberta.ocupada}
+                            onClick={() => handleIniciarNaMesa(ordem, mesaAberta)}
+                          >
+                            Iniciar
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       {pinDialog}
     </div>
   );

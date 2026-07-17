@@ -47,3 +47,15 @@ export function updateOrdemCorte(
 export function duplicateOrdemCorte(id: string, usuarioId: string): Promise<OrdemCorte> {
   return window.zenith.ordensCorte.duplicateLocal(id, usuarioId);
 }
+
+/**
+ * Pré-atribuição de mesa na fila (antes de iniciar) — organização da
+ * fila, não uma transição de estado (regra 3.1), por isso sem PIN.
+ */
+export function atribuirMesaOrdem(
+  ordemId: string,
+  mesaAtribuidaId: string | null,
+  usuarioId: string,
+): Promise<OrdemCorteResumo> {
+  return window.zenith.ordensCorte.atribuirMesaLocal(ordemId, mesaAtribuidaId, usuarioId);
+}

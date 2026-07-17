@@ -587,4 +587,21 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 22,
+    name: "add_mesa_atribuida_to_ordens_corte",
+    up: (db) => {
+      db.exec(`
+        -- Pré-atribuição de mesa na fila (antes de iniciar): monta uma
+        -- fila específica por mesa, vista no menu da mesa (decisão de
+        -- 2026-07-16). Nullable — ordem pode ficar sem mesa atribuída e
+        -- ser iniciada em qualquer mesa livre, como já funcionava. Só
+        -- faz sentido enquanto a ordem está 'em_fila'; validado na regra
+        -- de app (atribuirMesaFilaLocal), não no schema.
+        ALTER TABLE ordens_corte ADD COLUMN mesa_atribuida_id TEXT;
+
+        CREATE INDEX idx_ordens_corte_mesa_atribuida ON ordens_corte (mesa_atribuida_id);
+      `);
+    },
+  },
 ];

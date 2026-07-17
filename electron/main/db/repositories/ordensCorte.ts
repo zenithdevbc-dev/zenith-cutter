@@ -99,6 +99,7 @@ export interface OrdemCorteRow {
   status: string;
   prioridade: number;
   observacoes: string | null;
+  mesa_atribuida_id: string | null;
   criado_em: string;
   atualizado_em: string;
 }
@@ -108,6 +109,7 @@ interface OrdemCorteResumoRow extends OrdemCorteRow {
   produto_nome: string;
   tecido_nome: string;
   quantidade_total: number;
+  mesa_atribuida_nome: string | null;
 }
 
 interface OrdemCorteItemRow {
@@ -130,6 +132,7 @@ export function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
     status: row.status as OrdemCorte["status"],
     prioridade: row.prioridade,
     observacoes: row.observacoes,
+    mesa_atribuida_id: row.mesa_atribuida_id,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
   };
@@ -142,26 +145,40 @@ function rowToResumo(row: OrdemCorteResumoRow): OrdemCorteResumo {
     produto_nome: row.produto_nome,
     tecido_nome: row.tecido_nome,
     quantidade_total: row.quantidade_total,
+    mesa_atribuida_nome: row.mesa_atribuida_nome,
   };
 }
 
+const RESUMO_SELECT = `
+  SELECT
+    oc.*,
+    c.nome AS cliente_nome,
+    p.nome AS produto_nome,
+    t.nome AS tecido_nome,
+    mc.nome AS mesa_atribuida_nome,
+    COALESCE((SELECT SUM(quantidade) FROM ordem_corte_itens WHERE ordem_id = oc.id), 0) AS quantidade_total
+  FROM ordens_corte oc
+  JOIN clientes c ON c.id = oc.cliente_id
+  JOIN produtos p ON p.id = oc.produto_id
+  JOIN tecidos t ON t.id = oc.tecido_id
+  LEFT JOIN mesas_corte mc ON mc.id = oc.mesa_atribuida_id
+`;
+
 export function listOrdensCorteLocal(db: Database.Database): OrdemCorteResumo[] {
   const rows = db
-    .prepare<[], OrdemCorteResumoRow>(`
-      SELECT
-        oc.*,
-        c.nome AS cliente_nome,
-        p.nome AS produto_nome,
-        t.nome AS tecido_nome,
-        COALESCE((SELECT SUM(quantidade) FROM ordem_corte_itens WHERE ordem_id = oc.id), 0) AS quantidade_total
-      FROM ordens_corte oc
-      JOIN clientes c ON c.id = oc.cliente_id
-      JOIN produtos p ON p.id = oc.produto_id
-      JOIN tecidos t ON t.id = oc.tecido_id
-      ORDER BY oc.numero DESC
-    `)
+    .prepare<[], OrdemCorteResumoRow>(`${RESUMO_SELECT} ORDER BY oc.numero DESC`)
     .all();
   return rows.map(rowToResumo);
+}
+
+export function getOrdemCorteResumoLocal(
+  db: Database.Database,
+  id: string,
+): OrdemCorteResumo | null {
+  const row = db
+    .prepare<[string], OrdemCorteResumoRow>(`${RESUMO_SELECT} WHERE oc.id = ?`)
+    .get(id);
+  return row ? rowToResumo(row) : null;
 }
 
 /**
@@ -258,14 +275,15 @@ export function createOrdemCorteLocal(
     status: "em_fila",
     prioridade: getNextPrioridadeFilaLocal(db, input.empresa_id),
     observacoes: input.observacoes ?? null,
+    mesa_atribuida_id: null,
     criado_em: now,
     atualizado_em: now,
   };
 
   const create = db.transaction(() => {
     db.prepare(`
-      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, criado_em, atualizado_em)
-      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @criado_em, @atualizado_em)
+      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @criado_em, @atualizado_em)
     `).run(ordem);
     enqueueChange(db, {
       tableName: "ordens_corte",
@@ -454,4 +472,63 @@ export function duplicateOrdemCorteLocal(
   });
 
   return nova;
+}
+
+/**
+ * Pré-atribuição de mesa na fila (decisão de 2026-07-16): não reserva
+ * a mesa (a garantia real contra mesa ocupada é o índice único de
+ * sessoes_producao, aplicado só ao iniciar de fato) — é só uma
+ * organização da fila, por isso não exige PIN (mesmo espírito da
+ * reordenação de prioridade). Só faz sentido enquanto a ordem está
+ * 'em_fila'.
+ */
+export function atribuirMesaFilaLocal(
+  db: Database.Database,
+  ordemId: string,
+  mesaAtribuidaId: string | null,
+  usuarioId: string,
+): OrdemCorteResumo {
+  const row = db
+    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
+    .get(ordemId);
+  if (!row) throw new Error(`Ordem de Corte ${ordemId} não encontrada.`);
+  if (row.status !== "em_fila") {
+    throw new Error("Só é possível atribuir mesa a uma ordem que está na fila de produção.");
+  }
+
+  let mesaNome: string | null = null;
+  if (mesaAtribuidaId) {
+    const mesa = db
+      .prepare<[string], { nome: string }>("SELECT nome FROM mesas_corte WHERE id = ?")
+      .get(mesaAtribuidaId);
+    if (!mesa) throw new Error("Mesa de corte não encontrada.");
+    mesaNome = mesa.nome;
+  }
+
+  const now = new Date().toISOString();
+  const apply = db.transaction(() => {
+    db.prepare(
+      "UPDATE ordens_corte SET mesa_atribuida_id = ?, atualizado_em = ? WHERE id = ?",
+    ).run(mesaAtribuidaId, now, ordemId);
+    enqueueChange(db, {
+      tableName: "ordens_corte",
+      recordId: ordemId,
+      operation: "update",
+      payload: { mesa_atribuida_id: mesaAtribuidaId },
+    });
+    registrarHistorico(db, {
+      empresaId: row.empresa_id,
+      ordemId,
+      usuarioId,
+      acao: "edicao",
+      descricao: mesaNome
+        ? `Mesa "${mesaNome}" atribuída na fila de produção.`
+        : "Atribuição de mesa removida da fila de produção.",
+    });
+  });
+  apply();
+
+  const updated = getOrdemCorteResumoLocal(db, ordemId);
+  if (!updated) throw new Error(`Ordem de Corte ${ordemId} não encontrada após atualização.`);
+  return updated;
 }

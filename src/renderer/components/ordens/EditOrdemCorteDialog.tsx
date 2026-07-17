@@ -143,6 +143,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
         produto_nome: produto?.nome ?? ordem.produto_nome,
         tecido_nome: tecido?.nome ?? ordem.tecido_nome,
         quantidade_total,
+        mesa_atribuida_nome: ordem.mesa_atribuida_nome,
       });
       setOpen(false);
     } catch (err) {

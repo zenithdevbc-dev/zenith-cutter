@@ -139,6 +139,17 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteHistoricoListLocal, ordemId),
     nextNumeroLocal: (empresaId: string): Promise<number> =>
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteNextNumeroLocal, empresaId),
+    atribuirMesaLocal: (
+      ordemId: string,
+      mesaAtribuidaId: string | null,
+      usuarioId: string,
+    ): Promise<OrdemCorteResumo> =>
+      ipcRenderer.invoke(
+        IPC_CHANNELS.ordensCorteAtribuirMesaLocal,
+        ordemId,
+        mesaAtribuidaId,
+        usuarioId,
+      ),
   },
   filaProducao: {
     listLocal: (): Promise<OrdemCorteResumo[]> =>

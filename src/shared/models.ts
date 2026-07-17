@@ -182,6 +182,14 @@ export interface OrdemCorte {
   status: StatusOrdemCorte;
   prioridade: number;
   observacoes: string | null;
+  /**
+   * Mesa pré-atribuída na fila (decisão de 2026-07-16) — só faz
+   * sentido enquanto status === 'em_fila'; permite montar uma fila
+   * específica por mesa, vista no menu da mesa. Nullable: ordem pode
+   * ficar sem mesa atribuída e ser iniciada em qualquer mesa livre,
+   * como já funcionava antes.
+   */
+  mesa_atribuida_id: string | null;
   criado_em: string;
   atualizado_em: string;
 }
@@ -195,6 +203,7 @@ export interface OrdemCorteResumo extends OrdemCorte {
   produto_nome: string;
   tecido_nome: string;
   quantidade_total: number;
+  mesa_atribuida_nome: string | null;
 }
 
 export interface OrdemCorteItem {

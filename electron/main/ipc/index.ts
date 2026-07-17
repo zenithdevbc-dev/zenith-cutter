@@ -87,6 +87,7 @@ import {
   duplicateOrdemCorteLocal,
   listOrdemCorteHistoricoLocal,
   getNextOrdemCorteNumeroLocal,
+  atribuirMesaFilaLocal,
 } from "../db/repositories/ordensCorte";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
 import {
@@ -283,6 +284,18 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.ordensCorteNextNumeroLocal,
     (_event, empresaId: string): number => {
       return getNextOrdemCorteNumeroLocal(getDb(), empresaId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.ordensCorteAtribuirMesaLocal,
+    (
+      _event,
+      ordemId: string,
+      mesaAtribuidaId: string | null,
+      usuarioId: string,
+    ): OrdemCorteResumo => {
+      return atribuirMesaFilaLocal(getDb(), ordemId, mesaAtribuidaId, usuarioId);
     },
   );
 

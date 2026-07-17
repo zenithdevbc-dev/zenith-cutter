@@ -12,12 +12,14 @@ interface OrdemCorteResumoRow {
   status: string;
   prioridade: number;
   observacoes: string | null;
+  mesa_atribuida_id: string | null;
   criado_em: string;
   atualizado_em: string;
   cliente_nome: string;
   produto_nome: string;
   tecido_nome: string;
   quantidade_total: number;
+  mesa_atribuida_nome: string | null;
 }
 
 function rowToResumo(row: OrdemCorteResumoRow): OrdemCorteResumo {
@@ -31,12 +33,14 @@ function rowToResumo(row: OrdemCorteResumoRow): OrdemCorteResumo {
     status: row.status as OrdemCorteResumo["status"],
     prioridade: row.prioridade,
     observacoes: row.observacoes,
+    mesa_atribuida_id: row.mesa_atribuida_id,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
     cliente_nome: row.cliente_nome,
     produto_nome: row.produto_nome,
     tecido_nome: row.tecido_nome,
     quantidade_total: row.quantidade_total,
+    mesa_atribuida_nome: row.mesa_atribuida_nome,
   };
 }
 
@@ -52,11 +56,13 @@ export function listFilaProducaoLocal(db: Database.Database): OrdemCorteResumo[]
         c.nome AS cliente_nome,
         p.nome AS produto_nome,
         t.nome AS tecido_nome,
+        mc.nome AS mesa_atribuida_nome,
         COALESCE((SELECT SUM(quantidade) FROM ordem_corte_itens WHERE ordem_id = oc.id), 0) AS quantidade_total
       FROM ordens_corte oc
       JOIN clientes c ON c.id = oc.cliente_id
       JOIN produtos p ON p.id = oc.produto_id
       JOIN tecidos t ON t.id = oc.tecido_id
+      LEFT JOIN mesas_corte mc ON mc.id = oc.mesa_atribuida_id
       WHERE oc.status = 'em_fila'
       ORDER BY oc.prioridade ASC
     `)

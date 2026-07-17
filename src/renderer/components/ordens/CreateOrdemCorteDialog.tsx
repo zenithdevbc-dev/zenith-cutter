@@ -140,6 +140,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
         produto_nome: produto?.nome ?? "",
         tecido_nome: tecido?.nome ?? "",
         quantidade_total,
+        mesa_atribuida_nome: null,
       });
       setOpen(false);
       reset();
