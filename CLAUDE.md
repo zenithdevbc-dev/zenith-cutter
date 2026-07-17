@@ -186,6 +186,35 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-16**: **Relatório de Clientes** — quarta aba
+  dentro de "Relatórios" (Tabs: "Produção" | "Histórico de Ordens" |
+  "Materiais" | "Clientes"). Sem conflito de domínio como o de
+  Materiais — todo o pedido mapeou direto em dado já existente, sem
+  precisar parar pra alinhar escopo. Filtros: período (por
+  `criado_em`), cliente, material. KPIs: Total de Clientes (todos os
+  cadastrados), Clientes Ativos, Ordens Produzidas, Média de Ordens
+  por Cliente. "Clientes Ativos" = clientes com ≥1 ordem no período
+  filtrado (atividade real) — decisão explícita pra não confundir com
+  `Cliente.ativo`, que é só a flag de soft-delete do cadastro, não
+  medida de atividade. Tabela (uma linha por cliente, paginada — 20 por
+  página, mesmo componente de paginação da aba Histórico, agora
+  compartilhado em `lib/pagination.ts`): Cliente, Ordens, Última
+  Ordem, Materiais Usados (lista de tecidos distintos, truncada com
+  "+N"), Tempo Médio de Produção (reusa `calcularTempoProducaoMinutos`
+  da aba Produção, só ordens com sessão finalizada). Cada linha abre
+  `ClienteHistoricoDialog` — histórico completo do cliente (todas as
+  ordens dele, **sem** aplicar os filtros da aba, é literal "histórico
+  completo"). Gráficos: "Ordens por Cliente" (barras horizontais, top
+  clientes) e "Atividade de Clientes ao Longo do Tempo" (linha,
+  ordens criadas por dia agregado — não por cliente individual, pra
+  não exigir paleta categórica de N cores). Nenhum IPC novo: reusa
+  `listRelatorioProducao()` (mesma fonte da aba Produção) — um único
+  registro por ordem já cobre cliente/material/tempo, dispensando
+  `listOrdensCorte()` para este relatório. Lógica pura em
+  `lib/relatorioClientes.ts`; exportação em
+  `lib/relatorioClientesExport.ts` (helpers genéricos de
+  `exportUtils.ts`). Build e `npm run typecheck` limpos. **Não testado
+  manualmente ainda**.
 - Entrega **2026-07-16**: **Relatório de Materiais** — terceira aba
   dentro de "Relatórios" (Tabs: "Produção" | "Histórico de Ordens" |
   "Materiais"). Pedido original pedia conceitos de corte de **chapa
