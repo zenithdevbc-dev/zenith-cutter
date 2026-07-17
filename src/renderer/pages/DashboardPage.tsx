@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { listMesasComStatus } from "@/lib/producao";
 import { listRelatorioProducao } from "@/lib/relatorios";
@@ -97,7 +98,12 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             {mesas === null ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-5 w-40" />
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-5 w-full" />
+                ))}
+              </div>
             ) : mesas.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma mesa de corte cadastrada.</p>
             ) : (
@@ -136,7 +142,14 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               {ordens === null ? (
-                <p className="text-sm text-muted-foreground">Carregando...</p>
+                <div className="flex items-center gap-4">
+                  <Skeleton className="size-32 shrink-0 rounded-full" />
+                  <div className="flex w-full flex-col gap-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-full" />
+                    ))}
+                  </div>
+                </div>
               ) : distribuicaoStatus.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhuma ordem cadastrada.</p>
               ) : (
@@ -154,7 +167,7 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent>
             {producao === null ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <Skeleton className="h-[240px] w-full" />
             ) : (
               <ProducaoUltimos30DiasChart dados={producaoUltimos30Dias} />
             )}

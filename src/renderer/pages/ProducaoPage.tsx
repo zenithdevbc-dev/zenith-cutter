@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +67,17 @@ function formatTempoProducao(sessao: SessaoProducaoResumo): string {
   const horas = Math.floor(totalMin / 60);
   const minutos = totalMin % 60;
   return horas > 0 ? `${horas}h${String(minutos).padStart(2, "0")}min` : `${minutos}min`;
+}
+
+/** Algumas linhas de esqueleto (skeleton loading) — usado nos vários cards desta página. */
+function LinhasCarregando({ linhas = 3 }: { linhas?: number }) {
+  return (
+    <div className="flex flex-col gap-2">
+      {Array.from({ length: linhas }).map((_, i) => (
+        <Skeleton key={i} className="h-5 w-full" />
+      ))}
+    </div>
+  );
 }
 
 /**
@@ -200,7 +212,7 @@ export function ProducaoPage() {
           </CardHeader>
           <CardContent className="min-h-0 flex-1 overflow-y-auto">
             {fila === null ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <LinhasCarregando />
             ) : fila.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma ordem na fila de produção.</p>
             ) : (
@@ -296,7 +308,7 @@ export function ProducaoPage() {
           </CardHeader>
           <CardContent className="min-h-0 flex-1 overflow-y-auto">
             {mesas === null ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <LinhasCarregando />
             ) : mesas.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma mesa de corte cadastrada.</p>
             ) : (
@@ -341,7 +353,7 @@ export function ProducaoPage() {
         </CardHeader>
         <CardContent>
           {emProducao === null ? (
-            <p className="text-sm text-muted-foreground">Carregando...</p>
+            <LinhasCarregando />
           ) : emProducao.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma ordem em produção no momento.</p>
           ) : (
@@ -385,7 +397,7 @@ export function ProducaoPage() {
         </CardHeader>
         <CardContent>
           {sessoes === null ? (
-            <p className="text-sm text-muted-foreground">Carregando...</p>
+            <LinhasCarregando />
           ) : sessoes.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma sessão de produção ativa.</p>
           ) : (

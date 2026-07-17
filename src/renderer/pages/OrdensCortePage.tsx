@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableSkeletonRows } from "@/components/ui/table-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -140,7 +141,20 @@ export function OrdensCortePage() {
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           {filtradas === null ? (
-            <p className="text-sm text-muted-foreground">Carregando...</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nº</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>Tecido</TableHead>
+                  <TableHead>Qtd. total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableSkeletonRows columns={7} />
+            </Table>
           ) : filtradas.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma ordem de corte encontrada.</p>
           ) : (

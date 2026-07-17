@@ -36,19 +36,21 @@ function App() {
         <LoginPage />
       ) : (
         <AppShell currentPage={currentPage} onNavigate={setCurrentPage}>
-          {currentPage === "cadastros" ? (
-            <CadastrosPage />
-          ) : currentPage === "ordens-corte" ? (
-            <OrdensCortePage />
-          ) : currentPage === "producao" ? (
-            <ProducaoPage />
-          ) : currentPage === "dashboard" ? (
-            <DashboardPage />
-          ) : currentPage === "relatorios" ? (
-            <RelatoriosPage />
-          ) : (
-            <ConfiguracoesPage />
-          )}
+          <div key={currentPage} className="h-full animate-in fade-in duration-200">
+            {currentPage === "cadastros" ? (
+              <CadastrosPage />
+            ) : currentPage === "ordens-corte" ? (
+              <OrdensCortePage />
+            ) : currentPage === "producao" ? (
+              <ProducaoPage />
+            ) : currentPage === "dashboard" ? (
+              <DashboardPage />
+            ) : currentPage === "relatorios" ? (
+              <RelatoriosPage />
+            ) : (
+              <ConfiguracoesPage />
+            )}
+          </div>
         </AppShell>
       )}
     </>
