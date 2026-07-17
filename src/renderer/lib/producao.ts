@@ -50,6 +50,10 @@ export function listProducaoPerdas(sessaoId: string): Promise<ProducaoPerda[]> {
   return window.zenith.producao.perdasListLocal(sessaoId);
 }
 
+export function listProducaoPerdasPorOrdem(ordemId: string): Promise<ProducaoPerda[]> {
+  return window.zenith.producao.perdasListPorOrdemLocal(ordemId);
+}
+
 export function registrarProducaoPerda(
   input: ProducaoPerdaInput,
   usuarioId: string,

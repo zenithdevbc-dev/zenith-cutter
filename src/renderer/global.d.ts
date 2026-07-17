@@ -114,6 +114,7 @@ declare global {
         pausarLocal: (ordemId: string, usuarioId: string) => Promise<SessaoProducao>;
         retomarLocal: (ordemId: string, usuarioId: string) => Promise<SessaoProducao>;
         perdasListLocal: (sessaoId: string) => Promise<ProducaoPerda[]>;
+        perdasListPorOrdemLocal: (ordemId: string) => Promise<ProducaoPerda[]>;
         perdasRegistrarLocal: (
           input: ProducaoPerdaInput,
           usuarioId: string,

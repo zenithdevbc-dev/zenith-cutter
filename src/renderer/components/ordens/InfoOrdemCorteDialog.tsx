@@ -18,11 +18,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listOrdemCorteItens, listOrdemCorteHistorico } from "@/lib/ordensCorte";
+import { listProducaoPerdasPorOrdem } from "@/lib/producao";
 import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
 import type {
   OrdemCorteHistoricoEntry,
   OrdemCorteItem,
   OrdemCorteResumo,
+  ProducaoPerda,
 } from "@shared/models";
 
 interface InfoOrdemCorteDialogProps {
@@ -33,6 +35,7 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
   const [open, setOpen] = useState(false);
   const [itens, setItens] = useState<OrdemCorteItem[] | null>(null);
   const [historico, setHistorico] = useState<OrdemCorteHistoricoEntry[] | null>(null);
+  const [perdas, setPerdas] = useState<ProducaoPerda[] | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -42,6 +45,9 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
     listOrdemCorteHistorico(ordem.id)
       .then(setHistorico)
       .catch(() => toast.error("Não foi possível carregar o histórico da ordem."));
+    listProducaoPerdasPorOrdem(ordem.id)
+      .then(setPerdas)
+      .catch(() => toast.error("Não foi possível carregar as perdas da ordem."));
   }, [open, ordem.id]);
 
   return (
@@ -114,6 +120,34 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
                     <TableRow key={item.id}>
                       <TableCell>{item.tamanho}</TableCell>
                       <TableCell>{item.quantidade}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-muted-foreground">Perdas</p>
+            {perdas === null ? (
+              <p className="text-sm text-muted-foreground">Carregando...</p>
+            ) : perdas.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma perda registrada.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tamanho</TableHead>
+                    <TableHead>Quantidade</TableHead>
+                    <TableHead>Motivo</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {perdas.map((perda) => (
+                    <TableRow key={perda.id}>
+                      <TableCell>{perda.tamanho ?? "—"}</TableCell>
+                      <TableCell>{perda.quantidade}</TableCell>
+                      <TableCell>{perda.motivo || "—"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

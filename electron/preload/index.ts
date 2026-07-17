@@ -161,6 +161,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.producaoRetomarLocal, ordemId, usuarioId),
     perdasListLocal: (sessaoId: string): Promise<ProducaoPerda[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.producaoPerdasListLocal, sessaoId),
+    perdasListPorOrdemLocal: (ordemId: string): Promise<ProducaoPerda[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoPerdasListPorOrdemLocal, ordemId),
     perdasRegistrarLocal: (
       input: ProducaoPerdaInput,
       usuarioId: string,

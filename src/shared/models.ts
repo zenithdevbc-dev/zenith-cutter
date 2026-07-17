@@ -290,6 +290,7 @@ export interface SessaoProducao {
  */
 export interface SessaoProducaoResumo extends SessaoProducao {
   ordem_numero: number;
+  produto_id: string;
   mesa_nome: string;
   iniciado_por_nome: string;
 }
@@ -301,13 +302,19 @@ export interface IniciarProducaoInput {
 
 /**
  * Perda de material registrada durante uma sessão de produção
- * (Sprint 4). quantidade é um número livre (sem unidade fixa — o
- * motivo descreve o que foi perdido, ex.: "2.5m de tecido rasgado").
+ * (Sprint 4), por tamanho da grade do produto — mesmo formato de grid
+ * usado na criação de ordem (decisão de 2026-07-16). tamanho é
+ * resolvido via join com produto_tamanhos na leitura (não
+ * desnormalizado, mesmo padrão de OrdemCorteItem). produto_tamanho_id
+ * é nullable só pra não quebrar registros gravados antes desta
+ * mudança (formato antigo, valor livre sem tamanho).
  */
 export interface ProducaoPerda {
   id: string;
   empresa_id: string;
   sessao_id: string;
+  produto_tamanho_id: string | null;
+  tamanho: string | null;
   quantidade: number;
   motivo: string | null;
   usuario_id: string;
@@ -317,6 +324,7 @@ export interface ProducaoPerda {
 
 export interface ProducaoPerdaInput {
   sessao_id: string;
+  produto_tamanho_id?: string | null;
   quantidade: number;
   motivo?: string | null;
 }

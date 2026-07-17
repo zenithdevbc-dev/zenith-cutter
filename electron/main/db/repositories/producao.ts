@@ -80,6 +80,7 @@ interface SessaoProducaoResumoRow {
   criado_em: string;
   atualizado_em: string;
   ordem_numero: number;
+  produto_id: string;
   mesa_nome: string;
   iniciado_por_nome: string;
 }
@@ -99,6 +100,7 @@ function rowToSessaoResumo(row: SessaoProducaoResumoRow): SessaoProducaoResumo {
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
     ordem_numero: row.ordem_numero,
+    produto_id: row.produto_id,
     mesa_nome: row.mesa_nome,
     iniciado_por_nome: row.iniciado_por_nome,
   };
@@ -110,6 +112,7 @@ export function listSessoesAtivasLocal(db: Database.Database): SessaoProducaoRes
       SELECT
         sp.*,
         oc.numero AS ordem_numero,
+        oc.produto_id AS produto_id,
         m.nome AS mesa_nome,
         COALESCE(u.nome, 'Usuário') AS iniciado_por_nome
       FROM sessoes_producao sp
@@ -454,6 +457,8 @@ interface ProducaoPerdaRow {
   id: string;
   empresa_id: string;
   sessao_id: string;
+  produto_tamanho_id: string | null;
+  tamanho: string | null;
   quantidade: number;
   motivo: string | null;
   usuario_id: string;
@@ -466,6 +471,8 @@ function rowToPerda(row: ProducaoPerdaRow): ProducaoPerda {
     id: row.id,
     empresa_id: row.empresa_id,
     sessao_id: row.sessao_id,
+    produto_tamanho_id: row.produto_tamanho_id,
+    tamanho: row.tamanho,
     quantidade: row.quantidade,
     motivo: row.motivo,
     usuario_id: row.usuario_id,
@@ -480,9 +487,10 @@ export function listProducaoPerdasLocal(
 ): ProducaoPerda[] {
   const rows = db
     .prepare<[string], ProducaoPerdaRow>(`
-      SELECT pp.*, COALESCE(u.nome, 'Usuário') AS usuario_nome
+      SELECT pp.*, pt.tamanho AS tamanho, COALESCE(u.nome, 'Usuário') AS usuario_nome
       FROM producao_perdas pp
       LEFT JOIN usuarios u ON u.id = pp.usuario_id
+      LEFT JOIN produto_tamanhos pt ON pt.id = pp.produto_tamanho_id
       WHERE pp.sessao_id = ?
       ORDER BY pp.criado_em DESC
     `)
@@ -491,11 +499,37 @@ export function listProducaoPerdasLocal(
 }
 
 /**
- * Registro de perda de material durante a sessão (Sprint 4). Log só
- * de INSERT — não é uma transição de estado (regra 3.1 lista
- * iniciar/pausar/retomar/finalizar como exigindo confirmação
- * explícita; perda é um registro de dados, não muda o status da
- * ordem/sessão), mas fica rastreável por usuário+timestamp (3.5).
+ * Perdas de todas as sessões de uma ordem (na prática, no máximo uma —
+ * a ordem nunca volta pra fila depois de iniciada — mas a consulta é
+ * por ordem, não por sessão, pra não depender dessa suposição).
+ * Alimenta a seção "Perdas" do dialog de Info da ordem.
+ */
+export function listProducaoPerdasPorOrdemLocal(
+  db: Database.Database,
+  ordemId: string,
+): ProducaoPerda[] {
+  const rows = db
+    .prepare<[string], ProducaoPerdaRow>(`
+      SELECT pp.*, pt.tamanho AS tamanho, COALESCE(u.nome, 'Usuário') AS usuario_nome
+      FROM producao_perdas pp
+      JOIN sessoes_producao sp ON sp.id = pp.sessao_id
+      LEFT JOIN usuarios u ON u.id = pp.usuario_id
+      LEFT JOIN produto_tamanhos pt ON pt.id = pp.produto_tamanho_id
+      WHERE sp.ordem_id = ?
+      ORDER BY pp.criado_em DESC
+    `)
+    .all(ordemId);
+  return rows.map(rowToPerda);
+}
+
+/**
+ * Registro de perda de material durante a sessão (Sprint 4), por
+ * tamanho da grade do produto (decisão de 2026-07-16 — mesmo formato
+ * de grid da criação de ordem). Log só de INSERT — não é uma
+ * transição de estado (regra 3.1 lista iniciar/pausar/retomar/
+ * finalizar como exigindo confirmação explícita; perda é um registro
+ * de dados, não muda o status da ordem/sessão), mas fica rastreável
+ * por usuário+timestamp (3.5).
  */
 export function registrarProducaoPerdaLocal(
   db: Database.Database,
@@ -513,6 +547,7 @@ export function registrarProducaoPerdaLocal(
     id,
     empresa_id: sessao.empresa_id,
     sessao_id: input.sessao_id,
+    produto_tamanho_id: input.produto_tamanho_id ?? null,
     quantidade: input.quantidade,
     motivo: input.motivo ?? null,
     usuario_id: usuarioId,
@@ -520,8 +555,8 @@ export function registrarProducaoPerdaLocal(
   };
 
   db.prepare(`
-    INSERT INTO producao_perdas (id, empresa_id, sessao_id, quantidade, motivo, usuario_id, criado_em)
-    VALUES (@id, @empresa_id, @sessao_id, @quantidade, @motivo, @usuario_id, @criado_em)
+    INSERT INTO producao_perdas (id, empresa_id, sessao_id, produto_tamanho_id, quantidade, motivo, usuario_id, criado_em)
+    VALUES (@id, @empresa_id, @sessao_id, @produto_tamanho_id, @quantidade, @motivo, @usuario_id, @criado_em)
   `).run(row);
   enqueueChange(db, {
     tableName: "producao_perdas",
@@ -533,7 +568,12 @@ export function registrarProducaoPerdaLocal(
   const usuario = db
     .prepare<[string], { nome: string }>("SELECT nome FROM usuarios WHERE id = ?")
     .get(usuarioId);
-  return { ...row, usuario_nome: usuario?.nome ?? "Usuário" };
+  const tamanho = input.produto_tamanho_id
+    ? (db
+        .prepare<[string], { tamanho: string }>("SELECT tamanho FROM produto_tamanhos WHERE id = ?")
+        .get(input.produto_tamanho_id)?.tamanho ?? null)
+    : null;
+  return { ...row, tamanho, usuario_nome: usuario?.nome ?? "Usuário" };
 }
 
 interface ProducaoObservacaoRow {

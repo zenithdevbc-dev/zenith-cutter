@@ -570,4 +570,21 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 21,
+    name: "add_produto_tamanho_to_producao_perdas",
+    up: (db) => {
+      db.exec(`
+        -- Perda passa a ser registrada por tamanho da grade do produto
+        -- (mesmo formato de grid da criação de ordem), não mais como um
+        -- valor livre solto. Nullable pra não quebrar linhas já
+        -- gravadas antes desta migration; tamanho é resolvido via join
+        -- com produto_tamanhos na leitura (mesmo padrão de
+        -- ordem_corte_itens), nunca desnormalizado.
+        ALTER TABLE producao_perdas ADD COLUMN produto_tamanho_id TEXT;
+
+        CREATE INDEX idx_producao_perdas_produto_tamanho ON producao_perdas (produto_tamanho_id);
+      `);
+    },
+  },
 ];

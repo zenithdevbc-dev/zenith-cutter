@@ -101,6 +101,7 @@ import {
   pausarProducaoLocal,
   retomarProducaoLocal,
   listProducaoPerdasLocal,
+  listProducaoPerdasPorOrdemLocal,
   registrarProducaoPerdaLocal,
   listProducaoObservacoesLocal,
   registrarProducaoObservacaoLocal,
@@ -336,6 +337,13 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.producaoPerdasListLocal,
     (_event, sessaoId: string): ProducaoPerda[] => {
       return listProducaoPerdasLocal(getDb(), sessaoId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.producaoPerdasListPorOrdemLocal,
+    (_event, ordemId: string): ProducaoPerda[] => {
+      return listProducaoPerdasPorOrdemLocal(getDb(), ordemId);
     },
   );
 

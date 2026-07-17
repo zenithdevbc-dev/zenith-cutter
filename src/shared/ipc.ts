@@ -61,6 +61,7 @@ export const IPC_CHANNELS = {
   producaoPausarLocal: "producao:pausar-local",
   producaoRetomarLocal: "producao:retomar-local",
   producaoPerdasListLocal: "producao:perdas-list-local",
+  producaoPerdasListPorOrdemLocal: "producao:perdas-list-por-ordem-local",
   producaoPerdasRegistrarLocal: "producao:perdas-registrar-local",
   producaoObservacoesListLocal: "producao:observacoes-list-local",
   producaoObservacoesRegistrarLocal: "producao:observacoes-registrar-local",

@@ -10,14 +10,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GradeQuantidadeInput } from "@/components/ordens/GradeQuantidadeInput";
 import {
   listProducaoPerdas,
   registrarProducaoPerda,
   listProducaoObservacoes,
   registrarProducaoObservacao,
 } from "@/lib/producao";
+import { listProdutoTamanhos } from "@/lib/produtoTamanhos";
 import { useAuth } from "@/lib/auth-context";
-import type { ProducaoObservacao, ProducaoPerda, SessaoProducaoResumo } from "@shared/models";
+import type {
+  ProducaoObservacao,
+  ProducaoPerda,
+  ProdutoTamanho,
+  SessaoProducaoResumo,
+} from "@shared/models";
 
 interface PerdasObservacoesDialogProps {
   sessao: SessaoProducaoResumo;
@@ -31,36 +38,52 @@ interface PerdasObservacoesDialogProps {
 export function PerdasObservacoesDialog({ sessao }: PerdasObservacoesDialogProps) {
   const { usuario } = useAuth();
   const [open, setOpen] = useState(false);
+  const [grade, setGrade] = useState<ProdutoTamanho[]>([]);
   const [perdas, setPerdas] = useState<ProducaoPerda[] | null>(null);
   const [observacoes, setObservacoes] = useState<ProducaoObservacao[] | null>(null);
-  const [quantidade, setQuantidade] = useState("");
+  const [quantidades, setQuantidades] = useState<Record<string, string>>({});
   const [motivo, setMotivo] = useState("");
   const [texto, setTexto] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
+    listProdutoTamanhos(sessao.produto_id)
+      .then((tamanhos) => setGrade(tamanhos.filter((t) => t.ativo)))
+      .catch(() => toast.error("Não foi possível carregar a grade do produto."));
     listProducaoPerdas(sessao.id)
       .then(setPerdas)
       .catch(() => toast.error("Não foi possível carregar as perdas registradas."));
     listProducaoObservacoes(sessao.id)
       .then(setObservacoes)
       .catch(() => toast.error("Não foi possível carregar as observações."));
-  }, [open, sessao.id]);
+  }, [open, sessao.id, sessao.produto_id]);
 
   async function handleRegistrarPerda(event: FormEvent) {
     event.preventDefault();
     if (!usuario) return;
-    const valor = Number(quantidade);
-    if (!valor || valor <= 0) return;
+    const itens = grade
+      .map((t) => ({ produto_tamanho_id: t.id, quantidade: Number(quantidades[t.id] || 0) }))
+      .filter((i) => i.quantidade > 0);
+    if (itens.length === 0) return;
+
     setSubmitting(true);
     try {
-      const nova = await registrarProducaoPerda(
-        { sessao_id: sessao.id, quantidade: valor, motivo: motivo || null },
-        usuario.id,
-      );
-      setPerdas((prev) => [nova, ...(prev ?? [])]);
-      setQuantidade("");
+      const novas: ProducaoPerda[] = [];
+      for (const item of itens) {
+        const nova = await registrarProducaoPerda(
+          {
+            sessao_id: sessao.id,
+            produto_tamanho_id: item.produto_tamanho_id,
+            quantidade: item.quantidade,
+            motivo: motivo || null,
+          },
+          usuario.id,
+        );
+        novas.push(nova);
+      }
+      setPerdas((prev) => [...novas, ...(prev ?? [])]);
+      setQuantidades({});
       setMotivo("");
     } catch {
       toast.error("Não foi possível registrar a perda.");
@@ -105,24 +128,24 @@ export function PerdasObservacoesDialog({ sessao }: PerdasObservacoesDialogProps
           </TabsList>
 
           <TabsContent value="perdas" className="flex flex-col gap-4">
-            <form onSubmit={handleRegistrarPerda} className="flex gap-2">
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="Quantidade"
-                value={quantidade}
-                onChange={(e) => setQuantidade(e.target.value)}
-                className="w-32"
+            <form onSubmit={handleRegistrarPerda} className="flex flex-col gap-3">
+              <GradeQuantidadeInput
+                grade={grade}
+                quantidades={quantidades}
+                onChange={(id, value) =>
+                  setQuantidades((prev) => ({ ...prev, [id]: value }))
+                }
               />
-              <Input
-                placeholder="Motivo (opcional)"
-                value={motivo}
-                onChange={(e) => setMotivo(e.target.value)}
-              />
-              <Button type="submit" disabled={submitting || !quantidade}>
-                Registrar
-              </Button>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Motivo (opcional)"
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                />
+                <Button type="submit" disabled={submitting}>
+                  Registrar
+                </Button>
+              </div>
             </form>
             <div className="flex max-h-64 flex-col gap-2 overflow-y-auto">
               {perdas === null ? (
@@ -133,7 +156,9 @@ export function PerdasObservacoesDialog({ sessao }: PerdasObservacoesDialogProps
                 perdas.map((perda) => (
                   <div key={perda.id} className="rounded-md border p-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">{perda.quantidade}</span>
+                      <span className="font-medium">
+                        {perda.tamanho ? `${perda.tamanho} — ${perda.quantidade}` : perda.quantidade}
+                      </span>
                       <span className="text-xs text-muted-foreground">
                         {new Date(perda.criado_em).toLocaleString("pt-BR")}
                       </span>
