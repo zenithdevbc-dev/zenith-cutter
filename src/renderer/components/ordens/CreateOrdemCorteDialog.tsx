@@ -44,6 +44,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
   const [tecidoId, setTecidoId] = useState("");
   const [numero, setNumero] = useState("");
   const [observacoes, setObservacoes] = useState("");
+  const [prazo, setPrazo] = useState("");
   const [grade, setGrade] = useState<ProdutoTamanho[]>([]);
   const [quantidades, setQuantidades] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +89,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
     setTecidoId("");
     setNumero("");
     setObservacoes("");
+    setPrazo("");
     setGrade([]);
     setQuantidades({});
     setError(null);
@@ -125,6 +127,7 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
           produto_id: produtoId,
           tecido_id: tecidoId,
           observacoes: observacoes || null,
+          prazo: prazo || null,
           itens,
         },
         usuario.id,
@@ -223,6 +226,15 @@ export function CreateOrdemCorteDialog({ onCreated }: CreateOrdemCorteDialogProp
               id="ordem-observacoes"
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="ordem-prazo">Prazo (opcional)</Label>
+            <Input
+              id="ordem-prazo"
+              type="date"
+              value={prazo}
+              onChange={(e) => setPrazo(e.target.value)}
             />
           </div>
 

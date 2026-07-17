@@ -100,6 +100,7 @@ export interface OrdemCorteRow {
   prioridade: number;
   observacoes: string | null;
   mesa_atribuida_id: string | null;
+  prazo: string | null;
   criado_em: string;
   atualizado_em: string;
 }
@@ -133,6 +134,7 @@ export function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
     prioridade: row.prioridade,
     observacoes: row.observacoes,
     mesa_atribuida_id: row.mesa_atribuida_id,
+    prazo: row.prazo,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
   };
@@ -276,14 +278,15 @@ export function createOrdemCorteLocal(
     prioridade: getNextPrioridadeFilaLocal(db, input.empresa_id),
     observacoes: input.observacoes ?? null,
     mesa_atribuida_id: null,
+    prazo: input.prazo ?? null,
     criado_em: now,
     atualizado_em: now,
   };
 
   const create = db.transaction(() => {
     db.prepare(`
-      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, criado_em, atualizado_em)
-      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @criado_em, @atualizado_em)
+      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @prazo, @criado_em, @atualizado_em)
     `).run(ordem);
     enqueueChange(db, {
       tableName: "ordens_corte",
@@ -337,6 +340,10 @@ export function updateOrdemCorteLocal(
   if (patch.observacoes !== undefined) {
     fields.push("observacoes = @observacoes");
     params.observacoes = patch.observacoes;
+  }
+  if (patch.prazo !== undefined) {
+    fields.push("prazo = @prazo");
+    params.prazo = patch.prazo;
   }
   if (patch.status !== undefined) {
     fields.push("status = @status");
@@ -399,6 +406,7 @@ export function updateOrdemCorteLocal(
       patch.produto_id !== undefined ||
       patch.tecido_id !== undefined ||
       patch.observacoes !== undefined ||
+      patch.prazo !== undefined ||
       patch.itens !== undefined;
 
     if (statusChanged) {

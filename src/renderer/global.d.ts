@@ -32,6 +32,7 @@ import type {
   ProducaoPerdaInput,
   ProducaoObservacao,
   ProducaoObservacaoInput,
+  RelatorioProducaoLinha,
 } from "@shared/models";
 
 declare global {
@@ -133,6 +134,9 @@ declare global {
       empresas: {
         cache: (empresa: Empresa) => Promise<void>;
         getLocal: (id: string) => Promise<Empresa | null>;
+      };
+      relatorios: {
+        producaoListLocal: () => Promise<RelatorioProducaoLinha[]>;
       };
     };
   }

@@ -39,6 +39,7 @@ import type {
   ProducaoPerdaInput,
   ProducaoObservacao,
   ProducaoObservacaoInput,
+  RelatorioProducaoLinha,
 } from "../../../src/shared/models";
 import { getDb, getSchemaVersion } from "../db";
 import {
@@ -90,6 +91,7 @@ import {
   atribuirMesaFilaLocal,
 } from "../db/repositories/ordensCorte";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
+import { listRelatorioProducaoLocal } from "../db/repositories/relatorios";
 import {
   listFilaProducaoLocal,
   reorderFilaProducaoLocal,
@@ -387,5 +389,9 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.empresasGetLocal, (_event, id: string): Empresa | null => {
     return getEmpresaLocal(getDb(), id);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.relatoriosProducaoListLocal, (): RelatorioProducaoLinha[] => {
+    return listRelatorioProducaoLocal(getDb());
   });
 }

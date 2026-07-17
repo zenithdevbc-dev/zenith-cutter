@@ -38,6 +38,7 @@ import type {
   ProducaoPerdaInput,
   ProducaoObservacao,
   ProducaoObservacaoInput,
+  RelatorioProducaoLinha,
 } from "../../src/shared/models";
 
 contextBridge.exposeInMainWorld("zenith", {
@@ -192,5 +193,9 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.empresasCache, empresa),
     getLocal: (id: string): Promise<Empresa | null> =>
       ipcRenderer.invoke(IPC_CHANNELS.empresasGetLocal, id),
+  },
+  relatorios: {
+    producaoListLocal: (): Promise<RelatorioProducaoLinha[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.relatoriosProducaoListLocal),
   },
 });

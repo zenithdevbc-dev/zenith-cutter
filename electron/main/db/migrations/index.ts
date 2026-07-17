@@ -604,4 +604,18 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 23,
+    name: "add_prazo_to_ordens_corte",
+    up: (db) => {
+      db.exec(`
+        -- Data limite da ordem (opcional) — alimenta o KPI "Atrasadas"
+        -- do Relatório de Produção (decisão de 2026-07-16): atrasada =
+        -- prazo já passou e status ainda não é 'pronto'/'cancelada'.
+        -- Formato TEXT ISO (YYYY-MM-DD), mesmo padrão dos demais
+        -- campos de data/hora do projeto.
+        ALTER TABLE ordens_corte ADD COLUMN prazo TEXT;
+      `);
+    },
+  },
 ];

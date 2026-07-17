@@ -20,6 +20,7 @@ import {
 import { listOrdemCorteItens, listOrdemCorteHistorico } from "@/lib/ordensCorte";
 import { listProducaoPerdasPorOrdem } from "@/lib/producao";
 import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
+import { formatDataISO } from "@/lib/date";
 import type {
   OrdemCorteHistoricoEntry,
   OrdemCorteItem,
@@ -83,6 +84,12 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
               <Badge variant={STATUS_ORDEM_CORTE_VARIANT[ordem.status]}>
                 {STATUS_ORDEM_CORTE_LABEL[ordem.status]}
               </Badge>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Prazo</p>
+              <p className="font-medium">
+                {ordem.prazo ? formatDataISO(ordem.prazo) : "—"}
+              </p>
             </div>
             <div>
               <p className="text-muted-foreground">Criado em</p>

@@ -13,6 +13,7 @@ interface OrdemCorteResumoRow {
   prioridade: number;
   observacoes: string | null;
   mesa_atribuida_id: string | null;
+  prazo: string | null;
   criado_em: string;
   atualizado_em: string;
   cliente_nome: string;
@@ -34,6 +35,7 @@ function rowToResumo(row: OrdemCorteResumoRow): OrdemCorteResumo {
     prioridade: row.prioridade,
     observacoes: row.observacoes,
     mesa_atribuida_id: row.mesa_atribuida_id,
+    prazo: row.prazo,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
     cliente_nome: row.cliente_nome,

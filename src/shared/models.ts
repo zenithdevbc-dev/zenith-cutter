@@ -190,6 +190,13 @@ export interface OrdemCorte {
    * como já funcionava antes.
    */
   mesa_atribuida_id: string | null;
+  /**
+   * Data limite (opcional, formato YYYY-MM-DD) — alimenta o KPI
+   * "Atrasadas" do Relatório de Produção (decisão de 2026-07-16):
+   * atrasada = prazo já passou e status ainda não é
+   * 'pronto'/'cancelada'.
+   */
+  prazo: string | null;
   criado_em: string;
   atualizado_em: string;
 }
@@ -227,6 +234,7 @@ export interface OrdemCorteInput {
   produto_id: string;
   tecido_id: string;
   observacoes?: string | null;
+  prazo?: string | null;
   itens: OrdemCorteItemInput[];
 }
 
@@ -235,6 +243,7 @@ export interface OrdemCorteUpdatePatch {
   produto_id?: string;
   tecido_id?: string;
   observacoes?: string | null;
+  prazo?: string | null;
   status?: StatusOrdemCorte;
   itens?: OrdemCorteItemInput[];
 }
@@ -355,4 +364,29 @@ export interface ProducaoObservacao {
 export interface ProducaoObservacaoInput {
   sessao_id: string;
   texto: string;
+}
+
+/**
+ * Uma linha do Relatório de Produção: uma ordem de corte + dados da
+ * sua sessão de produção mais recente (uma ordem tem no máximo uma na
+ * prática — o fluxo nunca volta pra fila depois de iniciada). Sem
+ * sessão (ordem ainda não iniciada), os campos de sessão vêm null.
+ * "Material" no vocabulário do relatório é o Tecido já cadastrado
+ * (não existe um cadastro de "material" separado no projeto).
+ */
+export interface RelatorioProducaoLinha {
+  ordem_id: string;
+  numero: number;
+  cliente_id: string;
+  cliente_nome: string;
+  tecido_id: string;
+  tecido_nome: string;
+  status: StatusOrdemCorte;
+  prazo: string | null;
+  criado_em: string;
+  operador_id: string | null;
+  operador_nome: string | null;
+  iniciado_em: string | null;
+  finalizado_em: string | null;
+  tempo_pausado_segundos: number;
 }

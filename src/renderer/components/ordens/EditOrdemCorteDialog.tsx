@@ -66,6 +66,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
   const [produtoId, setProdutoId] = useState(ordem.produto_id);
   const [tecidoId, setTecidoId] = useState(ordem.tecido_id);
   const [observacoes, setObservacoes] = useState(ordem.observacoes ?? "");
+  const [prazo, setPrazo] = useState(ordem.prazo ?? "");
   const [status, setStatus] = useState<StatusOrdemCorte>(ordem.status);
   const [grade, setGrade] = useState<ProdutoTamanho[]>([]);
   const [quantidades, setQuantidades] = useState<Record<string, string>>({});
@@ -127,6 +128,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
           produto_id: produtoId,
           tecido_id: tecidoId,
           observacoes: observacoes || null,
+          prazo: prazo || null,
           status,
           itens,
         },
@@ -226,6 +228,15 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
               id={`edit-ordem-observacoes-${ordem.id}`}
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`edit-ordem-prazo-${ordem.id}`}>Prazo (opcional)</Label>
+            <Input
+              id={`edit-ordem-prazo-${ordem.id}`}
+              type="date"
+              value={prazo}
+              onChange={(e) => setPrazo(e.target.value)}
             />
           </div>
 
