@@ -185,6 +185,30 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-16**: **Histórico de Ordens** — segunda aba dentro
+  de "Relatórios" (Tabs: "Produção" | "Histórico de Ordens"), pedido
+  explícito do usuário como "tela de consulta principal". Mesma
+  ressalva de escopo do Relatório de Produção (exceção pontual dentro
+  de "Relatórios avançados", seção 5) — não reaberta com o usuário por
+  já estar alinhada na entrega anterior, mesma sessão. Filtros
+  combináveis (número, cliente, material, status, operador, período por
+  `criado_em`); busca instantânea (dados já em memória, sem chamada de
+  rede); paginação no cliente (20 por página — dataset de uma única
+  empresa local não justifica paginação por SQL); detalhe completo por
+  linha reusa o `InfoOrdemCorteDialog` já existente (botão "Info" por
+  linha, mesmo padrão de Ordens de Corte, não a linha inteira
+  clicável). Exportação CSV/Excel/PDF com o conjunto de colunas do
+  pedido (inclui "Peças", que o Relatório de Produção não tem).
+  `lib/exportUtils.ts` novo generaliza os helpers de CSV/Excel/PDF
+  (extraídos de `relatorioExport.ts`) pra serem reusados também por
+  `historicoOrdensExport.ts`. RelatoriosPage.tsx virou um container
+  fino: busca ordens (`listOrdensCorte`) + sessões de produção
+  (`listRelatorioProducao`, mesma fonte da aba Produção) uma única vez
+  e mescla via `lib/historicoOrdens.ts` (`mesclarHistoricoOrdens` — por
+  `ordem_id`, sem chamada IPC nova); cada aba virou componente próprio
+  em `components/relatorios/`, só recebendo dados prontos via props
+  (sem lógica de negócio nem fetch dentro do componente). Build e
+  `npm run typecheck` limpos. **Não testado manualmente ainda**.
 - Entrega **2026-07-16**: **Relatório de Produção** (aba "Relatórios",
   admin/supervisor), pedido explícito do usuário — esbarra em
   "Relatórios avançados" (fora de escopo, seção 5); decisões de escopo
