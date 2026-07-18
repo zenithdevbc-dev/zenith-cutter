@@ -186,6 +186,44 @@ implementar.
 
 ## 7. Estado atual
 
+- Correção **2026-07-18**: **6 achados baixos da auditoria completa**
+  (pedido do usuário, sequência dos médios corrigidos antes).
+  1. **`ordem_corte_itens.quantidade` sem `CHECK > 0` no schema
+     local**: Supabase já tinha (0010); migration local v25 recria a
+     tabela com o CHECK, mesmo padrão de `ordens_corte`.
+  2. **Gravações fora de `db.transaction()`**: `recordSyncLog`
+     (insert+delete do log de sync) e
+     `registrarProducaoPerdaLocal`/`registrarProducaoObservacaoLocal`
+     (insert+enqueueChange) agora envolvidos, mesmo padrão do resto
+     dos repositórios.
+  3. **PIN sem limite de tentativas**: `src/renderer/lib/pin.ts` ganhou
+     bloqueio de 30s depois de 5 tentativas erradas seguidas (contador
+     reseta a cada login/logout); `usePinConfirm.tsx` mostra o tempo
+     restante quando bloqueado.
+  4. **`sandbox: false` sem justificativa**: virou `true` — o preload
+     só usa `contextBridge`/`ipcRenderer`, sem módulo Node direto, não
+     quebra nada.
+  5. **Sem CSP**: nova `Content-Security-Policy` (`default-src 'self'`,
+     sem eval/inline script) aplicada via
+     `session.defaultSession.webRequest.onHeadersReceived`, só quando
+     `app.isPackaged` — deliberadamente fora do `index.html`, pra não
+     arriscar quebrar o HMR/websocket do `npm run dev`.
+  6. **Mensagens de erro de login diferentes revelavam se o login
+     existia**: `auth-context.tsx` repassava `error.message` (inglês,
+     direto do Supabase) só no caso de senha errada, diferente da
+     mensagem genérica de login inexistente. Unificado pra "Login ou
+     senha inválidos." nos dois casos.
+  `npm run build` (typecheck + vite build, main/preload/renderer)
+  limpo a cada commit (6 commits). Migration local v25 aplica sozinha
+  na próxima abertura do app (padrão de sempre, sem ação manual).
+  **Deliberadamente fora desta rodada** (achado real, mas escopo bem
+  maior que os demais — pausado pra perguntar ao usuário antes):
+  `PRAGMA foreign_keys = ON` é um no-op no schema **local** porque
+  nenhuma das 25 migrations do SQLite declara `REFERENCES` (o Postgres
+  já declara em todas as tabelas desde o início — isso é só uma lacuna
+  do banco local/cache). Corrigir de verdade exigiria recriar a maioria
+  das ~15 tabelas de negócio pra adicionar as FKs, um retrofit bem mais
+  arriscado (mexe no schema inteiro) que os itens acima.
 - Correção **2026-07-18**: **5 achados médios da auditoria completa**
   (pedido do usuário, sequência dos 3 críticos corrigidos antes).
   1. **RLS de `ordens_corte` sem trava por coluna pro Operador**: mesma
