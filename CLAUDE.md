@@ -186,6 +186,33 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-18**: **Sprint 6 — Offline e Sincronização**
+  (motor de sync automático, pedido do usuário — "vamos pro sprint
+  6"). O motor mínimo (fila `sync_queue` + push manual/no-login) já
+  existia; esta entrega fecha o resto do item do roadmap: retry
+  automático em segundo plano com **backoff exponencial** (30s a
+  5min — dobra quando um lote inteiro falha, sinal de problema de
+  conectividade e não de dado; reseta em qualquer sucesso ou ao
+  religar a rede), **detecção de rede e reconexão** via eventos
+  nativos `online`/`offline` do Chromium (sem lib nova), **resolução
+  de erros** (itens que esgotam as 5 tentativas ficavam presos e
+  invisíveis — agora aparecem em Configurações com botão "tentar
+  novamente", por item ou todos de uma vez) e **log de
+  sincronização** (tabela local nova `sync_log`, migration v24,
+  capada em 50 linhas — histórico do próprio motor, não é auditoria
+  de ação de usuário, então não tem `usuario_id` nem sincroniza pro
+  Supabase). Tudo renderer-side (só o renderer fala com o Supabase,
+  reforça 3.2); `src/renderer/lib/syncManager.ts` é um singleton com
+  pub-sub caseiro (`useSyncExternalStore`, nativo do React — nenhuma
+  lib de estado nova) que substitui a chamada avulsa de `runSync()`
+  no login por `syncManager.start()`/`stop()` (login/logout).
+  Indicador compacto sempre visível no header
+  (`components/layout/SyncIndicator.tsx`) mostra
+  offline/sincronizando/pendente/erro/sincronizado. **Testes de
+  perda de conexão** ficaram como verificação manual (não é código —
+  documentado na seção de Verificação do plano, ainda não executado
+  pelo usuário). Sem migration Supabase nova nesta entrega. Build e
+  `npm run typecheck` limpos. **Não testado manualmente ainda.**
 - Entrega **2026-07-16**: **card de resumo inteligente no Dashboard**
   (pedido explícito do usuário — saudação por horário + destaques da
   produção em texto corrido, tipo "Bom dia! ..."). Sem dado novo: só
@@ -369,13 +396,15 @@ implementar.
   `lib/dashboardCharts.ts` (puro); componentes em
   `components/dashboard/` só renderizam. Build e `npm run typecheck`
   limpos. **Não testado manualmente ainda**.
-- Sprint em andamento: Sprint 5 — Dashboard Operacional. Entregue:
-  visão de mesas livres/ocupadas (todos os papéis), distribuição de
-  ordens por status e produção dos últimos 30 dias em gráfico (ver
-  entrega 2026-07-16 acima — supera o "sem gráficos" original) e
-  pesquisa rápida (admin/supervisor — leitura local não passa por RLS,
-  restrição de papel replicada no componente, mesma regra de Ordens de
-  Corte). Sprint 4 fica encerrado (ver abaixo).
+- Sprint 5 — Dashboard Operacional **encerrado**: visão de mesas
+  livres/ocupadas (todos os papéis), distribuição de ordens por status
+  e produção dos últimos 30 dias em gráfico (ver entrega 2026-07-16
+  acima — supera o "sem gráficos" original) e pesquisa rápida
+  (admin/supervisor — leitura local não passa por RLS, restrição de
+  papel replicada no componente, mesma regra de Ordens de Corte).
+  Sprint 4 fica encerrado (ver abaixo).
+- Sprint em andamento: Sprint 6 — Offline e Sincronização (ver entrega
+  2026-07-18 acima).
 - Entregas **2026-07-16** (mesma sessão, várias peças pequenas):
   identidade visual completa (paleta de marca em `index.css`, logos
   Zenith Cutter/Zenith DEV — splash screen só com a logo Zenith DEV,
