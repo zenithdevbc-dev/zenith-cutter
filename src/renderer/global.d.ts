@@ -57,6 +57,9 @@ declare global {
       log: {
         reportError: (entry: LogReportErrorInput) => Promise<void>;
       };
+      backup: {
+        run: () => Promise<string | null>;
+      };
       sync: {
         getStatus: () => Promise<SyncStatus>;
         listPending: () => Promise<PendingSyncItem[]>;

@@ -56,6 +56,7 @@ import {
 } from "../sync/queue";
 import { recordSyncLog, listSyncLog } from "../sync/log";
 import { logRendererError } from "../log";
+import { runBackup } from "../backup";
 import { quitAndInstall } from "../updater";
 import {
   listUsuariosLocal,
@@ -128,6 +129,10 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.logReportError, (_event, { message, stack }: LogReportErrorInput) => {
     logRendererError(message, stack);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.backupRun, (): Promise<string | null> => {
+    return runBackup();
   });
 
   ipcMain.handle(IPC_CHANNELS.syncGetStatus, (): SyncStatus => {

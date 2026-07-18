@@ -45,6 +45,7 @@ export interface LogReportErrorInput {
 export const IPC_CHANNELS = {
   dbGetStatus: "db:get-status",
   logReportError: "log:report-error",
+  backupRun: "backup:run",
   syncGetStatus: "sync:get-status",
   syncListPending: "sync:list-pending",
   syncMarkSuccess: "sync:mark-success",

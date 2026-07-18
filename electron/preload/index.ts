@@ -59,6 +59,9 @@ contextBridge.exposeInMainWorld("zenith", {
     reportError: (entry: LogReportErrorInput): Promise<void> =>
       ipcRenderer.invoke(IPC_CHANNELS.logReportError, entry),
   },
+  backup: {
+    run: (): Promise<string | null> => ipcRenderer.invoke(IPC_CHANNELS.backupRun),
+  },
   sync: {
     getStatus: (): Promise<SyncStatus> =>
       ipcRenderer.invoke(IPC_CHANNELS.syncGetStatus),
