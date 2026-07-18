@@ -9,6 +9,7 @@ import logo from "@/assets/logo.png";
 
 export function LoginPage() {
   const { signIn } = useAuth();
+  const [codigoEmpresa, setCodigoEmpresa] = useState("");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +19,7 @@ export function LoginPage() {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
-    const { error: signInError } = await signIn(login, password);
+    const { error: signInError } = await signIn(codigoEmpresa, login, password);
     if (signInError) setError(signInError);
     setSubmitting(false);
   }
@@ -41,6 +42,19 @@ export function LoginPage() {
             </p>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="codigo-empresa">Empresa</Label>
+                <Input
+                  id="codigo-empresa"
+                  type="text"
+                  placeholder="AA00"
+                  maxLength={4}
+                  autoComplete="off"
+                  value={codigoEmpresa}
+                  onChange={(e) => setCodigoEmpresa(e.target.value.toUpperCase())}
+                  required
+                />
+              </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="login">Usuário</Label>
                 <Input

@@ -17,7 +17,11 @@ interface AuthContextValue {
   empresa: Empresa | null;
   isAdmin: boolean;
   loading: boolean;
-  signIn: (login: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (
+    codigoEmpresa: string,
+    login: string,
+    password: string,
+  ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -112,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [session]);
 
-  async function signIn(login: string, password: string) {
+  async function signIn(codigoEmpresa: string, login: string, password: string) {
     if (!supabase) {
       return { error: "Supabase ainda não foi configurado neste projeto." };
     }
@@ -120,10 +124,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // A credencial visível ao usuário é o login (não o e-mail) — resolve
     // para o e-mail real do Supabase Auth antes de autenticar. Roda como
     // anon (sem sessão ainda), via função security definer no Postgres
-    // que só devolve o e-mail, nada mais.
+    // que só devolve o e-mail, nada mais. Pedido do usuário: o código da
+    // empresa (campo "EMPRESA", formato AA00) também precisa bater —
+    // funciona como uma segunda senha, pra não dar pra logar na empresa
+    // errada por acidente.
     const { data: email, error: resolveError } = await supabase.rpc(
       "resolve_login_email",
-      { p_login: login },
+      { p_login: login, p_codigo_empresa: codigoEmpresa },
     );
     if (resolveError || !email) {
       return { error: "Login ou senha inválidos." };

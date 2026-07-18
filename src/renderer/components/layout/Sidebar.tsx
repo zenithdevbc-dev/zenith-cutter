@@ -22,7 +22,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         <img src={logo} alt="Zenith Cutter" className="h-16 w-full rounded-md object-contain" />
         {empresa && (
           <span className="truncate text-xs text-sidebar-foreground">
-            {empresa.nome}
+            {empresa.nome} ({empresa.codigo})
           </span>
         )}
       </div>
