@@ -186,6 +186,21 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-18** — **RC → v1.0.0, release oficial publicada**. Depois
+  do teste de auto-update confirmado (entrada abaixo), `package.json`
+  voltou de `1.1.2` (só o build de teste) pra `1.0.0` — esquema de
+  versionamento do usuário: major = refatoração/rebranding, minor =
+  grandes alterações, patch = pequenas funcionalidades. Build gerado
+  (`Zenith-Cutter-Setup-1.0.0.exe`) e publicado no bucket `releases`
+  (`latest.yml` + `.exe` + `.blockmap`); os artefatos de teste da
+  `1.1.2` foram removidos do bucket depois (não ficam mais referenciados
+  por nenhum `latest.yml`). Tag anotada `v1.0.0` criada localmente —
+  **ainda não enviada ao remoto** (push de tag não é uma ação que faço
+  sem pedido explícito). Fecha o último item do Sprint 7/roadmap do
+  MVP. **Atenção**: qualquer instalação que tenha recebido o build de
+  teste `1.1.2` via auto-update não vai retroceder sozinha pra `1.0.0`
+  (semver — auto-updater não rebaixa versão); precisa reinstalar manual
+  se quiser alinhar a numeração.
 - **2026-07-18** — **teste ponta a ponta do auto-update confirmado
   funcionando pelo usuário** ("Funcionou perfeitamente"). Versão
   `1.1.2` publicada no bucket `releases`
