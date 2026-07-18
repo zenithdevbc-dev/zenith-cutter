@@ -186,31 +186,31 @@ implementar.
 
 ## 7. Estado atual
 
-- **2026-07-18** — **teste ponta a ponta do auto-update em andamento**.
-  Versão `1.1.2` publicada no bucket `releases`
-  (`Zenith-Cutter-Setup-1.1.2.exe` + `.blockmap` + `latest.yml`), com
-  um marcador temporário de teste — o app abre em tela cheia
-  automaticamente (`electron/main/index.ts`, `setFullScreen(true)` no
-  `ready-to-show`) — só pra confirmar visualmente que uma instalação
-  anterior detecta/baixa/aplica a atualização. **Reverter esse
-  marcador depois que o teste confirmar o fluxo** (não é uma decisão
-  de produto, só instrumentação de teste).
-  No caminho, achado um bloqueio de infraestrutura não previsto: o
-  bucket `releases` não tinha `file_size_limit` próprio (`null` = usa
-  o teto global do projeto Supabase, que por padrão é 50MB mesmo no
-  plano pago) — o instalador tem ~134MB (Chromium embutido). Corrigido
-  em 2 passos, ambos em produção com autorização do usuário: 1)
-  `UPDATE storage.buckets SET file_size_limit = 262144000 WHERE
-  id='releases'` (250MB); 2) usuário fez upgrade pro plano Pro do
-  Supabase e ajustou manualmente o "Global file size limit" pra 250MB
-  no painel (Settings > Storage — não é automático com o upgrade de
-  plano, é um campo separado). **Fica registrado pra referência
-  futura**: qualquer artefato de release perto ou acima de 50MB vai
-  precisar desses dois limites configurados antes de publicar.
-  **Falta o usuário confirmar** que uma instalação anterior detecta a
-  atualização, baixa em segundo plano, mostra o toast "Reiniciar e
-  atualizar" e, depois de fechar/reabrir, abre já em tela cheia
-  (confirmando que a v1.1.2 foi aplicada de verdade).
+- **2026-07-18** — **teste ponta a ponta do auto-update confirmado
+  funcionando pelo usuário** ("Funcionou perfeitamente"). Versão
+  `1.1.2` publicada no bucket `releases`
+  (`Zenith-Cutter-Setup-1.1.2.exe` + `.blockmap` + `latest.yml`) com um
+  marcador visual de teste; uma instalação anterior detectou, baixou
+  em segundo plano, mostrou o toast "Reiniciar e atualizar" e aplicou
+  a versão nova ao reabrir — fluxo completo validado em produção.
+  O marcador original era tela cheia/kiosk (só pra teste); o usuário
+  pediu pra manter o comportamento, mas como janela **maximizada**
+  (com barra de título/controles normais, não kiosk) — virou
+  permanente: `electron/main/index.ts`, `mainWindow.maximize()` antes
+  do `show()` no `ready-to-show`.
+  No caminho, achado e corrigido um bloqueio de infraestrutura não
+  previsto: o bucket `releases` não tinha `file_size_limit` próprio
+  (`null` = usa o teto global do projeto Supabase, que por padrão é
+  50MB mesmo no plano pago) — o instalador tem ~134MB (Chromium
+  embutido). Corrigido em 2 passos, ambos em produção com autorização
+  do usuário: 1) `UPDATE storage.buckets SET file_size_limit =
+  262144000 WHERE id='releases'` (250MB); 2) usuário fez upgrade pro
+  plano Pro do Supabase e ajustou manualmente o "Global file size
+  limit" pra 250MB no painel (Settings > Storage — não é automático
+  com o upgrade de plano, é um campo separado). **Fica registrado pra
+  referência futura**: qualquer artefato de release perto ou acima de
+  50MB vai precisar desses dois limites configurados antes de
+  publicar.
 - **2026-07-18** — usuário confirmou: **todas as migrations Supabase
   pendentes foram executadas em produção** (inclui `0030`/`0031`/`0032`,
   as 3 correções de segurança da auditoria de hoje) e **validação
