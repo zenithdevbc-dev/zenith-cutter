@@ -146,7 +146,7 @@ export function DashboardPage() {
         {podeVerOrdens && (
           <Card>
             <CardHeader>
-              <CardTitle>Distribuição de Ordens por Status</CardTitle>
+              <CardTitle>Distribuição de Peças por Status</CardTitle>
             </CardHeader>
             <CardContent>
               {ordens === null ? (

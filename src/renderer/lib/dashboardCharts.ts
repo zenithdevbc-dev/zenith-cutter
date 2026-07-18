@@ -28,13 +28,18 @@ export interface DistribuicaoStatusItem {
   cor: string;
 }
 
-/** Só entram status com pelo menos 1 ordem — fatia vazia não faz sentido num gráfico. */
+/**
+ * Peças (não ordens) por status — pedido do usuário: volume de
+ * produção conta mais que número de ordens numa fatia. Só entram
+ * status com pelo menos 1 peça — fatia vazia não faz sentido num
+ * gráfico.
+ */
 export function calcularDistribuicaoStatus(
   ordens: OrdemCorteResumo[],
 ): DistribuicaoStatusItem[] {
   const contagem = new Map<StatusOrdemCorte, number>();
   for (const ordem of ordens) {
-    contagem.set(ordem.status, (contagem.get(ordem.status) ?? 0) + 1);
+    contagem.set(ordem.status, (contagem.get(ordem.status) ?? 0) + ordem.quantidade_total);
   }
   return Array.from(contagem.entries())
     .map(([status, quantidade]) => ({
@@ -53,11 +58,11 @@ export interface ProducaoDiaItem {
 }
 
 /**
- * Série dos últimos 30 dias (hoje incluso) — quantidade de ordens
- * concluídas (sessão finalizada) em cada dia. Dia sem conclusão
- * aparece com 0 (não é omitido), pra manter o eixo do tempo contínuo.
- * Mesmo critério de data usado no resto do relatório: recorte por
- * `slice(0, 10)` do ISO, sem conversão de fuso.
+ * Série dos últimos 30 dias (hoje incluso) — quantidade de peças
+ * produzidas (ordens com sessão finalizada) em cada dia. Dia sem
+ * conclusão aparece com 0 (não é omitido), pra manter o eixo do tempo
+ * contínuo. Mesmo critério de data usado no resto do relatório:
+ * recorte por `slice(0, 10)` do ISO, sem conversão de fuso.
  */
 export function calcularProducaoUltimos30Dias(
   linhas: RelatorioProducaoLinha[],
@@ -66,7 +71,7 @@ export function calcularProducaoUltimos30Dias(
   for (const linha of linhas) {
     if (!linha.finalizado_em) continue;
     const dia = linha.finalizado_em.slice(0, 10);
-    contagem.set(dia, (contagem.get(dia) ?? 0) + 1);
+    contagem.set(dia, (contagem.get(dia) ?? 0) + linha.quantidade_total);
   }
 
   const dias: ProducaoDiaItem[] = [];

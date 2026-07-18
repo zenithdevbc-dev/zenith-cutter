@@ -14,7 +14,7 @@ interface ProducaoUltimos30DiasChartProps {
 }
 
 /**
- * Ordens concluídas por dia, últimos 30 dias (dia sem conclusão
+ * Peças produzidas por dia, últimos 30 dias (dia sem conclusão
  * aparece com 0 — eixo do tempo contínuo). Cálculo em
  * lib/dashboardCharts.ts; este componente só renderiza.
  */
@@ -38,7 +38,7 @@ export function ProducaoUltimos30DiasChart({ dados }: ProducaoUltimos30DiasChart
           width={28}
         />
         <Tooltip
-          formatter={(value) => [String(value ?? 0), "Ordens concluídas"]}
+          formatter={(value) => [String(value ?? 0), "Peças produzidas"]}
           labelFormatter={(label) => `Dia ${label}`}
           contentStyle={{
             backgroundColor: "var(--color-card)",

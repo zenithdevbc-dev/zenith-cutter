@@ -47,34 +47,36 @@ export function gerarResumoProducao(params: ResumoProducaoParams): string {
   }
 
   if (params.ordens) {
-    const emAndamento = params.ordens.filter(
-      (o) => PIPELINE_PRODUCAO.includes(o.status) && o.status !== "pronto",
-    ).length;
-    const naFila = params.ordens.filter((o) => o.status === "em_fila").length;
+    const pecasEmAndamento = params.ordens
+      .filter((o) => PIPELINE_PRODUCAO.includes(o.status) && o.status !== "pronto")
+      .reduce((soma, o) => soma + o.quantidade_total, 0);
+    const pecasNaFila = params.ordens
+      .filter((o) => o.status === "em_fila")
+      .reduce((soma, o) => soma + o.quantidade_total, 0);
 
-    if (emAndamento > 0 || naFila > 0) {
+    if (pecasEmAndamento > 0 || pecasNaFila > 0) {
       const partes: string[] = [];
-      if (emAndamento > 0) {
-        partes.push(`${emAndamento} ordem${emAndamento === 1 ? "" : "s"} em produção`);
+      if (pecasEmAndamento > 0) {
+        partes.push(`${pecasEmAndamento} peça${pecasEmAndamento === 1 ? "" : "s"} em produção`);
       }
-      if (naFila > 0) {
-        partes.push(`${naFila} aguardando na fila`);
+      if (pecasNaFila > 0) {
+        partes.push(`${pecasNaFila} aguardando na fila`);
       }
       frases.push(`No momento, há ${partes.join(" e ")}.`);
     } else {
-      frases.push("Nenhuma ordem em produção no momento — tudo tranquilo por aqui.");
+      frases.push("Nenhuma peça em produção no momento — tudo tranquilo por aqui.");
     }
   }
 
   if (params.producao) {
     const hojeISO = agora.toISOString().slice(0, 10);
-    const concluidasHoje = params.producao.filter(
-      (p) => p.finalizado_em && p.finalizado_em.slice(0, 10) === hojeISO,
-    ).length;
-    if (concluidasHoje > 0) {
+    const pecasHoje = params.producao
+      .filter((p) => p.finalizado_em && p.finalizado_em.slice(0, 10) === hojeISO)
+      .reduce((soma, p) => soma + p.quantidade_total, 0);
+    if (pecasHoje > 0) {
       frases.push(
-        `Hoje já ${concluidasHoje === 1 ? "foi concluída" : "foram concluídas"} ${concluidasHoje} ordem${
-          concluidasHoje === 1 ? "" : "s"
+        `Hoje já ${pecasHoje === 1 ? "foi produzida" : "foram produzidas"} ${pecasHoje} peça${
+          pecasHoje === 1 ? "" : "s"
         }.`,
       );
     }

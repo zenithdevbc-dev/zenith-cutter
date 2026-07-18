@@ -6,7 +6,7 @@ interface DistribuicaoStatusChartProps {
 }
 
 /**
- * Distribuição de ordens por status em gráfico de rosca, com legenda
+ * Distribuição de peças por status em gráfico de rosca, com legenda
  * própria ao lado (cor + nome + quantidade) — mais legível que a
  * legenda padrão do recharts em espaços estreitos. Cálculo em
  * lib/dashboardCharts.ts; este componente só renderiza.
