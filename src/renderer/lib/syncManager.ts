@@ -76,38 +76,56 @@ async function syncNow(trigger: SyncLogTrigger): Promise<SyncResult | null> {
   }
 
   setState({ syncing: true });
-  let result: SyncResult;
   try {
-    result = await runSync();
-  } catch {
-    result = { attempted: 0, synced: 0, failed: 0 };
+    let result: SyncResult;
+    try {
+      result = await runSync();
+    } catch {
+      result = { attempted: 0, synced: 0, failed: 0 };
+    }
+
+    // Falha total num lote não-vazio é o sinal de que o problema é de
+    // conectividade (Supabase inalcançável), não de dado — nesse caso o
+    // loop automático recua (backoff), pra não martelar a rede. Qualquer
+    // sucesso (parcial ou total) reseta pro intervalo base.
+    const isConnectivityFailure = result.attempted > 0 && result.synced === 0 && result.failed === result.attempted;
+    const nextBackoff = isConnectivityFailure
+      ? Math.min(state.backoffMs * 2, MAX_INTERVAL_MS)
+      : BASE_INTERVAL_MS;
+
+    try {
+      await window.zenith.sync.logRecord({
+        trigger,
+        attempted: result.attempted,
+        synced: result.synced,
+        failed: result.failed,
+      });
+    } catch {
+      // Log de sincronização é só operacional (não é dado de negócio) —
+      // uma falha aqui não pode impedir o motor de liberar o estado.
+    }
+
+    setState({
+      syncing: false,
+      lastSyncAt: new Date().toISOString(),
+      lastResult: result,
+      backoffMs: nextBackoff,
+    });
+    return result;
+  } finally {
+    // Garante que o motor nunca fica preso em "sincronizando" pra sempre
+    // (bug encontrado em auditoria: um erro em logRecord/refreshCounts
+    // depois do runSync travava state.syncing=true permanentemente,
+    // parando o motor até reiniciar o app).
+    setState({ syncing: false });
+    try {
+      await refreshCounts();
+    } catch {
+      // contadores ficam desatualizados até o próximo ciclo — não é
+      // motivo pra deixar de reagendar a próxima tentativa.
+    }
+    scheduleNext();
   }
-
-  // Falha total num lote não-vazio é o sinal de que o problema é de
-  // conectividade (Supabase inalcançável), não de dado — nesse caso o
-  // loop automático recua (backoff), pra não martelar a rede. Qualquer
-  // sucesso (parcial ou total) reseta pro intervalo base.
-  const isConnectivityFailure = result.attempted > 0 && result.synced === 0 && result.failed === result.attempted;
-  const nextBackoff = isConnectivityFailure
-    ? Math.min(state.backoffMs * 2, MAX_INTERVAL_MS)
-    : BASE_INTERVAL_MS;
-
-  await window.zenith.sync.logRecord({
-    trigger,
-    attempted: result.attempted,
-    synced: result.synced,
-    failed: result.failed,
-  });
-
-  setState({
-    syncing: false,
-    lastSyncAt: new Date().toISOString(),
-    lastResult: result,
-    backoffMs: nextBackoff,
-  });
-  await refreshCounts();
-  scheduleNext();
-  return result;
 }
 
 function handleOnline() {
