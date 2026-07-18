@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, session } from "electron";
 import path from "node:path";
 import { getDb } from "./db";
 import { registerIpcHandlers } from "./ipc";
@@ -30,7 +30,11 @@ function createMainWindow() {
       preload: path.join(__dirname, "../preload/index.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      // Achado de auditoria: estava false sem justificativa. O preload
+      // só usa contextBridge/ipcRenderer (nenhum módulo Node direto),
+      // então sandbox true não quebra nada e reduz a superfície de
+      // ataque do renderer.
+      sandbox: true,
     },
   });
 
@@ -59,9 +63,31 @@ function createMainWindow() {
   }
 }
 
+// Achado de auditoria: nenhuma CSP. Só aplicada no app empacotado
+// (não no `npm run dev`, pra não travar o HMR/websocket do Vite) —
+// o app não carrega nada remoto além das chamadas de API do Supabase
+// (fetch/XHR do @supabase/supabase-js), por isso connect-src precisa
+// de https: em vez de só 'self'. style-src precisa de unsafe-inline
+// porque Tailwind/shadcn injetam estilo inline em runtime.
+function applyContentSecurityPolicy() {
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": [
+          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'none'; form-action 'none';",
+        ],
+      },
+    });
+  });
+}
+
 app.whenReady().then(() => {
   getDb();
   registerIpcHandlers();
+  if (app.isPackaged) {
+    applyContentSecurityPolicy();
+  }
   createMainWindow();
 
   app.on("activate", () => {
