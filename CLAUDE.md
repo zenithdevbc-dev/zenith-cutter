@@ -186,6 +186,52 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-18**: **Sprint 7 — Polimento e Publicação**,
+  entregue em 5 frentes sequenciais (decisão com o usuário: uma de
+  cada vez, não tudo numa leva). **Auto-update fica adiado** (bloqueio
+  conhecido — falta o bucket de releases no Supabase Storage, decisão/
+  infra do usuário) e **instalador** não precisou de código (auditoria
+  confirmou que o electron-builder/NSIS já configurado desde o Sprint
+  0 já cobre tudo — ícone, diretório customizável, atalhos,
+  `deleteAppDataOnUninstall` no padrão seguro que não apaga o banco
+  local; única lacuna registrada é a ausência de certificado de
+  assinatura de código, que vai disparar o SmartScreen do Windows no
+  primeiro uso — decisão de custo do usuário, fora de escopo de
+  código). As 4 frentes de código/documentação:
+  1. **Tratamento de erros**: `ErrorBoundary.tsx` (só class component
+     pega erro de render em React) troca tela branca por uma tela de
+     recuperação com botão "Recarregar"; `window.onerror`/
+     `unhandledrejection` cobrem erro assíncrono fora do ciclo de
+     render. `electron/main/log.ts` centraliza o `electron-log` (já
+     era dependência, só usado em `updater.ts`) como logger global do
+     processo main e liga `errorHandler.startCatching()` — exceção não
+     tratada no main agora vira log em arquivo em vez de derrubar o
+     app sem rastro (dói especialmente porque bugs de produção
+     anteriores só foram diagnosticáveis via query direta no banco,
+     ver `feedback_production_db_debugging.md`). `render-process-gone`
+     também logado. Tudo isso reporta pro log via IPC novo
+     `log:report-error`.
+  2. **Backup local**: botão em Configurações abre diálogo nativo de
+     salvar arquivo e roda `getDb().backup(destino)` — API nativa do
+     `better-sqlite3` (hot backup), não uma cópia crua do `.sqlite`,
+     que podia perder dado ainda no WAL (o banco roda em
+     `journal_mode = WAL`).
+  3. **Otimizações**: as 6 páginas de `App.tsx` viraram
+     `React.lazy()`/`Suspense` em vez de import estático — o chunk
+     inicial (tudo que carrega antes de qualquer página abrir) caiu de
+     **2,49 MB para ~205 KB**. `recharts` só entra quando
+     Dashboard/Relatórios abre; `jspdf`/`jspdf-autotable`/`exceljs`/
+     `html2canvas` só quando Relatórios abre (esse chunk sozinho ainda
+     é grande — 1,4 MB — mas carrega sob demanda, não no login).
+  4. **Documentação técnica**: `README.md` novo na raiz (não existia
+     nenhum) — setup, scripts, estrutura de pastas, padrões de
+     migration/IPC/sync/log. Deliberadamente não duplica o CLAUDE.md
+     (contexto de produto/roadmap); é só a porta de entrada técnica
+     pra quem clonar o repo pela primeira vez.
+  Build e `npm run typecheck` limpos em cada frente. **Nenhuma
+  validada manualmente pelo usuário ainda.** Falta só **RC → v1.0**
+  (bump de versão + tag), que fica pra decidir com o usuário depois
+  da validação manual das frentes acima — não antecipado.
 - Entrega **2026-07-18**: **Sprint 6 — Offline e Sincronização**
   (motor de sync automático, pedido do usuário — "vamos pro sprint
   6"). O motor mínimo (fila `sync_queue` + push manual/no-login) já
@@ -403,8 +449,12 @@ implementar.
   (admin/supervisor — leitura local não passa por RLS, restrição de
   papel replicada no componente, mesma regra de Ordens de Corte).
   Sprint 4 fica encerrado (ver abaixo).
-- Sprint em andamento: Sprint 6 — Offline e Sincronização (ver entrega
+- Sprint 6 — Offline e Sincronização **encerrado** (ver entrega
   2026-07-18 acima).
+- Sprint em andamento: Sprint 7 — Polimento e Publicação, último do
+  roadmap do MVP. 4 das 5 frentes de código entregues (ver acima);
+  falta só RC → v1.0 (bump de versão + tag), depois da validação
+  manual do usuário.
 - Entregas **2026-07-16** (mesma sessão, várias peças pequenas):
   identidade visual completa (paleta de marca em `index.css`, logos
   Zenith Cutter/Zenith DEV — splash screen só com a logo Zenith DEV,
