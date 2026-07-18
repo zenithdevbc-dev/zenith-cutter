@@ -40,6 +40,10 @@ function createMainWindow() {
 
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
+    // Marcador temporário só pra testar a detecção do auto-update
+    // (versão 1.1.2) — reverter depois que o teste confirmar que uma
+    // instalação anterior detecta/baixa/instala essa versão nova.
+    mainWindow?.setFullScreen(true);
   });
 
   // Ajuda a diagnosticar "o app fechou sozinho" sem depender do
