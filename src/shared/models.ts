@@ -384,6 +384,7 @@ export interface RelatorioProducaoLinha {
   status: StatusOrdemCorte;
   prazo: string | null;
   criado_em: string;
+  quantidade_total: number;
   operador_id: string | null;
   operador_nome: string | null;
   iniciado_em: string | null;

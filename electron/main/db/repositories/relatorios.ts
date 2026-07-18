@@ -22,6 +22,7 @@ export function listRelatorioProducaoLocal(db: Database.Database): RelatorioProd
         oc.status,
         oc.prazo,
         oc.criado_em,
+        COALESCE((SELECT SUM(quantidade) FROM ordem_corte_itens WHERE ordem_id = oc.id), 0) AS quantidade_total,
         sp.iniciado_por AS operador_id,
         u.nome AS operador_nome,
         sp.iniciado_em,
