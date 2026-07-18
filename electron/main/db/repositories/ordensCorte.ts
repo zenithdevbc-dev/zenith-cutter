@@ -12,6 +12,7 @@ import {
 } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
 import { requireAdminOuSupervisor } from "./usuarios";
+import { getCurrentEmpresaId } from "../../session";
 
 export const STATUS_LABEL: Record<string, string> = {
   aberta: "Aberta",
@@ -80,14 +81,14 @@ export function listOrdemCorteHistoricoLocal(
   ordemId: string,
 ): OrdemCorteHistoricoEntry[] {
   return db
-    .prepare<[string], OrdemCorteHistoricoRow>(`
+    .prepare<[string, string], OrdemCorteHistoricoRow>(`
       SELECT h.*, COALESCE(u.nome, 'Usuário') AS usuario_nome
       FROM ordem_corte_historico h
       LEFT JOIN usuarios u ON u.id = h.usuario_id
-      WHERE h.ordem_id = ?
+      WHERE h.ordem_id = ? AND h.empresa_id = ?
       ORDER BY h.criado_em DESC
     `)
-    .all(ordemId);
+    .all(ordemId, getCurrentEmpresaId());
 }
 
 export interface OrdemCorteRow {
@@ -169,8 +170,8 @@ const RESUMO_SELECT = `
 
 export function listOrdensCorteLocal(db: Database.Database): OrdemCorteResumo[] {
   const rows = db
-    .prepare<[], OrdemCorteResumoRow>(`${RESUMO_SELECT} ORDER BY oc.numero DESC`)
-    .all();
+    .prepare<[string], OrdemCorteResumoRow>(`${RESUMO_SELECT} WHERE oc.empresa_id = ? ORDER BY oc.numero DESC`)
+    .all(getCurrentEmpresaId());
   return rows.map(rowToResumo);
 }
 
@@ -179,8 +180,8 @@ export function getOrdemCorteResumoLocal(
   id: string,
 ): OrdemCorteResumo | null {
   const row = db
-    .prepare<[string], OrdemCorteResumoRow>(`${RESUMO_SELECT} WHERE oc.id = ?`)
-    .get(id);
+    .prepare<[string, string], OrdemCorteResumoRow>(`${RESUMO_SELECT} WHERE oc.id = ? AND oc.empresa_id = ?`)
+    .get(id, getCurrentEmpresaId());
   return row ? rowToResumo(row) : null;
 }
 
@@ -206,14 +207,14 @@ export function listOrdemCorteItensLocal(
   ordemId: string,
 ): OrdemCorteItem[] {
   const rows = db
-    .prepare<[string], OrdemCorteItemRow>(`
+    .prepare<[string, string], OrdemCorteItemRow>(`
       SELECT oci.*, pt.tamanho AS tamanho
       FROM ordem_corte_itens oci
       JOIN produto_tamanhos pt ON pt.id = oci.produto_tamanho_id
-      WHERE oci.ordem_id = ?
+      WHERE oci.ordem_id = ? AND oci.empresa_id = ?
       ORDER BY pt.ordem ASC
     `)
-    .all(ordemId);
+    .all(ordemId, getCurrentEmpresaId());
   return rows;
 }
 
@@ -354,8 +355,8 @@ export function updateOrdemCorteLocal(
   params.atualizado_em = new Date().toISOString();
 
   const row = db
-    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!row) throw new Error(`Ordem de Corte ${id} não encontrada.`);
 
   // Etapas do pipeline de execução (em_corte/embalagem/revisao/
@@ -374,8 +375,10 @@ export function updateOrdemCorteLocal(
     );
   }
 
+  params.empresa_id = getCurrentEmpresaId();
+
   const apply = db.transaction(() => {
-    db.prepare(`UPDATE ordens_corte SET ${fields.join(", ")} WHERE id = @id`).run(params);
+    db.prepare(`UPDATE ordens_corte SET ${fields.join(", ")} WHERE id = @id AND empresa_id = @empresa_id`).run(params);
     enqueueChange(db, {
       tableName: "ordens_corte",
       recordId: id,
@@ -432,8 +435,8 @@ export function updateOrdemCorteLocal(
   apply();
 
   const updatedRow = db
-    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!updatedRow) throw new Error(`Ordem de Corte ${id} não encontrada após atualização.`);
   return rowToOrdemCorte(updatedRow);
 }
@@ -448,8 +451,8 @@ export function duplicateOrdemCorteLocal(
   usuarioId: string,
 ): OrdemCorte {
   const original = db
-    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!original) throw new Error(`Ordem de Corte ${id} não encontrada.`);
 
   const itens = db
@@ -500,8 +503,8 @@ export function atribuirMesaFilaLocal(
   requireAdminOuSupervisor(db, usuarioId, "atribuir mesa na fila de produção");
 
   const row = db
-    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
-    .get(ordemId);
+    .prepare<[string, string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ? AND empresa_id = ?")
+    .get(ordemId, getCurrentEmpresaId());
   if (!row) throw new Error(`Ordem de Corte ${ordemId} não encontrada.`);
   if (row.status !== "em_fila") {
     throw new Error("Só é possível atribuir mesa a uma ordem que está na fila de produção.");
