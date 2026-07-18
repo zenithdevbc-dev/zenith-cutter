@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
+import { SyncIndicator } from "./SyncIndicator";
 import { Button } from "@/components/ui/button";
 import { NAV_ITEMS, type PageId } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -21,7 +22,8 @@ export function AppShell({ currentPage, onNavigate, children }: AppShellProps) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-14 shrink-0 items-center justify-between border-b px-6">
           <h1 className="text-base font-semibold">{activeItem?.label}</h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <SyncIndicator />
             <span className="text-sm text-muted-foreground">
               {session?.user.email}
             </span>

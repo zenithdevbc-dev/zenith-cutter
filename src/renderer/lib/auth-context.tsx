@@ -7,7 +7,7 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "./supabase";
-import { runSync } from "./sync";
+import { syncManager } from "./syncManager";
 import { setSessionPin, clearSessionPin } from "./pin";
 import type { Usuario, Empresa } from "@shared/models";
 
@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase || !session) {
       setUsuario(null);
       setEmpresa(null);
+      syncManager.stop();
       return;
     }
     const client = supabase;
@@ -75,11 +76,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         setUsuario(perfil);
-        runSync().catch(() => {
-          // Falha de rede/transitória — a fila continua pendente e uma
-          // próxima sincronização (próximo login, ou botão manual) tenta
-          // de novo. Nunca bloqueia o uso do app.
-        });
+        // Dispara o motor de sync (retry automático em segundo plano,
+        // detecção de rede/reconexão — Sprint 6); nunca bloqueia o uso
+        // do app se a rede estiver indisponível.
+        syncManager.start();
 
         const { data: empresaData } = await client
           .from("empresas")
@@ -128,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     clearSessionPin();
+    syncManager.stop();
     await supabase?.auth.signOut();
   }
 
