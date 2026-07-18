@@ -134,11 +134,38 @@ observações, histórico completo, offline + sync com Supabase.
 **Multiempresa (isolamento de dados) — decisão de 2026-07-07:** o MVP roda múltiplas
 empresas-cliente simultaneamente sobre a mesma infraestrutura Supabase, com isolamento
 via RLS (toda tabela de negócio carrega `empresa_id`; políticas restringem cada usuário
-aos dados da própria empresa). Cada usuário pertence a exatamente uma empresa
-(`usuarios.empresa_id`). Provisionar uma empresa nova (+ seu primeiro administrador) é
-uma operação de backend (Edge Function protegida por segredo, usada pelo time Zenith DEV
-ao fechar um cliente novo) — **não** existe tela de auto-cadastro/signup público de
-empresas no app, isso continua fora do escopo.
+aos dados da própria empresa) **e**, desde a correção crítica de 2026-07-18 (ver seção 7),
+também no SQLite local — RLS sozinha não bastava, porque a maioria das leituras da UI
+nunca passa pelo Supabase depois da criação inicial (ver `electron/main/session.ts`).
+Cada usuário pertence a exatamente uma empresa (`usuarios.empresa_id`). Provisionar uma
+empresa nova (+ seu primeiro administrador) é uma operação de backend — **não** existe
+tela de auto-cadastro/signup público de empresas no app, isso continua fora do escopo.
+
+### 5.1 Processo de provisionamento de empresa nova
+
+Feito via a Edge Function `create-empresa`
+(`supabase/functions/create-empresa/`), protegida por um segredo compartilhado
+(`EMPRESA_PROVISIONING_SECRET`, header `x-provisioning-secret`) — só quem tem esse
+segredo consegue criar empresa. Ela cria a empresa **e** o primeiro usuário (já como
+`administrador`) numa chamada só, atômica (reverte a empresa se o admin falhar).
+
+- **Segredo não é consultável depois de configurado** (nem no painel do Supabase, nem por
+  comando) — só existe em texto puro onde foi salvo no momento em que alguém do time o
+  definiu. Se for perdido, a única saída é gerar um novo e sobrescrever via
+  `supabase secrets set EMPRESA_PROVISIONING_SECRET=<novo-valor> --project-ref
+  ymslhcxdoiofqswwlcpn` (invalida o antigo, sem efeito colateral em mais nada do sistema).
+  Trocado por último em 2026-07-18 (o valor de 07/07/2026, da fundação do projeto, tinha
+  sido perdido).
+- **Guia manual passo a passo, escrito pra leigo**: `docs/criar-nova-empresa.md` — usar
+  quando quem for provisionar não tiver uma sessão de assistente de IA com acesso a este
+  repositório.
+- **Decisão de 2026-07-18 (pedido do usuário):** dentro de uma sessão com acesso a este
+  repositório e ao Supabase CLI já autenticado, o processo pode ser executado diretamente
+  (chamando a Edge Function pelos valores de `.env` + o segredo atual), sem precisar do
+  passo a passo manual — usuário passa os 5 campos (nome da empresa, nome do admin,
+  e-mail, login, senha), confirma os dados antes de rodar (evita erro de digitação virando
+  empresa real). Primeira empresa criada por esse caminho: `Empresa_Exemplo`, conta de
+  demonstração pra uso em negociações de venda (não é um cliente real).
 
 **Fora do escopo (não implementar, mesmo se parecer "fácil de adicionar"):**
 Financeiro, Estoque, Compras, PCP, Custos, Engenharia de Produto, Etiquetas, Leitores de
