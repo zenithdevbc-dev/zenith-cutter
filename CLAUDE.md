@@ -35,11 +35,12 @@ com duas pastas de projeto lado a lado, cada uma com seu próprio
   tabela acima descreve: Electron + React + SQLite). Todo comando (`npm
   install`, `npm run dev`, `npm run build:win` etc.) roda de dentro dessa
   pasta, não mais da raiz.
-- **`Mobile_Stance/`** — reservada para a futura versão mobile. **Vazia
-  por decisão explícita** até que escopo, stack e estratégia de
-  sincronização com o mesmo Supabase sejam alinhados com o usuário — não
-  criar código ali sem esse alinhamento prévio (mesma regra desta seção 2:
-  parar e perguntar antes).
+- **`Mobile_Stance/`** — versão mobile (Android, React Native + TypeScript,
+  ver entrega de 2026-07-18 em §7 e o plano completo referenciado lá).
+  Projeto Node independente do `Desktop_Stance/`, sem workspace/monorepo
+  entre os dois — tipos compartilhados são copiados à mão quando
+  necessário (baixo risco, espelham o schema Supabase, que é a fonte
+  real da verdade).
 
 Ficam na raiz (governam o produto como um todo, não só o Desktop):
 `CLAUDE.md`, `Context.md`, `.git/`, `.gitignore`.
@@ -244,6 +245,56 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-18** — **versão mobile — Fase A (fundação) entregue**
+  (pedido do usuário: "Precisamos de uma versão mobile, com
+  sincronização de dados e atualizações de sistema conjuntas a versão
+  de pc"). Plano completo de 4 fases alinhado e aprovado antes de
+  codar (App Mobile era item fora de escopo do §5) — decisões
+  confirmadas: escopo funcional = Produção completa (não só consulta);
+  plataforma = só Android; distribuição = APK direto fora de loja
+  (mesmo modelo do instalador desktop); atualização = mesmo mecanismo
+  técnico do desktop (o próprio app baixa/aplica, sem loja); sincronização
+  = celular como terminal fino (ações de produção exigem internet,
+  escrevem direto no Supabase — sem fila de escrita local), desktop
+  ganha um pull leve pra refletir o que o celular gravou (Fase C,
+  ainda não implementada). Justificativa completa e o porquê de cada
+  decisão: `C:\Users\mafio\.claude\plans\polymorphic-waddling-octopus.md`.
+  Stack nova (React Native CLI puro + TypeScript, sem Expo — decisão
+  também documentada no plano) vive isolada em `Mobile_Stance/`, projeto
+  Node próprio, sem afetar `Desktop_Stance/`.
+  Entregue nesta Fase A: scaffold RN 0.86 (pasta `ios/` removida,
+  Android-only), client Supabase
+  (`@supabase/supabase-js`+`react-native-url-polyfill`+
+  `@react-native-async-storage/async-storage`, mesmo trio do guia
+  oficial do Supabase pra RN), `.env`/`.env.example` via
+  `react-native-dotenv` (mesmas credenciais do projeto Supabase já
+  usado pelo desktop — projeto único, `SUPABASE_URL`/`SUPABASE_ANON_KEY`
+  sem prefixo `VITE_`), `src/models.ts` (cópia manual dos tipos
+  `Usuario`/`Empresa`/`PapelUsuario` de
+  `Desktop_Stance/src/shared/models.ts` — sem workspace/monorepo entre
+  as Stances, decisão do plano), `src/lib/auth-context.tsx` (mesmo
+  fluxo de 3 credenciais do desktop — RPC `resolve_login_email`
+  reaproveitada sem nenhuma mudança), telas `LoginScreen`/`HomeScreen`
+  (placeholder de confirmação, substituída pela tela de Produção real
+  na Fase B). **RLS não precisou de nenhuma migration nova** — as
+  policies já são baseadas em papel, não em qual app chama (conferido
+  em `0007`/`0026`, ver plano).
+  `npx tsc --noEmit`, `npx eslint .` e `npx jest` (1 suite) limpos.
+  No caminho: `@react-native/jest-preset` faltava como devDependency
+  explícita (só chegava via transitivo do template) e o
+  `transformIgnorePatterns` padrão do Jest não cobre
+  `react-native-url-polyfill`/`@react-native-async-storage/async-storage`
+  (publicam ESM) — corrigido; `@react-native-async-storage/async-storage`
+  rebaixado de `3.1.1` pra `2.2.0` porque a major 3.x não publica mais
+  o mock oficial de Jest no caminho esperado (`.../jest/async-storage-mock`),
+  e 2.x é a versão amplamente documentada/estável.
+  **Bloqueio para validar de verdade**: esta máquina de desenvolvimento
+  **não tem o Android SDK instalado** (`ANDROID_HOME` vazio, `adb` não
+  encontrado, sem Android Studio) — `npm run android` não builda ainda.
+  Instalar o Android Studio (ou só o SDK cmdline-tools + um dispositivo
+  físico via USB debugging, caminho mais leve) é a próxima decisão do
+  usuário antes de validar a Fase A rodando de verdade e seguir pra
+  Fase B. **Nada testado num emulador/dispositivo real ainda.**
 - **2026-07-18** — **repositório reestruturado em `Desktop_Stance` /
   `Mobile_Stance`** (pedido do usuário, preparação para uma versão
   mobile — ver §2.1). Todo o código/build que antes vivia na raiz
