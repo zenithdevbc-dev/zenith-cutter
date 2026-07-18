@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "build:win": "npm run build && electron-builder --win",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "release:publish": "node scripts/publish-release.js"
   },
   "repository": {
     "type": "git",
@@ -46,7 +47,12 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "artifactName": "Zenith-Cutter-Setup-${version}.${ext}"
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "https://ymslhcxdoiofqswwlcpn.supabase.co/storage/v1/object/public/releases"
     }
   },
   "devDependencies": {

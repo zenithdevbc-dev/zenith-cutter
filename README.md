@@ -41,6 +41,7 @@ normalmente — offline first).
 | `npm run typecheck` | `tsc --noEmit` nos três projetos (main/preload/renderer) |
 | `npm run build` | Typecheck + build de produção (renderer, main, preload) |
 | `npm run build:win` | Build completo + empacota o instalador Windows (NSIS) via `electron-builder` |
+| `npm run release:publish` | Sobe `release/latest.yml` + instalador `.exe`/`.blockmap` pro bucket de auto-update (rodar depois de `build:win`) |
 
 Depois de `npm run build:win`, o instalador fica em `release/`. Feche o
 app antes de rodar de novo (o `.exe` fica travado enquanto aberto).
@@ -98,12 +99,25 @@ supabase/
 
 ## Auto-update
 
-Ainda **sem provider configurado** — falta um bucket de releases no
-Supabase Storage. Quando existir, adicionar em `package.json`:
+Bucket público `releases` no Supabase Storage já criado e já
+configurado em `build.publish` do `package.json`
+(`provider: "generic"`). O lado cliente já existia desde o Sprint 0
+(`electron/main/updater.ts` + `UpdateNotifier.tsx`): baixa a
+atualização em segundo plano, mas só instala quando o operador fecha
+o app por conta própria — nunca reinicia sozinho (CLAUDE.md 3.1). Sem
+internet, o app roda normalmente e só ignora a checagem (nunca trava
+por isso — offline first).
 
-```json
-"build": { "publish": { "provider": "generic", "url": "<URL_PUBLICA_DO_BUCKET>" } }
-```
+Não há GitHub Releases aqui de propósito: o repositório é privado, e o
+provider "github" do electron-updater pra repo privado exige embutir
+no app instalado um token de leitura do repo — extraível por qualquer
+cliente que tiver o instalador. Um bucket público só com artefatos de
+release não carrega nenhum segredo.
 
-Até lá o app funciona normalmente e apenas não verifica atualizações
-(nunca trava por isso — reforça o princípio offline-first).
+**Fluxo de release:**
+1. Bump da `version` em `package.json` (o auto-updater só detecta uma
+   versão maior que a instalada).
+2. `npm run build:win` — gera `release/latest.yml` + o instalador.
+3. `npm run release:publish` — sobe os 3 arquivos pro bucket (precisa
+   de `SUPABASE_SERVICE_ROLE_KEY` no `.env`, ver `.env.example`; essa
+   chave nunca é lida pelo app, só por esse script).
