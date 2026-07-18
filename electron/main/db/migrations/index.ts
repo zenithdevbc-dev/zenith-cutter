@@ -670,4 +670,19 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 26,
+    name: "add_codigo_to_empresas",
+    up: (db) => {
+      db.exec(`
+        -- Código da empresa (formato AA00, gerado na criação — ver
+        -- supabase/functions/create-empresa) — segunda credencial no
+        -- login, pra não dar pra logar na empresa errada por acidente.
+        -- Só cache local pra exibição; a validação de verdade acontece
+        -- no Supabase (resolve_login_email), que exige rede — login
+        -- continua sem funcionar offline na primeira vez, igual antes.
+        ALTER TABLE empresas ADD COLUMN codigo TEXT;
+      `);
+    },
+  },
 ];

@@ -4,6 +4,7 @@ import type { Empresa } from "../../../../src/shared/models";
 interface EmpresaRow {
   id: string;
   nome: string;
+  codigo: string | null;
   ativo: number;
   criado_em: string;
 }
@@ -12,6 +13,7 @@ function rowToEmpresa(row: EmpresaRow): Empresa {
   return {
     id: row.id,
     nome: row.nome,
+    codigo: row.codigo ?? "",
     ativo: row.ativo === 1,
     criado_em: row.criado_em,
   };
@@ -20,14 +22,15 @@ function rowToEmpresa(row: EmpresaRow): Empresa {
 /**
  * Empresas não têm CRUD no app — provisionar uma é operação de backend
  * (ver supabase/functions/create-empresa). Aqui só cacheamos, pra exibir
- * o nome da empresa na UI mesmo offline.
+ * o nome/código da empresa na UI mesmo offline.
  */
 export function cacheEmpresa(db: Database.Database, empresa: Empresa) {
   db.prepare(`
-    INSERT INTO empresas (id, nome, ativo, criado_em)
-    VALUES (@id, @nome, @ativo, @criado_em)
+    INSERT INTO empresas (id, nome, codigo, ativo, criado_em)
+    VALUES (@id, @nome, @codigo, @ativo, @criado_em)
     ON CONFLICT (id) DO UPDATE SET
       nome = excluded.nome,
+      codigo = excluded.codigo,
       ativo = excluded.ativo,
       criado_em = excluded.criado_em
   `).run({ ...empresa, ativo: empresa.ativo ? 1 : 0 });

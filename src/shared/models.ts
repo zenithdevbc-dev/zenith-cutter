@@ -1,6 +1,7 @@
 export interface Empresa {
   id: string;
   nome: string;
+  codigo: string;
   ativo: boolean;
   criado_em: string;
 }
