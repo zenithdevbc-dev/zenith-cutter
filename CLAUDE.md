@@ -224,6 +224,19 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-18** — **aviso de atualização mais cedo**. Usuário notou
+  atraso entre abrir o app e o popup de atualização aparecer;
+  investigação mostrou que a checagem em si já era quase instantânea
+  (dispara junto com a criação da janela, `electron/main/index.ts`) —
+  o atraso real era o `UpdateNotifier.tsx` só avisar depois do
+  download completo do instalador (~134MB) terminar
+  (`update-downloaded`), não quando a versão nova era detectada.
+  Corrigido: novo evento `update-available` (dispara assim que a
+  checagem encontra versão nova, antes do download começar) mostra um
+  toast de "baixando em segundo plano..." imediatamente; o toast final
+  com o botão "Reiniciar e atualizar" só substitui esse (mesmo id)
+  quando o download realmente terminar. `npm run build` limpo. **Ainda
+  não publicado** (fica pra próxima versão, `v1.0.3`).
 - **2026-07-18** — **código de empresa (3ª credencial de login)**
   entregue (pedido do usuário — detalhe completo na seção 5.1). Nova
   migration Supabase `0033_empresas_codigo_login.sql` **já aplicada em
