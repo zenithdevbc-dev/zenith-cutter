@@ -41,7 +41,7 @@ export function exportarRelatorioProducaoPdf(
 ): void {
   gerarPdfTabela({
     titulo: "Relatório de Produção",
-    subtitulo: `Total: ${kpis.totalOrdens}  •  Concluídas: ${kpis.concluidas}  •  Em andamento: ${kpis.emAndamento}  •  Atrasadas: ${kpis.atrasadas}  •  Tempo médio: ${formatarDuracaoMinutos(kpis.tempoMedioMinutos)}`,
+    subtitulo: `Total de peças: ${kpis.totalPecas}  •  Concluídas: ${kpis.pecasConcluidas}  •  Em andamento: ${kpis.pecasEmAndamento}  •  Atrasadas: ${kpis.atrasadas}  •  Tempo médio: ${formatarDuracaoMinutos(kpis.tempoMedioMinutos)}`,
     colunas: COLUNAS,
     linhas: paraLinhasExportaveis(linhas),
     nomeArquivo: "relatorio-producao.pdf",

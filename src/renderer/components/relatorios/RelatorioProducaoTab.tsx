@@ -210,21 +210,21 @@ export function RelatorioProducaoTab({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Total de Ordens</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Total de Peças</CardTitle>
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{kpis.totalOrdens}</CardContent>
+          <CardContent className="text-2xl font-semibold">{kpis.totalPecas}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Concluídas</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Peças Concluídas</CardTitle>
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{kpis.concluidas}</CardContent>
+          <CardContent className="text-2xl font-semibold">{kpis.pecasConcluidas}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Em Andamento</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Peças em Andamento</CardTitle>
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{kpis.emAndamento}</CardContent>
+          <CardContent className="text-2xl font-semibold">{kpis.pecasEmAndamento}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">

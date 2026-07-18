@@ -79,9 +79,10 @@ export function formatarDuracaoMinutos(minutos: number | null): string {
 }
 
 export interface RelatorioProducaoKpis {
-  totalOrdens: number;
-  concluidas: number;
-  emAndamento: number;
+  totalPecas: number;
+  pecasConcluidas: number;
+  pecasEmAndamento: number;
+  /** Continua contando ordens, não peças — é sobre ordem com problema (prazo vencido), não volume produzido. */
   atrasadas: number;
   tempoMedioMinutos: number | null;
 }
@@ -90,14 +91,16 @@ export function calcularKpisRelatorioProducao(
   linhas: RelatorioProducaoLinha[],
 ): RelatorioProducaoKpis {
   const hojeISO = new Date().toISOString().slice(0, 10);
-  let concluidas = 0;
-  let emAndamento = 0;
+  let totalPecas = 0;
+  let pecasConcluidas = 0;
+  let pecasEmAndamento = 0;
   let atrasadas = 0;
   const temposConcluidos: number[] = [];
 
   for (const linha of linhas) {
-    if (linha.status === "pronto") concluidas += 1;
-    if (STATUS_EM_ANDAMENTO.includes(linha.status)) emAndamento += 1;
+    totalPecas += linha.quantidade_total;
+    if (linha.status === "pronto") pecasConcluidas += linha.quantidade_total;
+    if (STATUS_EM_ANDAMENTO.includes(linha.status)) pecasEmAndamento += linha.quantidade_total;
     if (isOrdemAtrasada(linha, hojeISO)) atrasadas += 1;
     if (linha.iniciado_em && linha.finalizado_em) {
       const minutos = calcularTempoProducaoMinutos(linha);
@@ -111,9 +114,9 @@ export function calcularKpisRelatorioProducao(
       : null;
 
   return {
-    totalOrdens: linhas.length,
-    concluidas,
-    emAndamento,
+    totalPecas,
+    pecasConcluidas,
+    pecasEmAndamento,
     atrasadas,
     tempoMedioMinutos,
   };
