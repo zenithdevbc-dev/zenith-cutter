@@ -554,16 +554,18 @@ export function registrarProducaoPerdaLocal(
     criado_em: now,
   };
 
-  db.prepare(`
-    INSERT INTO producao_perdas (id, empresa_id, sessao_id, produto_tamanho_id, quantidade, motivo, usuario_id, criado_em)
-    VALUES (@id, @empresa_id, @sessao_id, @produto_tamanho_id, @quantidade, @motivo, @usuario_id, @criado_em)
-  `).run(row);
-  enqueueChange(db, {
-    tableName: "producao_perdas",
-    recordId: id,
-    operation: "insert",
-    payload: row,
-  });
+  db.transaction(() => {
+    db.prepare(`
+      INSERT INTO producao_perdas (id, empresa_id, sessao_id, produto_tamanho_id, quantidade, motivo, usuario_id, criado_em)
+      VALUES (@id, @empresa_id, @sessao_id, @produto_tamanho_id, @quantidade, @motivo, @usuario_id, @criado_em)
+    `).run(row);
+    enqueueChange(db, {
+      tableName: "producao_perdas",
+      recordId: id,
+      operation: "insert",
+      payload: row,
+    });
+  })();
 
   const usuario = db
     .prepare<[string], { nome: string }>("SELECT nome FROM usuarios WHERE id = ?")
@@ -635,16 +637,18 @@ export function registrarProducaoObservacaoLocal(
     criado_em: now,
   };
 
-  db.prepare(`
-    INSERT INTO producao_observacoes (id, empresa_id, sessao_id, texto, usuario_id, criado_em)
-    VALUES (@id, @empresa_id, @sessao_id, @texto, @usuario_id, @criado_em)
-  `).run(row);
-  enqueueChange(db, {
-    tableName: "producao_observacoes",
-    recordId: id,
-    operation: "insert",
-    payload: row,
-  });
+  db.transaction(() => {
+    db.prepare(`
+      INSERT INTO producao_observacoes (id, empresa_id, sessao_id, texto, usuario_id, criado_em)
+      VALUES (@id, @empresa_id, @sessao_id, @texto, @usuario_id, @criado_em)
+    `).run(row);
+    enqueueChange(db, {
+      tableName: "producao_observacoes",
+      recordId: id,
+      operation: "insert",
+      payload: row,
+    });
+  })();
 
   const usuario = db
     .prepare<[string], { nome: string }>("SELECT nome FROM usuarios WHERE id = ?")

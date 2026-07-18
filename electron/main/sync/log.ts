@@ -28,15 +28,18 @@ export function recordSyncLog(
   db: Database.Database,
   entry: { trigger: SyncLogTrigger; attempted: number; synced: number; failed: number },
 ) {
-  db.prepare(
-    `INSERT INTO sync_log (trigger, attempted, synced, failed) VALUES (?, ?, ?, ?)`,
-  ).run(entry.trigger, entry.attempted, entry.synced, entry.failed);
+  const apply = db.transaction(() => {
+    db.prepare(
+      `INSERT INTO sync_log (trigger, attempted, synced, failed) VALUES (?, ?, ?, ?)`,
+    ).run(entry.trigger, entry.attempted, entry.synced, entry.failed);
 
-  db.prepare(
-    `DELETE FROM sync_log WHERE id NOT IN (
-       SELECT id FROM sync_log ORDER BY id DESC LIMIT ?
-     )`,
-  ).run(MAX_LOG_ROWS);
+    db.prepare(
+      `DELETE FROM sync_log WHERE id NOT IN (
+         SELECT id FROM sync_log ORDER BY id DESC LIMIT ?
+       )`,
+    ).run(MAX_LOG_ROWS);
+  });
+  apply();
 }
 
 export function listSyncLog(db: Database.Database, limit = 20): SyncLogEntry[] {
