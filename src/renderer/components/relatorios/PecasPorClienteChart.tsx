@@ -7,18 +7,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { OrdensPorClienteItem } from "@/lib/relatorioClientes";
+import type { PecasPorClienteItem } from "@/lib/relatorioClientes";
 
-interface OrdensPorClienteChartProps {
-  dados: OrdensPorClienteItem[];
+interface PecasPorClienteChartProps {
+  dados: PecasPorClienteItem[];
 }
 
 /**
- * Número de ordens por cliente (top clientes no período filtrado) —
+ * Peças produzidas por cliente (top clientes no período filtrado) —
  * série única, barras horizontais (nomes de cliente podem ser
  * longos). Cálculo em lib/relatorioClientes.ts; só renderiza.
  */
-export function OrdensPorClienteChart({ dados }: OrdensPorClienteChartProps) {
+export function PecasPorClienteChart({ dados }: PecasPorClienteChartProps) {
   if (dados.length === 0) {
     return <p className="text-sm text-muted-foreground">Sem ordens no período filtrado.</p>;
   }
@@ -46,7 +46,7 @@ export function OrdensPorClienteChart({ dados }: OrdensPorClienteChartProps) {
           width={110}
         />
         <Tooltip
-          formatter={(value) => [String(value ?? 0), "Ordens"]}
+          formatter={(value) => [String(value ?? 0), "Peças"]}
           contentStyle={{
             backgroundColor: "var(--color-card)",
             borderColor: "var(--color-border)",
@@ -54,7 +54,7 @@ export function OrdensPorClienteChart({ dados }: OrdensPorClienteChartProps) {
             fontSize: 12,
           }}
         />
-        <Bar dataKey="ordens" fill="var(--color-primary)" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="pecas" fill="var(--color-primary)" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

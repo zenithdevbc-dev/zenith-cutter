@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { OrdensPorClienteChart } from "@/components/relatorios/OrdensPorClienteChart";
+import { PecasPorClienteChart } from "@/components/relatorios/PecasPorClienteChart";
 import { AtividadeClientesChart } from "@/components/relatorios/AtividadeClientesChart";
 import { ClienteHistoricoDialog } from "@/components/relatorios/ClienteHistoricoDialog";
 import { formatarDuracaoMinutos } from "@/lib/relatorioProducao";
@@ -30,7 +30,7 @@ import {
   agruparPorCliente,
   formatarMateriaisUsados,
   calcularKpisRelatorioClientes,
-  calcularOrdensPorCliente,
+  calcularPecasPorCliente,
   calcularAtividadeClientesPorDia,
   type RelatorioClientesFiltros,
 } from "@/lib/relatorioClientes";
@@ -72,7 +72,7 @@ export function ClientesTab({ linhas, clientes, tecidos }: ClientesTabProps) {
     () => calcularKpisRelatorioClientes(clientes, agregado),
     [clientes, agregado],
   );
-  const ordensPorCliente = useMemo(() => calcularOrdensPorCliente(agregado), [agregado]);
+  const pecasPorCliente = useMemo(() => calcularPecasPorCliente(agregado), [agregado]);
   const atividade = useMemo(
     () => calcularAtividadeClientesPorDia(filtradas),
     [filtradas],
@@ -192,18 +192,18 @@ export function ClientesTab({ linhas, clientes, tecidos }: ClientesTabProps) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Ordens Produzidas</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Peças Produzidas</CardTitle>
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{kpis.ordensProduzidas}</CardContent>
+          <CardContent className="text-2xl font-semibold">{kpis.pecasProduzidas}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
-              Média de Ordens por Cliente
+              Média de Peças por Cliente
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
-            {kpis.mediaOrdensPorCliente}
+            {kpis.mediaPecasPorCliente}
           </CardContent>
         </Card>
       </div>
@@ -211,13 +211,13 @@ export function ClientesTab({ linhas, clientes, tecidos }: ClientesTabProps) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Ordens por Cliente</CardTitle>
+            <CardTitle className="text-sm">Peças por Cliente</CardTitle>
           </CardHeader>
           <CardContent>
             {carregando ? (
               <p className="text-sm text-muted-foreground">Carregando...</p>
             ) : (
-              <OrdensPorClienteChart dados={ordensPorCliente} />
+              <PecasPorClienteChart dados={pecasPorCliente} />
             )}
           </CardContent>
         </Card>
@@ -281,7 +281,7 @@ export function ClientesTab({ linhas, clientes, tecidos }: ClientesTabProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Cliente</TableHead>
-                      <TableHead>Ordens</TableHead>
+                      <TableHead>Peças</TableHead>
                       <TableHead>Última Ordem</TableHead>
                       <TableHead>Materiais Usados</TableHead>
                       <TableHead>Tempo Médio de Produção</TableHead>
@@ -292,7 +292,7 @@ export function ClientesTab({ linhas, clientes, tecidos }: ClientesTabProps) {
                     {visiveis.map((linha) => (
                       <TableRow key={linha.cliente_id}>
                         <TableCell className="font-medium">{linha.cliente}</TableCell>
-                        <TableCell>{linha.ordens}</TableCell>
+                        <TableCell>{linha.pecas}</TableCell>
                         <TableCell>
                           {new Date(linha.ultimaOrdem).toLocaleDateString("pt-BR")}
                         </TableCell>

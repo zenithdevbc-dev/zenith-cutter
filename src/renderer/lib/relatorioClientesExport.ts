@@ -3,12 +3,12 @@ import { formatarMateriaisUsados } from "@/lib/relatorioClientes";
 import { formatarDuracaoMinutos } from "@/lib/relatorioProducao";
 import { gerarCsv, gerarExcel, gerarPdfTabela } from "@/lib/exportUtils";
 
-const COLUNAS = ["Cliente", "Ordens", "Última Ordem", "Materiais Usados", "Tempo Médio de Produção"];
+const COLUNAS = ["Cliente", "Peças", "Última Ordem", "Materiais Usados", "Tempo Médio de Produção"];
 
 function paraLinhasExportaveis(linhas: ClienteAgregadoLinha[]): (string | number)[][] {
   return linhas.map((linha) => [
     linha.cliente,
-    linha.ordens,
+    linha.pecas,
     new Date(linha.ultimaOrdem).toLocaleDateString("pt-BR"),
     formatarMateriaisUsados(linha.materiaisUsados, linha.materiaisUsados.length),
     formatarDuracaoMinutos(linha.tempoMedioMinutos),

@@ -14,7 +14,7 @@ interface AtividadeClientesChartProps {
 }
 
 /**
- * Ordens criadas por dia no período filtrado (agregado — não por
+ * Peças encomendadas por dia no período filtrado (agregado — não por
  * cliente individual, só dias com ordem). Cálculo em
  * lib/relatorioClientes.ts; só renderiza.
  */
@@ -40,7 +40,7 @@ export function AtividadeClientesChart({ dados }: AtividadeClientesChartProps) {
           width={28}
         />
         <Tooltip
-          formatter={(value) => [String(value ?? 0), "Ordens criadas"]}
+          formatter={(value) => [String(value ?? 0), "Peças encomendadas"]}
           labelFormatter={(label) => `Dia ${label}`}
           contentStyle={{
             backgroundColor: "var(--color-card)",

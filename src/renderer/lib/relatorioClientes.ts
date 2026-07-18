@@ -40,7 +40,7 @@ export function filtrarRelatorioClientes(
 export interface ClienteAgregadoLinha {
   cliente_id: string;
   cliente: string;
-  ordens: number;
+  pecas: number;
   ultimaOrdem: string;
   materiaisUsados: string[];
   tempoMedioMinutos: number | null;
@@ -75,13 +75,13 @@ export function agruparPorCliente(linhas: RelatorioProducaoLinha[]): ClienteAgre
       return {
         cliente_id,
         cliente: ordens[0].cliente_nome,
-        ordens: ordens.length,
+        pecas: ordens.reduce((soma, o) => soma + o.quantidade_total, 0),
         ultimaOrdem,
         materiaisUsados,
         tempoMedioMinutos,
       };
     })
-    .sort((a, b) => b.ordens - a.ordens);
+    .sort((a, b) => b.pecas - a.pecas);
 }
 
 export function formatarMateriaisUsados(materiais: string[], limite = 3): string {
@@ -93,8 +93,8 @@ export function formatarMateriaisUsados(materiais: string[], limite = 3): string
 export interface RelatorioClientesKpis {
   totalClientes: number;
   clientesAtivos: number;
-  ordensProduzidas: number;
-  mediaOrdensPorCliente: number;
+  pecasProduzidas: number;
+  mediaPecasPorCliente: number;
 }
 
 /**
@@ -108,23 +108,23 @@ export function calcularKpisRelatorioClientes(
 ): RelatorioClientesKpis {
   const totalClientes = todosClientes.length;
   const clientesAtivos = agregado.length;
-  const ordensProduzidas = agregado.reduce((soma, l) => soma + l.ordens, 0);
-  const mediaOrdensPorCliente =
-    clientesAtivos > 0 ? Math.round((ordensProduzidas / clientesAtivos) * 10) / 10 : 0;
-  return { totalClientes, clientesAtivos, ordensProduzidas, mediaOrdensPorCliente };
+  const pecasProduzidas = agregado.reduce((soma, l) => soma + l.pecas, 0);
+  const mediaPecasPorCliente =
+    clientesAtivos > 0 ? Math.round((pecasProduzidas / clientesAtivos) * 10) / 10 : 0;
+  return { totalClientes, clientesAtivos, pecasProduzidas, mediaPecasPorCliente };
 }
 
-export interface OrdensPorClienteItem {
+export interface PecasPorClienteItem {
   cliente: string;
-  ordens: number;
+  pecas: number;
 }
 
-/** Top clientes por número de ordens — gráfico "Ordens por Cliente". */
-export function calcularOrdensPorCliente(
+/** Top clientes por peças produzidas — gráfico "Peças por Cliente". */
+export function calcularPecasPorCliente(
   agregado: ClienteAgregadoLinha[],
   limite = 8,
-): OrdensPorClienteItem[] {
-  return agregado.slice(0, limite).map((l) => ({ cliente: l.cliente, ordens: l.ordens }));
+): PecasPorClienteItem[] {
+  return agregado.slice(0, limite).map((l) => ({ cliente: l.cliente, pecas: l.pecas }));
 }
 
 export interface AtividadeClientesItem {
@@ -134,7 +134,7 @@ export interface AtividadeClientesItem {
 }
 
 /**
- * Ordens criadas por dia no período filtrado (só dias com ordem,
+ * Peças encomendadas por dia no período filtrado (só dias com ordem,
  * agregado — não é por cliente individual, pra não exigir paleta
  * categórica de N cores). Alimenta "Atividade de Clientes ao Longo do
  * Tempo".
@@ -145,7 +145,7 @@ export function calcularAtividadeClientesPorDia(
   const porDia = new Map<string, number>();
   for (const linha of linhas) {
     const dia = linha.criado_em.slice(0, 10);
-    porDia.set(dia, (porDia.get(dia) ?? 0) + 1);
+    porDia.set(dia, (porDia.get(dia) ?? 0) + linha.quantidade_total);
   }
   return Array.from(porDia.entries())
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
