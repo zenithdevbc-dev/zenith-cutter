@@ -1,7 +1,7 @@
 {
   "name": "zenith-cutter",
   "productName": "Zenith Cutter",
-  "version": "1.1.2",
+  "version": "1.0.0",
   "description": "Gerenciamento do setor de corte de confecções",
   "private": true,
   "main": "dist-electron/main/index.js",
