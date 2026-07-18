@@ -186,6 +186,58 @@ implementar.
 
 ## 7. Estado atual
 
+- Correção **2026-07-18**: **3 achados críticos da auditoria completa**
+  (pedido do usuário — "Finalizamos o MVP. Confira todo o projeto...
+  procure por erros de segurança, breackpoints e etc.", rodada com 3
+  subagentes paralelos: frontend, backend/dados, segurança/multi-tenant).
+  1. **Motor de sync podia travar pra sempre**:
+     `src/renderer/lib/syncManager.ts` `syncNow()` só protegia a chamada
+     de `runSync()` com try/catch — se `logRecord`/`refreshCounts`
+     falhassem depois, `syncing` ficava `true` permanentemente,
+     congelando o indicador do header e desligando o motor até reiniciar
+     o app. Corrigido: todo o corpo depois de `setState({syncing:true})`
+     entrou num `try/finally`, que agora **sempre** libera `syncing`,
+     tenta atualizar contadores e reagenda o próximo ciclo, não importa
+     o que falhe no meio.
+  2. **Histórico de ações do Operador nunca chegava no Supabase**: a
+     policy de INSERT de `ordem_corte_historico` (0014) só permitia
+     administrador/supervisor, mas `registrarHistorico()` também é
+     chamado pra ações de Operador (iniciar/avançar etapa/pausar/
+     retomar — Produção é acessível a todos os papéis, 3.6). Toda
+     entrada criada por Operador ficava presa na fila local, esgotava
+     as 5 tentativas e virava erro permanente — a maior parte da
+     atividade real do chão de fábrica nunca chegava na cópia auditável
+     da nuvem (quebra 3.5). Corrigido: migration
+     `supabase/sql/0030_ordem_corte_historico_insert_operador.sql`
+     estende o INSERT pra incluir `operador` (SELECT continua só
+     administrador/supervisor — a tela que exibe é exclusiva deles).
+  3. **RLS de `sessoes_producao` não travava coluna por coluna**: a
+     policy de UPDATE do Operador (0025) só valida o valor final de
+     `status` — via API direta, um Operador podia reescrever
+     `iniciado_por` ou `mesa_id` de qualquer sessão da empresa,
+     reatribuindo autoria/mesa de uma sessão que não é dele. Corrigido:
+     migration
+     `supabase/sql/0031_sessoes_producao_operador_restringe_colunas.sql`,
+     trigger (mesmo padrão de `0005_prevent_last_admin_lockout.sql`)
+     torna `empresa_id`/`ordem_id`/`mesa_id`/`iniciado_por`/
+     `iniciado_em`/`criado_em` imutáveis depois do INSERT, pra qualquer
+     papel — conferido que nenhum caminho legítimo do app jamais muda
+     essas colunas; deliberadamente não restringido a
+     `iniciado_por = auth.uid()` porque o app permite handoff entre
+     operadores (um avança/finaliza sessão iniciada por outro).
+  **Migrations 0030 e 0031 pendentes de execução manual** no SQL Editor
+  do Supabase (mesma rotina de sempre). `npm run typecheck` limpo.
+  Achados médios/baixos da mesma auditoria (RLS de `ordens_corte`
+  Operador com o mesmo gap de coluna; gate de reordenar
+  fila/atribuir mesa só na UI, não no repositório; restauração de
+  backup sem `PRAGMA integrity_check`; `foreign_keys=ON` sem nenhuma
+  `REFERENCES` declarada; comparação não constant-time no segredo de
+  `create-empresa`; `CHECK` faltando em `ordem_corte_itens.quantidade`;
+  algumas gravações fora de `db.transaction()`; PIN sem limite de
+  tentativas; `sandbox:false` sem justificativa; mensagem de erro de
+  login diferenciando login-inexistente de senha-errada) **ficaram
+  registrados mas não corrigidos nesta rodada** — não pedidos
+  explicitamente, fica pra decidir com o usuário se/quando corrigir.
 - Entrega **2026-07-18**: **auto-update com provider configurado**
   (pedido do usuário — "precisamos do instalador, e atualizador
   automático"). Instalador já funcionava de ponta a ponta desde o
