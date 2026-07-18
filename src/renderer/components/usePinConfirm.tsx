@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { verifyPin } from "@/lib/pin";
+import { verifyPin, pinBloqueadoRestanteMs } from "@/lib/pin";
 
 /**
  * Confirmação de PIN antes de criar/editar/cancelar/duplicar uma Ordem
@@ -53,7 +53,12 @@ export function usePinConfirm() {
     if (ok) {
       resolveAndClose(true);
     } else {
-      setError("PIN incorreto.");
+      const restanteMs = pinBloqueadoRestanteMs();
+      if (restanteMs > 0) {
+        setError(`Muitas tentativas erradas. Aguarde ${Math.ceil(restanteMs / 1000)}s e tente de novo.`);
+      } else {
+        setError("PIN incorreto.");
+      }
     }
   }
 
