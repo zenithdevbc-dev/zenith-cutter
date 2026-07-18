@@ -215,7 +215,22 @@ implementar.
      salvar arquivo e roda `getDb().backup(destino)` — API nativa do
      `better-sqlite3` (hot backup), não uma cópia crua do `.sqlite`,
      que podia perder dado ainda no WAL (o banco roda em
-     `journal_mode = WAL`).
+     `journal_mode = WAL`). Entrega original só cobria "salvar" — o
+     usuário perguntou como funcionava a restauração e não havia
+     nenhuma, então virou uma 2ª rodada na mesma frente:
+     **restaurar backup**, atrás de confirmação por PIN (é destrutivo,
+     substitui o banco local inteiro — CLAUDE.md 3.1). Main valida que
+     o arquivo escolhido é um backup de verdade (checa a tabela
+     `schema_migrations`), fecha a conexão viva
+     (`electron/main/db/index.ts` ganhou `closeDb()`), remove sidecars
+     de WAL do banco atual, copia o backup por cima e reabre — mas
+     ainda pede reinício manual do app depois (decisão explícita: nada
+     de `app.relaunch()` automático, o estado em memória do React
+     ficaria inconsistente com o banco trocado embaixo dele, e reforça
+     3.1 — nenhuma ação automática silenciosa). Decisão do usuário:
+     dado sincronizado depois do backup pode ser perdido/reintroduzido
+     ao restaurar — aceitável como cenário de recuperação de desastre,
+     a sincronização seguinte resolve as diferenças.
   3. **Otimizações**: as 6 páginas de `App.tsx` viraram
      `React.lazy()`/`Suspense` em vez de import estático — o chunk
      inicial (tudo que carrega antes de qualquer página abrir) caiu de
