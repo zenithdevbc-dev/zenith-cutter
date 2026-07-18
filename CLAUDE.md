@@ -24,6 +24,26 @@ controlando todo o fluxo operacional desde a criação da Ordem de Corte até su
 | Autenticação | Supabase Auth |
 | Sincronização | Fila assíncrona SQLite ↔ Supabase |
 
+### 2.1 Estrutura de pastas — Desktop_Stance / Mobile_Stance
+
+Decisão de 2026-07-18 (pedido do usuário, preparação para uma futura versão
+mobile): a raiz do repositório (`Zenith_Cutter/`) passou a ser um contêiner
+com duas pastas de projeto lado a lado, cada uma com seu próprio
+`package.json`/build:
+
+- **`Desktop_Stance/`** — todo o código e build que hoje existe (o que a
+  tabela acima descreve: Electron + React + SQLite). Todo comando (`npm
+  install`, `npm run dev`, `npm run build:win` etc.) roda de dentro dessa
+  pasta, não mais da raiz.
+- **`Mobile_Stance/`** — reservada para a futura versão mobile. **Vazia
+  por decisão explícita** até que escopo, stack e estratégia de
+  sincronização com o mesmo Supabase sejam alinhados com o usuário — não
+  criar código ali sem esse alinhamento prévio (mesma regra desta seção 2:
+  parar e perguntar antes).
+
+Ficam na raiz (governam o produto como um todo, não só o Desktop):
+`CLAUDE.md`, `Context.md`, `.git/`, `.gitignore`.
+
 Não introduza frameworks, bibliotecas de estado, ORMs ou padrões de arquitetura fora dessa
 lista sem perguntar antes. Se uma tarefa parecer exigir isso, pare e explique o motivo antes
 de implementar.
@@ -224,6 +244,27 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-18** — **repositório reestruturado em `Desktop_Stance` /
+  `Mobile_Stance`** (pedido do usuário, preparação para uma versão
+  mobile — ver §2.1). Todo o código/build que antes vivia na raiz
+  (`electron/`, `src/`, `supabase/`, `docs/`, `scripts/`,
+  `package.json`, `node_modules/`, `dist/`, `release/`, `.env`, etc.)
+  foi movido para `Desktop_Stance/` via `git mv` (histórico
+  preservado); `CLAUDE.md`/`Context.md`/`.gitignore` continuam na
+  raiz, por serem contexto de produto como um todo, não só do app
+  desktop. `Mobile_Stance/` criada só com um README placeholder —
+  **nenhum código mobile criado ainda**, por decisão explícita (stack
+  e escopo mobile ainda não foram discutidos/aprovados). Referência de
+  caminho em `docs/criar-nova-empresa.md` corrigida para o novo local
+  (`Zenith_Cutter\Desktop_Stance`). `npm run build` (typecheck + vite
+  build, rodado de dentro de `Desktop_Stance/`) limpo depois da
+  movimentação — nenhum path relativo interno quebrou (`vite.config.ts`/
+  `tsconfig.json` usam `__dirname`/paths relativos, `iniciar-dev.bat`
+  usa `%~dp0`). **Atenção**: qualquer atalho/script/rotina que
+  referenciasse a raiz antiga como pasta de comando (ex.: atalho da
+  Desktop apontando pra `release/win-unpacked/...`, terminal já aberto
+  com `cd` pra raiz antiga) precisa ser atualizado pra apontar dentro
+  de `Desktop_Stance/` agora.
 - **2026-07-18** — **aviso de atualização mais cedo**. Usuário notou
   atraso entre abrir o app e o popup de atualização aparecer;
   investigação mostrou que a checagem em si já era quase instantânea

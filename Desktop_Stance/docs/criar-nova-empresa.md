@@ -27,10 +27,10 @@ acesso ao projeto, se não tiver):
 
 1. **O computador da Zenith DEV** (o seu, de desenvolvimento — **não**
    é o computador do cliente) com o projeto do Zenith Cutter já
-   baixado (a pasta `Zenith_Cutter`), com um arquivo chamado `.env`
-   dentro dela. O computador do cliente só entra na história lá no
-   passo 6, e só pra receber o instalador pronto — ele nunca precisa
-   do código-fonte nem do `.env`.
+   baixado (a pasta `Zenith_Cutter\Desktop_Stance`), com um arquivo
+   chamado `.env` dentro dela. O computador do cliente só entra na
+   história lá no passo 6, e só pra receber o instalador pronto — ele
+   nunca precisa do código-fonte nem do `.env`.
 2. **A "senha mestra" de criação de empresas** — um código secreto
    chamado `EMPRESA_PROVISIONING_SECRET`. Esse código **não pode ser
    consultado em nenhuma tela nem comando** depois de configurado (é
@@ -56,7 +56,7 @@ acesso ao projeto, se não tiver):
 
 1. Abra o **Explorador de Arquivos** do Windows e navegue até a pasta
    do projeto (algo como
-   `C:\Users\...\Desktop\ZENITH DEV\Zenith_Cutter`).
+   `C:\Users\...\Desktop\ZENITH DEV\Zenith_Cutter\Desktop_Stance`).
 2. Clique uma vez na barra de endereço no topo da janela (onde mostra
    o caminho da pasta), apague o que estiver escrito ali, digite
    `powershell` e aperte **Enter**.

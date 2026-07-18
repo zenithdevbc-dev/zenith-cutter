@@ -1,46 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-“The first of a story”
-
-
-
-
-
-
-
-
-
-
-
-
-“Technology serving the highest purpose.”
-
-“Purpose-driven code.”
-
-
 Zenith Cutter MVP
 Roadmap Oficial de Desenvolvimento
 Versão: 1.0
@@ -121,52 +78,22 @@ Fila de sincronização assíncrona entre SQLite e Supabase.
 
 5. Fluxo Oficial da Produção
 Nova Ordem
-
-↓
-
 Fila de Produção
-
-↓
-
 Operador seleciona "Iniciar"
-
-↓
-
 Seleciona uma Mesa Livre
-
-↓
-
 Confirma
-
-↓
-
 Em Corte
-
-↓
-
 Pausar (opcional)
-
-↓
-
 Retomar (opcional)
-
-↓
-
 Finalizar
-
-↓
-
 Conferência
-
-↓
-
-Finalizada
+finalizada
 
 Nenhuma etapa será iniciada automaticamente.
 
 6. Roadmap
 Sprint 0 — Fundação
-Objetivo
+Objetivo 
 Preparar toda a infraestrutura necessária para o desenvolvimento do sistema.
 Entregas
 Estrutura Electron.
@@ -319,4 +246,3 @@ Pronto para implantação em clientes piloto.
 
 9. Visão Pós-MVP
 Após a validação do MVP junto aos clientes piloto, o produto poderá evoluir para uma plataforma completa de gestão industrial, adicionando módulos como estoque, PCP, planejamento, indicadores avançados, integrações e recursos inteligentes, preservando a arquitetura estabelecida nesta primeira versão.
-
