@@ -73,6 +73,7 @@ declare global {
         logList: (limit?: number) => Promise<SyncLogEntry[]>;
       };
       updater: {
+        onUpdateAvailable: (callback: () => void) => () => void;
         onUpdateDownloaded: (callback: () => void) => () => void;
         quitAndInstall: () => Promise<void>;
       };

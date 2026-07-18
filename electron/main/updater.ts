@@ -11,6 +11,14 @@ autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 
 export function initAutoUpdater(mainWindow: BrowserWindow) {
+  // Dispara assim que a checagem encontra uma versão nova — antes do
+  // download (~134MB) terminar. Pedido do usuário: avisar mais cedo em
+  // vez de só notificar quando o download completo já tiver acabado
+  // (update-downloaded, que pode demorar dependendo da internet).
+  autoUpdater.on("update-available", () => {
+    mainWindow.webContents.send(IPC_CHANNELS.updaterUpdateAvailable);
+  });
+
   autoUpdater.on("update-downloaded", () => {
     mainWindow.webContents.send(IPC_CHANNELS.updaterUpdateDownloaded);
   });

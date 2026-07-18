@@ -57,6 +57,7 @@ export const IPC_CHANNELS = {
   syncResetError: "sync:reset-error",
   syncLogRecord: "sync:log-record",
   syncLogList: "sync:log-list",
+  updaterUpdateAvailable: "updater:update-available",
   updaterUpdateDownloaded: "updater:update-downloaded",
   updaterQuitAndInstall: "updater:quit-and-install",
   usuariosListLocal: "usuarios:list-local",

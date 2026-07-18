@@ -84,6 +84,12 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.syncLogList, limit),
   },
   updater: {
+    onUpdateAvailable: (callback: () => void) => {
+      const listener = () => callback();
+      ipcRenderer.on(IPC_CHANNELS.updaterUpdateAvailable, listener);
+      return () =>
+        ipcRenderer.removeListener(IPC_CHANNELS.updaterUpdateAvailable, listener);
+    },
     onUpdateDownloaded: (callback: () => void) => {
       const listener = () => callback();
       ipcRenderer.on(IPC_CHANNELS.updaterUpdateDownloaded, listener);
