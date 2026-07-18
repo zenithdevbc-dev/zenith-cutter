@@ -186,6 +186,42 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-18** — **falha crítica de isolamento multiempresa
+  corrigida** (reportada pelo usuário: "se eu logar com usuário e
+  senha de outra empresa, consigo logar nela"). Causa raiz: o SQLite
+  local é um único arquivo por instalação/máquina — nenhuma leitura
+  (`list*Local`/`get*Local`, em clientes/produtos/tecidos/mesas/grade
+  de tamanhos/usuários/ordens de corte/fila/produção/relatórios)
+  filtrava por `empresa_id`. RLS do Supabase protege o dado em
+  trânsito/push, mas é irrelevante pra leitura local — que é a fonte
+  de verdade da UI pra quase tudo (só `usuarios` re-baixa do Supabase;
+  o resto nunca é re-sincronizado pra leitura, só criado local e
+  empurrado). Uma máquina que já rodou pra Empresa A e depois loga com
+  um usuário da Empresa B continuava mostrando/editando os dados de A,
+  indefinidamente (nunca purgados).
+  Corrigido: novo `electron/main/session.ts` guarda a `empresa_id` do
+  usuário autenticado agora, só em memória do processo main — setado
+  por `auth-context.tsx` logo após resolver o perfil (antes de liberar
+  a UI, pra não ter janela de corrida) e limpo no logout/perda de
+  sessão. Toda leitura local (`list*Local`/`get*Local`) em todos os
+  repositórios passa a filtrar `WHERE empresa_id = <empresa da
+  sessão>`; escritas por id (`update*Local`, lookups de
+  iniciar/pausar/retomar/avançar etapa/registrar perda/observação)
+  também passam a exigir `empresa_id` igual, fechando o mesmo tipo de
+  vazamento em escrita. `npm run build` (typecheck + vite build) limpo
+  a cada um dos 5 commits.
+  **Gap residual, conhecido e não corrigido nesta rodada** (defense in
+  depth, não bloqueia mais o vazamento em si): os dados de empresas
+  antigas continuam fisicamente no arquivo `.sqlite` da máquina —
+  filtrados de toda leitura agora, mas nunca purgados/removidos do
+  disco. Só relevante se alguém tiver acesso direto ao arquivo do
+  banco (fora do app). Não perguntado ao usuário se quer isso também;
+  sinalizar se quiser.
+  **Importante para teste**: como a lógica mudou no processo main
+  (`electron/`), precisa `npm run build:win` de novo antes de validar
+  no app empacotado — o atalho antigo não reflete essa correção (ver
+  `feedback_rebuild_packaged_app.md`). **Não testado manualmente
+  ainda.**
 - **2026-07-18** — **RC → v1.0.0, release oficial publicada**. Depois
   do teste de auto-update confirmado (entrada abaixo), `package.json`
   voltou de `1.1.2` (só o build de teste) pra `1.0.0` — esquema de
