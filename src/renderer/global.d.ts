@@ -127,7 +127,7 @@ declare global {
       };
       filaProducao: {
         listLocal: () => Promise<OrdemCorteResumo[]>;
-        reorderLocal: (orderedIds: string[]) => Promise<OrdemCorteResumo[]>;
+        reorderLocal: (orderedIds: string[], usuarioId: string) => Promise<OrdemCorteResumo[]>;
       };
       producao: {
         listMesasLocal: () => Promise<MesaCorteComStatus[]>;

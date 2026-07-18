@@ -8,6 +8,9 @@ export function listFilaProducao(): Promise<OrdemCorteResumo[]> {
   return window.zenith.filaProducao.listLocal();
 }
 
-export function reorderFilaProducao(orderedIds: string[]): Promise<OrdemCorteResumo[]> {
-  return window.zenith.filaProducao.reorderLocal(orderedIds);
+export function reorderFilaProducao(
+  orderedIds: string[],
+  usuarioId: string,
+): Promise<OrdemCorteResumo[]> {
+  return window.zenith.filaProducao.reorderLocal(orderedIds, usuarioId);
 }

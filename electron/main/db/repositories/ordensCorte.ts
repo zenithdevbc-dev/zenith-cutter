@@ -11,6 +11,7 @@ import {
   type OrdemCorteUpdatePatch,
 } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+import { requireAdminOuSupervisor } from "./usuarios";
 
 export const STATUS_LABEL: Record<string, string> = {
   aberta: "Aberta",
@@ -496,6 +497,8 @@ export function atribuirMesaFilaLocal(
   mesaAtribuidaId: string | null,
   usuarioId: string,
 ): OrdemCorteResumo {
+  requireAdminOuSupervisor(db, usuarioId, "atribuir mesa na fila de produção");
+
   const row = db
     .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
     .get(ordemId);

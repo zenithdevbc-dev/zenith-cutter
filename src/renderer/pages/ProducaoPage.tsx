@@ -126,7 +126,7 @@ export function ProducaoPage() {
   }
 
   async function handleMove(index: number, direction: -1 | 1) {
-    if (!fila) return;
+    if (!fila || !usuario) return;
     const targetIndex = index + direction;
     if (targetIndex < 0 || targetIndex >= fila.length) return;
 
@@ -135,7 +135,7 @@ export function ProducaoPage() {
     setFila(reordered);
 
     try {
-      const updated = await reorderFilaProducao(reordered.map((o) => o.id));
+      const updated = await reorderFilaProducao(reordered.map((o) => o.id), usuario.id);
       setFila(updated);
     } catch {
       toast.error("Não foi possível reordenar a fila.");

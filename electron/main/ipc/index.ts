@@ -348,8 +348,8 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(
     IPC_CHANNELS.filaProducaoReorderLocal,
-    (_event, orderedIds: string[]): OrdemCorteResumo[] => {
-      return reorderFilaProducaoLocal(getDb(), orderedIds);
+    (_event, orderedIds: string[], usuarioId: string): OrdemCorteResumo[] => {
+      return reorderFilaProducaoLocal(getDb(), orderedIds, usuarioId);
     },
   );
 

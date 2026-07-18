@@ -28,6 +28,27 @@ function rowToUsuario(row: UsuarioRow): Usuario {
   };
 }
 
+/**
+ * Defesa em profundidade (auditoria): o gate de admin/supervisor pra
+ * reordenar a fila e atribuir mesa (CLAUDE.md 3.6) existia só na UI
+ * (ProducaoPage.tsx) — um Operador chamando o IPC direto via DevTools
+ * conseguia gravar essas ações na base local mesmo assim (o Supabase
+ * rejeitaria via RLS, mas a cópia local ficava corrompida até alguém
+ * perceber). Repete a checagem aqui, na camada de repositório.
+ */
+export function requireAdminOuSupervisor(
+  db: Database.Database,
+  usuarioId: string,
+  acao: string,
+): void {
+  const row = db
+    .prepare<[string], { papel: string }>("SELECT papel FROM usuarios WHERE id = ?")
+    .get(usuarioId);
+  if (!row || (row.papel !== "administrador" && row.papel !== "supervisor")) {
+    throw new Error(`Apenas administrador ou supervisor pode ${acao}.`);
+  }
+}
+
 export function listUsuariosLocal(db: Database.Database): Usuario[] {
   const rows = db
     .prepare<[], UsuarioRow>("SELECT * FROM usuarios ORDER BY nome ASC")

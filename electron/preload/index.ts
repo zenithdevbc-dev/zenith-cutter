@@ -177,8 +177,8 @@ contextBridge.exposeInMainWorld("zenith", {
   filaProducao: {
     listLocal: (): Promise<OrdemCorteResumo[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.filaProducaoListLocal),
-    reorderLocal: (orderedIds: string[]): Promise<OrdemCorteResumo[]> =>
-      ipcRenderer.invoke(IPC_CHANNELS.filaProducaoReorderLocal, orderedIds),
+    reorderLocal: (orderedIds: string[], usuarioId: string): Promise<OrdemCorteResumo[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.filaProducaoReorderLocal, orderedIds, usuarioId),
   },
   producao: {
     listMesasLocal: (): Promise<MesaCorteComStatus[]> =>

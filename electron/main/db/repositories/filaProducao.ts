@@ -1,6 +1,7 @@
 import type Database from "better-sqlite3";
 import type { OrdemCorteResumo } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+import { requireAdminOuSupervisor } from "./usuarios";
 
 interface OrdemCorteResumoRow {
   id: string;
@@ -80,7 +81,10 @@ export function listFilaProducaoLocal(db: Database.Database): OrdemCorteResumo[]
 export function reorderFilaProducaoLocal(
   db: Database.Database,
   orderedIds: string[],
+  usuarioId: string,
 ): OrdemCorteResumo[] {
+  requireAdminOuSupervisor(db, usuarioId, "reordenar a fila de produção");
+
   const now = new Date().toISOString();
 
   const apply = db.transaction(() => {
