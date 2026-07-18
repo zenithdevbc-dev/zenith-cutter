@@ -39,11 +39,10 @@ function createMainWindow() {
   });
 
   mainWindow.once("ready-to-show", () => {
+    // Pedido do usuário: abre sempre maximizada (mantém a barra de
+    // título/controles da janela — diferente de tela cheia/kiosk).
+    mainWindow?.maximize();
     mainWindow?.show();
-    // Marcador temporário só pra testar a detecção do auto-update
-    // (versão 1.1.2) — reverter depois que o teste confirmar que uma
-    // instalação anterior detecta/baixa/instala essa versão nova.
-    mainWindow?.setFullScreen(true);
   });
 
   // Ajuda a diagnosticar "o app fechou sozinho" sem depender do
