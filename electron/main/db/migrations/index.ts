@@ -639,4 +639,35 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 25,
+    name: "add_check_quantidade_ordem_corte_itens",
+    up: (db) => {
+      db.exec(`
+        -- Achado de auditoria: o schema local nunca teve CHECK(quantidade > 0)
+        -- em ordem_corte_itens, diferente do Supabase (0010_ordens_corte.sql,
+        -- já nasceu com o CHECK). Uma quantidade negativa gravada offline
+        -- corromperia silenciosamente todo SUM(quantidade) usado nos
+        -- relatórios de peças. SQLite não permite ALTER de CHECK — recria a
+        -- tabela preservando dados, mesmo padrão já usado em ordens_corte.
+        CREATE TABLE ordem_corte_itens_new (
+          id                 TEXT PRIMARY KEY,
+          empresa_id         TEXT NOT NULL,
+          ordem_id           TEXT NOT NULL,
+          produto_tamanho_id TEXT NOT NULL,
+          quantidade         INTEGER NOT NULL CHECK (quantidade > 0)
+        );
+
+        INSERT INTO ordem_corte_itens_new
+          (id, empresa_id, ordem_id, produto_tamanho_id, quantidade)
+          SELECT id, empresa_id, ordem_id, produto_tamanho_id, quantidade
+          FROM ordem_corte_itens;
+
+        DROP TABLE ordem_corte_itens;
+        ALTER TABLE ordem_corte_itens_new RENAME TO ordem_corte_itens;
+
+        CREATE INDEX idx_ordem_corte_itens_ordem ON ordem_corte_itens (ordem_id);
+      `);
+    },
+  },
 ];
