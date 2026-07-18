@@ -16,6 +16,25 @@ export interface PendingSyncItem {
   operation: SyncOperation;
   payload: unknown;
   retryCount: number;
+  errorMessage: string | null;
+}
+
+export type SyncLogTrigger = "manual" | "login" | "auto" | "reconexao";
+
+export interface SyncLogEntry {
+  id: number;
+  trigger: SyncLogTrigger;
+  attempted: number;
+  synced: number;
+  failed: number;
+  criadoEm: string;
+}
+
+export interface SyncLogRecordInput {
+  trigger: SyncLogTrigger;
+  attempted: number;
+  synced: number;
+  failed: number;
 }
 
 export const IPC_CHANNELS = {
@@ -24,6 +43,10 @@ export const IPC_CHANNELS = {
   syncListPending: "sync:list-pending",
   syncMarkSuccess: "sync:mark-success",
   syncMarkError: "sync:mark-error",
+  syncListErrors: "sync:list-errors",
+  syncResetError: "sync:reset-error",
+  syncLogRecord: "sync:log-record",
+  syncLogList: "sync:log-list",
   updaterUpdateDownloaded: "updater:update-downloaded",
   updaterQuitAndInstall: "updater:quit-and-install",
   usuariosListLocal: "usuarios:list-local",

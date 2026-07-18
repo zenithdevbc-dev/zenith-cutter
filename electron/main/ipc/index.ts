@@ -5,6 +5,8 @@ import {
   type DbStatus,
   type SyncStatus,
   type PendingSyncItem,
+  type SyncLogEntry,
+  type SyncLogRecordInput,
 } from "../../../src/shared/ipc";
 import type {
   Usuario,
@@ -48,7 +50,10 @@ import {
   listPendingSync,
   markSyncSuccess,
   markSyncError,
+  listErrorSync,
+  resetSyncError,
 } from "../sync/queue";
+import { recordSyncLog, listSyncLog } from "../sync/log";
 import { quitAndInstall } from "../updater";
 import {
   listUsuariosLocal,
@@ -135,6 +140,25 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.syncMarkError, (_event, id: number, message: string) => {
     markSyncError(getDb(), id, message);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.syncListErrors, (): PendingSyncItem[] => {
+    return listErrorSync(getDb());
+  });
+
+  ipcMain.handle(IPC_CHANNELS.syncResetError, (_event, id: number) => {
+    resetSyncError(getDb(), id);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.syncLogRecord,
+    (_event, entry: SyncLogRecordInput) => {
+      recordSyncLog(getDb(), entry);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.syncLogList, (_event, limit?: number): SyncLogEntry[] => {
+    return listSyncLog(getDb(), limit);
   });
 
   ipcMain.handle(IPC_CHANNELS.updaterQuitAndInstall, () => {

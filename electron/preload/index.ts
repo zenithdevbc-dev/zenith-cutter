@@ -4,6 +4,8 @@ import {
   type DbStatus,
   type SyncStatus,
   type PendingSyncItem,
+  type SyncLogEntry,
+  type SyncLogRecordInput,
 } from "../../src/shared/ipc";
 import type {
   Usuario,
@@ -61,6 +63,14 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.syncMarkSuccess, id),
     markError: (id: number, message: string): Promise<void> =>
       ipcRenderer.invoke(IPC_CHANNELS.syncMarkError, id, message),
+    listErrors: (): Promise<PendingSyncItem[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.syncListErrors),
+    resetError: (id: number): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.syncResetError, id),
+    logRecord: (entry: SyncLogRecordInput): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.syncLogRecord, entry),
+    logList: (limit?: number): Promise<SyncLogEntry[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.syncLogList, limit),
   },
   updater: {
     onUpdateDownloaded: (callback: () => void) => {

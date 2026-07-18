@@ -1,4 +1,10 @@
-import type { DbStatus, SyncStatus, PendingSyncItem } from "@shared/ipc";
+import type {
+  DbStatus,
+  SyncStatus,
+  PendingSyncItem,
+  SyncLogEntry,
+  SyncLogRecordInput,
+} from "@shared/ipc";
 import type {
   Usuario,
   UsuarioUpdatePatch,
@@ -52,6 +58,10 @@ declare global {
         listPending: () => Promise<PendingSyncItem[]>;
         markSuccess: (id: number) => Promise<void>;
         markError: (id: number, message: string) => Promise<void>;
+        listErrors: () => Promise<PendingSyncItem[]>;
+        resetError: (id: number) => Promise<void>;
+        logRecord: (entry: SyncLogRecordInput) => Promise<void>;
+        logList: (limit?: number) => Promise<SyncLogEntry[]>;
       };
       updater: {
         onUpdateDownloaded: (callback: () => void) => () => void;
