@@ -618,4 +618,25 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 24,
+    name: "create_sync_log",
+    up: (db) => {
+      db.exec(`
+        -- Histórico das execuções do motor de sincronização (Sprint 6).
+        -- Só local — é estado operacional desta instalação, não dado de
+        -- negócio multiempresa, então não entra em sync_queue/Supabase.
+        CREATE TABLE sync_log (
+          id         INTEGER PRIMARY KEY AUTOINCREMENT,
+          trigger    TEXT NOT NULL CHECK (trigger IN ('manual', 'login', 'auto', 'reconexao')),
+          attempted  INTEGER NOT NULL,
+          synced     INTEGER NOT NULL,
+          failed     INTEGER NOT NULL,
+          criado_em  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        CREATE INDEX idx_sync_log_criado_em ON sync_log (criado_em DESC);
+      `);
+    },
+  },
 ];

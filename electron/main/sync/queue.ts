@@ -41,6 +41,7 @@ export interface PendingSyncItem {
   operation: SyncOperation;
   payload: unknown;
   retryCount: number;
+  errorMessage: string | null;
 }
 
 interface PendingSyncRow {
@@ -50,6 +51,7 @@ interface PendingSyncRow {
   operation: SyncOperation;
   payload: string;
   retry_count: number;
+  error_message: string | null;
 }
 
 /**
@@ -58,20 +60,53 @@ interface PendingSyncRow {
  * depois do cliente/produto/tecido que ela referencia, então processar
  * em FIFO respeita as dependências (FK) sem precisar de sort por tabela.
  */
-export function listPendingSync(db: Database.Database): PendingSyncItem[] {
-  const rows = db
-    .prepare<[], PendingSyncRow>(
-      "SELECT id, table_name, record_id, operation, payload, retry_count FROM sync_queue WHERE status = 'pending' ORDER BY id ASC",
-    )
-    .all();
-  return rows.map((row) => ({
+function mapRow(row: PendingSyncRow): PendingSyncItem {
+  return {
     id: row.id,
     tableName: row.table_name,
     recordId: row.record_id,
     operation: row.operation,
     payload: JSON.parse(row.payload) as unknown,
     retryCount: row.retry_count,
-  }));
+    errorMessage: row.error_message,
+  };
+}
+
+export function listPendingSync(db: Database.Database): PendingSyncItem[] {
+  const rows = db
+    .prepare<[], PendingSyncRow>(
+      "SELECT id, table_name, record_id, operation, payload, retry_count, error_message FROM sync_queue WHERE status = 'pending' ORDER BY id ASC",
+    )
+    .all();
+  return rows.map(mapRow);
+}
+
+/**
+ * Itens que já esgotaram as MAX_RETRIES tentativas automáticas — ficam
+ * presos em status='error' até uma ação manual (Sprint 6: "resolução
+ * de erros"), nunca são reprocessados sozinhos pelo loop automático.
+ */
+export function listErrorSync(db: Database.Database): PendingSyncItem[] {
+  const rows = db
+    .prepare<[], PendingSyncRow>(
+      "SELECT id, table_name, record_id, operation, payload, retry_count, error_message FROM sync_queue WHERE status = 'error' ORDER BY id ASC",
+    )
+    .all();
+  return rows.map(mapRow);
+}
+
+/**
+ * Devolve um item de status='error' pra fila ('pending', tentativas
+ * zeradas) — usado pelo botão "Tentar novamente" (o usuário
+ * presumivelmente corrigiu o que causava o erro, então merece um novo
+ * ciclo completo de tentativas, não continuar de onde parou).
+ */
+export function resetSyncError(db: Database.Database, id: number) {
+  db.prepare(
+    `UPDATE sync_queue
+     SET status = 'pending', retry_count = 0, error_message = NULL
+     WHERE id = ? AND status = 'error'`,
+  ).run(id);
 }
 
 export function markSyncSuccess(db: Database.Database, id: number) {
