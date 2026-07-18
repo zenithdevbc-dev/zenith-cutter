@@ -14,6 +14,7 @@ import {
 } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
 import { registrarHistorico, rowToOrdemCorte, STATUS_LABEL, type OrdemCorteRow } from "./ordensCorte";
+import { getCurrentEmpresaId } from "../../session";
 
 interface MesaCorteComStatusRow {
   id: string;
@@ -51,7 +52,7 @@ function rowToMesaComStatus(row: MesaCorteComStatusRow): MesaCorteComStatus {
  */
 export function listMesasComStatusLocal(db: Database.Database): MesaCorteComStatus[] {
   const rows = db
-    .prepare<[], MesaCorteComStatusRow>(`
+    .prepare<[string], MesaCorteComStatusRow>(`
       SELECT
         m.*,
         CASE WHEN sp.id IS NULL THEN 0 ELSE 1 END AS ocupada,
@@ -60,9 +61,10 @@ export function listMesasComStatusLocal(db: Database.Database): MesaCorteComStat
       FROM mesas_corte m
       LEFT JOIN sessoes_producao sp ON sp.mesa_id = m.id AND sp.status IN ('em_andamento', 'pausada')
       LEFT JOIN ordens_corte oc ON oc.id = sp.ordem_id
+      WHERE m.empresa_id = ?
       ORDER BY m.nome ASC
     `)
-    .all();
+    .all(getCurrentEmpresaId());
   return rows.map(rowToMesaComStatus);
 }
 
@@ -108,7 +110,7 @@ function rowToSessaoResumo(row: SessaoProducaoResumoRow): SessaoProducaoResumo {
 
 export function listSessoesAtivasLocal(db: Database.Database): SessaoProducaoResumo[] {
   const rows = db
-    .prepare<[], SessaoProducaoResumoRow>(`
+    .prepare<[string], SessaoProducaoResumoRow>(`
       SELECT
         sp.*,
         oc.numero AS ordem_numero,
@@ -119,10 +121,10 @@ export function listSessoesAtivasLocal(db: Database.Database): SessaoProducaoRes
       JOIN ordens_corte oc ON oc.id = sp.ordem_id
       JOIN mesas_corte m ON m.id = sp.mesa_id
       LEFT JOIN usuarios u ON u.id = sp.iniciado_por
-      WHERE sp.status IN ('em_andamento', 'pausada')
+      WHERE sp.status IN ('em_andamento', 'pausada') AND sp.empresa_id = ?
       ORDER BY sp.iniciado_em DESC
     `)
-    .all();
+    .all(getCurrentEmpresaId());
   return rows.map(rowToSessaoResumo);
 }
 
@@ -139,21 +141,23 @@ export function iniciarProducaoLocal(
   input: IniciarProducaoInput,
   usuarioId: string,
 ): SessaoProducao {
+  const empresaId = getCurrentEmpresaId();
+
   const ordem = db
-    .prepare<[string], { id: string; empresa_id: string; status: string; numero: number }>(
-      "SELECT id, empresa_id, status, numero FROM ordens_corte WHERE id = ?",
+    .prepare<[string, string], { id: string; empresa_id: string; status: string; numero: number }>(
+      "SELECT id, empresa_id, status, numero FROM ordens_corte WHERE id = ? AND empresa_id = ?",
     )
-    .get(input.ordem_id);
+    .get(input.ordem_id, empresaId);
   if (!ordem) throw new Error("Ordem de corte não encontrada.");
   if (ordem.status !== "em_fila") {
     throw new Error("Esta ordem não está na fila de produção.");
   }
 
   const mesa = db
-    .prepare<[string], { id: string; nome: string; ativo: number }>(
-      "SELECT id, nome, ativo FROM mesas_corte WHERE id = ?",
+    .prepare<[string, string], { id: string; nome: string; ativo: number }>(
+      "SELECT id, nome, ativo FROM mesas_corte WHERE id = ? AND empresa_id = ?",
     )
-    .get(input.mesa_id);
+    .get(input.mesa_id, empresaId);
   if (!mesa) throw new Error("Mesa de corte não encontrada.");
   if (mesa.ativo !== 1) throw new Error("Esta mesa de corte está inativa.");
 
@@ -241,8 +245,8 @@ export function avancarEtapaOrdemLocal(
   usuarioId: string,
 ): OrdemCorte {
   const row = db
-    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
-    .get(ordemId);
+    .prepare<[string, string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ? AND empresa_id = ?")
+    .get(ordemId, getCurrentEmpresaId());
   if (!row) throw new Error("Ordem de corte não encontrada.");
 
   const index = PIPELINE_PRODUCAO.indexOf(row.status as OrdemCorte["status"]);
@@ -309,8 +313,8 @@ export function avancarEtapaOrdemLocal(
   avancar();
 
   const updatedRow = db
-    .prepare<[string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ?")
-    .get(ordemId);
+    .prepare<[string, string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ? AND empresa_id = ?")
+    .get(ordemId, getCurrentEmpresaId());
   if (!updatedRow) throw new Error("Ordem de corte não encontrada após atualização.");
   return rowToOrdemCorte(updatedRow);
 }
@@ -357,17 +361,20 @@ export function pausarProducaoLocal(
   ordemId: string,
   usuarioId: string,
 ): SessaoProducao {
+  const empresaId = getCurrentEmpresaId();
   const sessao = db
-    .prepare<[string], SessaoProducaoRow>(
-      "SELECT * FROM sessoes_producao WHERE ordem_id = ? AND status = 'em_andamento'",
+    .prepare<[string, string], SessaoProducaoRow>(
+      "SELECT * FROM sessoes_producao WHERE ordem_id = ? AND status = 'em_andamento' AND empresa_id = ?",
     )
-    .get(ordemId);
+    .get(ordemId, empresaId);
   if (!sessao) throw new Error("Esta ordem não tem uma sessão de produção em andamento.");
 
   const now = new Date().toISOString();
   const ordem = db
-    .prepare<[string], { empresa_id: string }>("SELECT empresa_id FROM ordens_corte WHERE id = ?")
-    .get(ordemId);
+    .prepare<[string, string], { empresa_id: string }>(
+      "SELECT empresa_id FROM ordens_corte WHERE id = ? AND empresa_id = ?",
+    )
+    .get(ordemId, empresaId);
   if (!ordem) throw new Error("Ordem de corte não encontrada.");
 
   const pausar = db.transaction(() => {
@@ -406,11 +413,12 @@ export function retomarProducaoLocal(
   ordemId: string,
   usuarioId: string,
 ): SessaoProducao {
+  const empresaId = getCurrentEmpresaId();
   const sessao = db
-    .prepare<[string], SessaoProducaoRow>(
-      "SELECT * FROM sessoes_producao WHERE ordem_id = ? AND status = 'pausada'",
+    .prepare<[string, string], SessaoProducaoRow>(
+      "SELECT * FROM sessoes_producao WHERE ordem_id = ? AND status = 'pausada' AND empresa_id = ?",
     )
-    .get(ordemId);
+    .get(ordemId, empresaId);
   if (!sessao) throw new Error("Esta ordem não tem uma sessão de produção pausada.");
   if (!sessao.pausado_em) throw new Error("Sessão pausada sem registro de início da pausa.");
 
@@ -422,8 +430,10 @@ export function retomarProducaoLocal(
   const novoTempoPausado = sessao.tempo_pausado_segundos + segundosPausados;
 
   const ordem = db
-    .prepare<[string], { empresa_id: string }>("SELECT empresa_id FROM ordens_corte WHERE id = ?")
-    .get(ordemId);
+    .prepare<[string, string], { empresa_id: string }>(
+      "SELECT empresa_id FROM ordens_corte WHERE id = ? AND empresa_id = ?",
+    )
+    .get(ordemId, empresaId);
   if (!ordem) throw new Error("Ordem de corte não encontrada.");
 
   const retomar = db.transaction(() => {
@@ -486,15 +496,15 @@ export function listProducaoPerdasLocal(
   sessaoId: string,
 ): ProducaoPerda[] {
   const rows = db
-    .prepare<[string], ProducaoPerdaRow>(`
+    .prepare<[string, string], ProducaoPerdaRow>(`
       SELECT pp.*, pt.tamanho AS tamanho, COALESCE(u.nome, 'Usuário') AS usuario_nome
       FROM producao_perdas pp
       LEFT JOIN usuarios u ON u.id = pp.usuario_id
       LEFT JOIN produto_tamanhos pt ON pt.id = pp.produto_tamanho_id
-      WHERE pp.sessao_id = ?
+      WHERE pp.sessao_id = ? AND pp.empresa_id = ?
       ORDER BY pp.criado_em DESC
     `)
-    .all(sessaoId);
+    .all(sessaoId, getCurrentEmpresaId());
   return rows.map(rowToPerda);
 }
 
@@ -509,16 +519,16 @@ export function listProducaoPerdasPorOrdemLocal(
   ordemId: string,
 ): ProducaoPerda[] {
   const rows = db
-    .prepare<[string], ProducaoPerdaRow>(`
+    .prepare<[string, string], ProducaoPerdaRow>(`
       SELECT pp.*, pt.tamanho AS tamanho, COALESCE(u.nome, 'Usuário') AS usuario_nome
       FROM producao_perdas pp
       JOIN sessoes_producao sp ON sp.id = pp.sessao_id
       LEFT JOIN usuarios u ON u.id = pp.usuario_id
       LEFT JOIN produto_tamanhos pt ON pt.id = pp.produto_tamanho_id
-      WHERE sp.ordem_id = ?
+      WHERE sp.ordem_id = ? AND pp.empresa_id = ?
       ORDER BY pp.criado_em DESC
     `)
-    .all(ordemId);
+    .all(ordemId, getCurrentEmpresaId());
   return rows.map(rowToPerda);
 }
 
@@ -537,8 +547,10 @@ export function registrarProducaoPerdaLocal(
   usuarioId: string,
 ): ProducaoPerda {
   const sessao = db
-    .prepare<[string], { empresa_id: string }>("SELECT empresa_id FROM sessoes_producao WHERE id = ?")
-    .get(input.sessao_id);
+    .prepare<[string, string], { empresa_id: string }>(
+      "SELECT empresa_id FROM sessoes_producao WHERE id = ? AND empresa_id = ?",
+    )
+    .get(input.sessao_id, getCurrentEmpresaId());
   if (!sessao) throw new Error("Sessão de produção não encontrada.");
 
   const id = randomUUID();
@@ -605,14 +617,14 @@ export function listProducaoObservacoesLocal(
   sessaoId: string,
 ): ProducaoObservacao[] {
   const rows = db
-    .prepare<[string], ProducaoObservacaoRow>(`
+    .prepare<[string, string], ProducaoObservacaoRow>(`
       SELECT po.*, COALESCE(u.nome, 'Usuário') AS usuario_nome
       FROM producao_observacoes po
       LEFT JOIN usuarios u ON u.id = po.usuario_id
-      WHERE po.sessao_id = ?
+      WHERE po.sessao_id = ? AND po.empresa_id = ?
       ORDER BY po.criado_em DESC
     `)
-    .all(sessaoId);
+    .all(sessaoId, getCurrentEmpresaId());
   return rows.map(rowToObservacao);
 }
 
@@ -622,8 +634,10 @@ export function registrarProducaoObservacaoLocal(
   usuarioId: string,
 ): ProducaoObservacao {
   const sessao = db
-    .prepare<[string], { empresa_id: string }>("SELECT empresa_id FROM sessoes_producao WHERE id = ?")
-    .get(input.sessao_id);
+    .prepare<[string, string], { empresa_id: string }>(
+      "SELECT empresa_id FROM sessoes_producao WHERE id = ? AND empresa_id = ?",
+    )
+    .get(input.sessao_id, getCurrentEmpresaId());
   if (!sessao) throw new Error("Sessão de produção não encontrada.");
 
   const id = randomUUID();
