@@ -186,6 +186,19 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-18** — usuário confirmou: **todas as migrations Supabase
+  pendentes foram executadas em produção** (inclui `0030`/`0031`/`0032`,
+  as 3 correções de segurança da auditoria de hoje) e **validação
+  manual completa** de tudo que estava marcado "não testado" nas
+  entregas anteriores desta sessão (Sprints 4 a 7 inteiros: execução de
+  produção/pipeline pós-corte, todos os relatórios, Dashboard, sync
+  engine, backup/restore, microinterações, e as 14 correções de
+  segurança de hoje). Fecha os dois maiores bloqueios pra considerar o
+  MVP pronto pra venda. **Bloqueios restantes, não relacionados a
+  código**: sem certificado de assinatura (SmartScreen do Windows no
+  instalador — decisão de custo do usuário); auto-update nunca testado
+  ponta a ponta (precisa publicar uma v2 de teste); RC → v1.0 (bump de
+  versão + tag) ainda não feito.
 - Correção **2026-07-18**: **6 achados baixos da auditoria completa**
   (pedido do usuário, sequência dos médios corrigidos antes).
   1. **`ordem_corte_itens.quantidade` sem `CHECK > 0` no schema
