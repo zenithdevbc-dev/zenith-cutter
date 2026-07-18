@@ -7,6 +7,7 @@ import {
   type PendingSyncItem,
   type SyncLogEntry,
   type SyncLogRecordInput,
+  type LogReportErrorInput,
 } from "../../../src/shared/ipc";
 import type {
   Usuario,
@@ -54,6 +55,7 @@ import {
   resetSyncError,
 } from "../sync/queue";
 import { recordSyncLog, listSyncLog } from "../sync/log";
+import { logRendererError } from "../log";
 import { quitAndInstall } from "../updater";
 import {
   listUsuariosLocal,
@@ -122,6 +124,10 @@ export function registerIpcHandlers() {
       path: path.join(app.getPath("userData"), "zenith-cutter.sqlite"),
       schemaVersion: getSchemaVersion(),
     };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.logReportError, (_event, { message, stack }: LogReportErrorInput) => {
+    logRendererError(message, stack);
   });
 
   ipcMain.handle(IPC_CHANNELS.syncGetStatus, (): SyncStatus => {

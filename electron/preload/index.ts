@@ -6,6 +6,7 @@ import {
   type PendingSyncItem,
   type SyncLogEntry,
   type SyncLogRecordInput,
+  type LogReportErrorInput,
 } from "../../src/shared/ipc";
 import type {
   Usuario,
@@ -53,6 +54,10 @@ contextBridge.exposeInMainWorld("zenith", {
   db: {
     getStatus: (): Promise<DbStatus> =>
       ipcRenderer.invoke(IPC_CHANNELS.dbGetStatus),
+  },
+  log: {
+    reportError: (entry: LogReportErrorInput): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.logReportError, entry),
   },
   sync: {
     getStatus: (): Promise<SyncStatus> =>

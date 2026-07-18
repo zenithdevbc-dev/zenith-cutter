@@ -37,8 +37,14 @@ export interface SyncLogRecordInput {
   failed: number;
 }
 
+export interface LogReportErrorInput {
+  message: string;
+  stack?: string;
+}
+
 export const IPC_CHANNELS = {
   dbGetStatus: "db:get-status",
+  logReportError: "log:report-error",
   syncGetStatus: "sync:get-status",
   syncListPending: "sync:list-pending",
   syncMarkSuccess: "sync:mark-success",

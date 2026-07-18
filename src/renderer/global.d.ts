@@ -4,6 +4,7 @@ import type {
   PendingSyncItem,
   SyncLogEntry,
   SyncLogRecordInput,
+  LogReportErrorInput,
 } from "@shared/ipc";
 import type {
   Usuario,
@@ -52,6 +53,9 @@ declare global {
       };
       db: {
         getStatus: () => Promise<DbStatus>;
+      };
+      log: {
+        reportError: (entry: LogReportErrorInput) => Promise<void>;
       };
       sync: {
         getStatus: () => Promise<SyncStatus>;

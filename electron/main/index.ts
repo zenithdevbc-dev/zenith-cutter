@@ -3,6 +3,11 @@ import path from "node:path";
 import { getDb } from "./db";
 import { registerIpcHandlers } from "./ipc";
 import { initAutoUpdater } from "./updater";
+import log, { initMainLogger } from "./log";
+
+// errorHandler.startCatching() (dentro de initMainLogger) já cobre
+// uncaughtException/unhandledRejection do processo main sozinho.
+initMainLogger();
 
 // Publicados pelo vite-plugin-electron durante o build:
 // process.env.VITE_DEV_SERVER_URL aponta pro dev server em desenvolvimento.
@@ -31,6 +36,13 @@ function createMainWindow() {
 
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
+  });
+
+  // Ajuda a diagnosticar "o app fechou sozinho" sem depender do
+  // usuário descrever o que aconteceu (mesmo espírito do
+  // uncaughtException — deixar rastro em log, não só o app sumir).
+  mainWindow.webContents.on("render-process-gone", (_event, details) => {
+    log.error("[render-process-gone]", details.reason);
   });
 
   if (VITE_DEV_SERVER_URL) {
