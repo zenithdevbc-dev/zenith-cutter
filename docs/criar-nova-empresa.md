@@ -32,12 +32,17 @@ acesso ao projeto, se não tiver):
    passo 6, e só pra receber o instalador pronto — ele nunca precisa
    do código-fonte nem do `.env`.
 2. **A "senha mestra" de criação de empresas** — um código secreto
-   chamado `EMPRESA_PROVISIONING_SECRET`. Esse código **não aparece em
-   nenhuma tela nem comando** por segurança — alguém do time precisa
-   te passar esse valor diretamente (por exemplo, por um gerenciador
-   de senhas). Se ninguém souber mais qual é, é possível trocá-lo, mas
-   isso exige acesso técnico ao painel do Supabase (peça ajuda a quem
-   tiver).
+   chamado `EMPRESA_PROVISIONING_SECRET`. Esse código **não pode ser
+   consultado em nenhuma tela nem comando** depois de configurado (é
+   assim por design, mesmo no painel do Supabase) — só existe em texto
+   puro no lugar seguro onde foi salvo quando alguém do time o
+   configurou (gerenciador de senhas, por exemplo). Se ninguém achar
+   mais o valor salvo, a única saída é gerar um novo e substituir o
+   antigo (quem tem acesso técnico ao Supabase CLI do projeto consegue
+   fazer isso em segundos, com o comando `supabase secrets set
+   EMPRESA_PROVISIONING_SECRET=<novo-valor> --project-ref
+   ymslhcxdoiofqswwlcpn` — o valor antigo simplesmente para de
+   funcionar, sem afetar mais nada do sistema).
 3. **Os dados da empresa nova e do primeiro administrador dela**:
    - Nome da empresa (ex.: "Confecções Silva Ltda")
    - Nome completo do administrador (ex.: "João da Silva")
