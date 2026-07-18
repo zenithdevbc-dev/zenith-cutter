@@ -72,8 +72,8 @@ const STATUS_EM_ANDAMENTO: StatusOrdemCorte[] = [
 export interface OperadorAgregadoLinha {
   operador_id: string;
   operador: string;
-  concluidas: number;
-  emAndamento: number;
+  pecasConcluidas: number;
+  pecasEmAndamento: number;
   tempoMedioMinutos: number | null;
   ultimaAtividade: string;
 }
@@ -89,8 +89,12 @@ export function agruparPorOperador(linhas: RelatorioProducaoLinha[]): OperadorAg
 
   return Array.from(porOperador.entries())
     .map(([operador_id, ordens]) => {
-      const concluidas = ordens.filter((o) => o.status === "pronto").length;
-      const emAndamento = ordens.filter((o) => STATUS_EM_ANDAMENTO.includes(o.status)).length;
+      const pecasConcluidas = ordens
+        .filter((o) => o.status === "pronto")
+        .reduce((soma, o) => soma + o.quantidade_total, 0);
+      const pecasEmAndamento = ordens
+        .filter((o) => STATUS_EM_ANDAMENTO.includes(o.status))
+        .reduce((soma, o) => soma + o.quantidade_total, 0);
 
       const temposConcluidos = ordens
         .filter((o) => o.iniciado_em && o.finalizado_em)
@@ -109,20 +113,20 @@ export function agruparPorOperador(linhas: RelatorioProducaoLinha[]): OperadorAg
       return {
         operador_id,
         operador: ordens[0].operador_nome ?? "—",
-        concluidas,
-        emAndamento,
+        pecasConcluidas,
+        pecasEmAndamento,
         tempoMedioMinutos,
         ultimaAtividade,
       };
     })
-    .sort((a, b) => b.concluidas + b.emAndamento - (a.concluidas + a.emAndamento));
+    .sort((a, b) => b.pecasConcluidas + b.pecasEmAndamento - (a.pecasConcluidas + a.pecasEmAndamento));
 }
 
 export interface RelatorioOperadoresKpis {
   totalOperadores: number;
-  ordensConcluidas: number;
+  pecasConcluidas: number;
   tempoMedioMinutos: number | null;
-  mediaOrdensPorOperador: number;
+  mediaPecasPorOperador: number;
 }
 
 /**
@@ -142,7 +146,9 @@ export function calcularKpisRelatorioOperadores(
     todasLinhas.filter((l) => l.operador_id).map((l) => l.operador_id as string),
   ).size;
 
-  const ordensConcluidas = linhasFiltradas.filter((l) => l.status === "pronto").length;
+  const pecasConcluidas = linhasFiltradas
+    .filter((l) => l.status === "pronto")
+    .reduce((soma, l) => soma + l.quantidade_total, 0);
 
   const temposConcluidos = linhasFiltradas
     .filter((l) => l.iniciado_em && l.finalizado_em)
@@ -153,26 +159,29 @@ export function calcularKpisRelatorioOperadores(
       ? Math.round(temposConcluidos.reduce((soma, v) => soma + v, 0) / temposConcluidos.length)
       : null;
 
-  const totalOrdensComOperador = agregado.reduce((soma, l) => soma + l.concluidas + l.emAndamento, 0);
-  const mediaOrdensPorOperador =
-    agregado.length > 0 ? Math.round((totalOrdensComOperador / agregado.length) * 10) / 10 : 0;
+  const totalPecasComOperador = agregado.reduce(
+    (soma, l) => soma + l.pecasConcluidas + l.pecasEmAndamento,
+    0,
+  );
+  const mediaPecasPorOperador =
+    agregado.length > 0 ? Math.round((totalPecasComOperador / agregado.length) * 10) / 10 : 0;
 
-  return { totalOperadores, ordensConcluidas, tempoMedioMinutos, mediaOrdensPorOperador };
+  return { totalOperadores, pecasConcluidas, tempoMedioMinutos, mediaPecasPorOperador };
 }
 
-export interface OrdensPorOperadorItem {
+export interface PecasPorOperadorItem {
   operador: string;
-  ordens: number;
+  pecas: number;
 }
 
-/** Top operadores por número de ordens (concluídas + em andamento) — gráfico "Ordens por Operador". */
-export function calcularOrdensPorOperador(
+/** Top operadores por peças (concluídas + em andamento) — gráfico "Peças por Operador". */
+export function calcularPecasPorOperador(
   agregado: OperadorAgregadoLinha[],
   limite = 8,
-): OrdensPorOperadorItem[] {
+): PecasPorOperadorItem[] {
   return agregado
     .slice(0, limite)
-    .map((l) => ({ operador: l.operador, ordens: l.concluidas + l.emAndamento }));
+    .map((l) => ({ operador: l.operador, pecas: l.pecasConcluidas + l.pecasEmAndamento }));
 }
 
 export interface TempoProducaoOperadorItem {
@@ -201,7 +210,7 @@ export interface ProdutividadeDiaItem {
 }
 
 /**
- * Ordens concluídas por dia no período filtrado (agregado entre todos
+ * Peças produzidas por dia no período filtrado (agregado entre todos
  * os operadores, só dias com conclusão) — alimenta "Produtividade
  * Diária".
  */
@@ -212,7 +221,7 @@ export function calcularProdutividadeDiaria(
   for (const linha of linhasFiltradas) {
     if (!linha.finalizado_em) continue;
     const dia = linha.finalizado_em.slice(0, 10);
-    porDia.set(dia, (porDia.get(dia) ?? 0) + 1);
+    porDia.set(dia, (porDia.get(dia) ?? 0) + linha.quantidade_total);
   }
   return Array.from(porDia.entries())
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))

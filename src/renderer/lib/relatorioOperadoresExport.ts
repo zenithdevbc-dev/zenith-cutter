@@ -4,8 +4,8 @@ import { gerarCsv, gerarExcel, gerarPdfTabela } from "@/lib/exportUtils";
 
 const COLUNAS = [
   "Operador",
-  "Concluídas",
-  "Em Andamento",
+  "Peças Concluídas",
+  "Peças em Andamento",
   "Tempo Médio de Produção",
   "Última Atividade",
 ];
@@ -13,8 +13,8 @@ const COLUNAS = [
 function paraLinhasExportaveis(linhas: OperadorAgregadoLinha[]): (string | number)[][] {
   return linhas.map((linha) => [
     linha.operador,
-    linha.concluidas,
-    linha.emAndamento,
+    linha.pecasConcluidas,
+    linha.pecasEmAndamento,
     formatarDuracaoMinutos(linha.tempoMedioMinutos),
     linha.ultimaAtividade ? new Date(linha.ultimaAtividade).toLocaleString("pt-BR") : "—",
   ]);

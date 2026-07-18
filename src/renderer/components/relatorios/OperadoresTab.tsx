@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { OrdensPorOperadorChart } from "@/components/relatorios/OrdensPorOperadorChart";
+import { PecasPorOperadorChart } from "@/components/relatorios/PecasPorOperadorChart";
 import { ComparacaoTempoProducaoChart } from "@/components/relatorios/ComparacaoTempoProducaoChart";
 import { ProdutividadeDiariaChart } from "@/components/relatorios/ProdutividadeDiariaChart";
 import { STATUS_ORDEM_CORTE_LABEL } from "@/lib/statusOrdemCorte";
@@ -30,7 +30,7 @@ import {
   filtrarRelatorioOperadores,
   agruparPorOperador,
   calcularKpisRelatorioOperadores,
-  calcularOrdensPorOperador,
+  calcularPecasPorOperador,
   calcularComparacaoTempoProducao,
   calcularProdutividadeDiaria,
   type RelatorioOperadoresFiltros,
@@ -85,7 +85,7 @@ export function OperadoresTab({ linhas }: OperadoresTabProps) {
     () => calcularKpisRelatorioOperadores(linhas ?? [], filtradas, agregado),
     [linhas, filtradas, agregado],
   );
-  const ordensPorOperador = useMemo(() => calcularOrdensPorOperador(agregado), [agregado]);
+  const pecasPorOperador = useMemo(() => calcularPecasPorOperador(agregado), [agregado]);
   const comparacaoTempo = useMemo(() => calcularComparacaoTempoProducao(agregado), [agregado]);
   const produtividadeDiaria = useMemo(
     () => calcularProdutividadeDiaria(filtradas),
@@ -189,9 +189,9 @@ export function OperadoresTab({ linhas }: OperadoresTabProps) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Ordens Concluídas</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Peças Concluídas</CardTitle>
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{kpis.ordensConcluidas}</CardContent>
+          <CardContent className="text-2xl font-semibold">{kpis.pecasConcluidas}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
@@ -206,11 +206,11 @@ export function OperadoresTab({ linhas }: OperadoresTabProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
-              Média de Ordens por Operador
+              Média de Peças por Operador
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
-            {kpis.mediaOrdensPorOperador}
+            {kpis.mediaPecasPorOperador}
           </CardContent>
         </Card>
       </div>
@@ -218,13 +218,13 @@ export function OperadoresTab({ linhas }: OperadoresTabProps) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Ordens por Operador</CardTitle>
+            <CardTitle className="text-sm">Peças por Operador</CardTitle>
           </CardHeader>
           <CardContent>
             {carregando ? (
               <p className="text-sm text-muted-foreground">Carregando...</p>
             ) : (
-              <OrdensPorOperadorChart dados={ordensPorOperador} />
+              <PecasPorOperadorChart dados={pecasPorOperador} />
             )}
           </CardContent>
         </Card>
@@ -300,8 +300,8 @@ export function OperadoresTab({ linhas }: OperadoresTabProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Operador</TableHead>
-                    <TableHead>Concluídas</TableHead>
-                    <TableHead>Em Andamento</TableHead>
+                    <TableHead>Peças Concluídas</TableHead>
+                    <TableHead>Peças em Andamento</TableHead>
                     <TableHead>Tempo Médio de Produção</TableHead>
                     <TableHead>Última Atividade</TableHead>
                   </TableRow>
@@ -310,8 +310,8 @@ export function OperadoresTab({ linhas }: OperadoresTabProps) {
                   {agregado.map((linha) => (
                     <TableRow key={linha.operador_id}>
                       <TableCell className="font-medium">{linha.operador}</TableCell>
-                      <TableCell>{linha.concluidas}</TableCell>
-                      <TableCell>{linha.emAndamento}</TableCell>
+                      <TableCell>{linha.pecasConcluidas}</TableCell>
+                      <TableCell>{linha.pecasEmAndamento}</TableCell>
                       <TableCell>{formatarDuracaoMinutos(linha.tempoMedioMinutos)}</TableCell>
                       <TableCell>
                         {linha.ultimaAtividade

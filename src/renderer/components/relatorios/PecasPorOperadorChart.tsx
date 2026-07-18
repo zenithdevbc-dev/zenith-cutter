@@ -7,18 +7,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { OrdensPorOperadorItem } from "@/lib/relatorioOperadores";
+import type { PecasPorOperadorItem } from "@/lib/relatorioOperadores";
 
-interface OrdensPorOperadorChartProps {
-  dados: OrdensPorOperadorItem[];
+interface PecasPorOperadorChartProps {
+  dados: PecasPorOperadorItem[];
 }
 
 /**
- * Número de ordens (concluídas + em andamento) por operador — série
- * única, barras horizontais. Cálculo em lib/relatorioOperadores.ts;
- * só renderiza.
+ * Peças (concluídas + em andamento) por operador — série única,
+ * barras horizontais. Cálculo em lib/relatorioOperadores.ts; só
+ * renderiza.
  */
-export function OrdensPorOperadorChart({ dados }: OrdensPorOperadorChartProps) {
+export function PecasPorOperadorChart({ dados }: PecasPorOperadorChartProps) {
   if (dados.length === 0) {
     return <p className="text-sm text-muted-foreground">Sem ordens no período filtrado.</p>;
   }
@@ -46,7 +46,7 @@ export function OrdensPorOperadorChart({ dados }: OrdensPorOperadorChartProps) {
           width={110}
         />
         <Tooltip
-          formatter={(value) => [String(value ?? 0), "Ordens"]}
+          formatter={(value) => [String(value ?? 0), "Peças"]}
           contentStyle={{
             backgroundColor: "var(--color-card)",
             borderColor: "var(--color-border)",
@@ -54,7 +54,7 @@ export function OrdensPorOperadorChart({ dados }: OrdensPorOperadorChartProps) {
             fontSize: 12,
           }}
         />
-        <Bar dataKey="ordens" fill="var(--color-primary)" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="pecas" fill="var(--color-primary)" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

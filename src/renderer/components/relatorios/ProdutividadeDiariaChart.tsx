@@ -14,7 +14,7 @@ interface ProdutividadeDiariaChartProps {
 }
 
 /**
- * Ordens concluídas por dia (agregado entre todos os operadores no
+ * Peças produzidas por dia (agregado entre todos os operadores no
  * período filtrado, só dias com conclusão). Cálculo em
  * lib/relatorioOperadores.ts; só renderiza.
  */
@@ -44,7 +44,7 @@ export function ProdutividadeDiariaChart({ dados }: ProdutividadeDiariaChartProp
           width={28}
         />
         <Tooltip
-          formatter={(value) => [String(value ?? 0), "Ordens concluídas"]}
+          formatter={(value) => [String(value ?? 0), "Peças produzidas"]}
           labelFormatter={(label) => `Dia ${label}`}
           contentStyle={{
             backgroundColor: "var(--color-card)",
