@@ -31,17 +31,26 @@ export async function runBackup(): Promise<string | null> {
   return filePath;
 }
 
-// Guarda contra selecionar um arquivo qualquer por engano: só aceita
-// arquivos que tenham a tabela de controle de migrations do próprio
-// projeto (todo banco/backup do Zenith Cutter tem essa tabela).
+// Guarda contra selecionar um arquivo qualquer por engano ou um backup
+// corrompido: só aceita arquivos que (1) tenham a tabela de controle
+// de migrations do próprio projeto (todo banco/backup do Zenith Cutter
+// tem essa tabela) e (2) passem no PRAGMA integrity_check do próprio
+// SQLite — sem isso, um arquivo estruturalmente válido mas com páginas
+// corrompidas passava na primeira checagem e sobrescrevia o banco vivo
+// sem aviso.
 function isValidBackupFile(filePath: string): boolean {
   try {
     const test = new Database(filePath, { readonly: true, fileMustExist: true });
     const row = test
       .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'schema_migrations'")
       .get();
+    if (!row) {
+      test.close();
+      return false;
+    }
+    const integrity = test.prepare("PRAGMA integrity_check").get() as { integrity_check: string };
     test.close();
-    return !!row;
+    return integrity.integrity_check === "ok";
   } catch {
     return false;
   }
@@ -50,13 +59,17 @@ function isValidBackupFile(filePath: string): boolean {
 /**
  * Restauração é destrutiva (substitui todo o banco local atual) — o
  * chamador (renderer) já deve ter confirmado com PIN antes de invocar
- * isso, reforça CLAUDE.md 3.1. Fecha a conexão viva, remove os
- * sidecars de WAL do banco atual (o arquivo de backup em si é um
- * snapshot único, sem WAL) e copia o backup por cima. Reabre em
- * seguida (reaplica migrations se o backup for de uma versão de
- * schema mais antiga) — ainda assim o app pede reinício manual,
- * porque o estado em memória do renderer (React) ficaria
- * inconsistente com o banco trocado embaixo dele.
+ * isso, reforça CLAUDE.md 3.1. Antes de sobrescrever, tira uma cópia
+ * de segurança do banco vivo (hot backup, mesma API do runBackup) —
+ * sem isso, um backup corrompido que passasse na validação
+ * substituiria o banco vivo sem nenhuma rede de segurança (achado de
+ * auditoria). Fecha a conexão viva, remove os sidecars de WAL do
+ * banco atual (o arquivo de backup em si é um snapshot único, sem
+ * WAL) e copia o backup por cima. Reabre em seguida (reaplica
+ * migrations se o backup for de uma versão de schema mais antiga) —
+ * ainda assim o app pede reinício manual, porque o estado em memória
+ * do renderer (React) ficaria inconsistente com o banco trocado
+ * embaixo dele.
  */
 export async function restoreBackup(): Promise<BackupRestoreResult> {
   const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -73,9 +86,13 @@ export async function restoreBackup(): Promise<BackupRestoreResult> {
     return "invalid";
   }
 
+  const livePath = getDbPath();
+  const preRestorePath = `${livePath}.pre-restore-${Date.now()}.bak`;
+  await getDb().backup(preRestorePath);
+  log.info("[backup] cópia de segurança do banco vivo salva em", preRestorePath);
+
   closeDb();
 
-  const livePath = getDbPath();
   for (const suffix of ["-wal", "-shm"]) {
     const sidecar = livePath + suffix;
     if (fs.existsSync(sidecar)) fs.rmSync(sidecar);
