@@ -101,6 +101,7 @@ import {
   atribuirMesaFilaLocal,
 } from "../db/repositories/ordensCorte";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
+import { setCurrentEmpresaId, clearCurrentEmpresaId } from "../session";
 import { listRelatorioProducaoLocal, listRelatorioPerdasLocal } from "../db/repositories/relatorios";
 import {
   listFilaProducaoLocal,
@@ -430,6 +431,14 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.empresasGetLocal, (_event, id: string): Empresa | null => {
     return getEmpresaLocal(getDb(), id);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.sessionSetEmpresaLocal, (_event, empresaId: string): void => {
+    setCurrentEmpresaId(empresaId);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.sessionClearEmpresaLocal, (): void => {
+    clearCurrentEmpresaId();
   });
 
   ipcMain.handle(IPC_CHANNELS.relatoriosProducaoListLocal, (): RelatorioProducaoLinha[] => {

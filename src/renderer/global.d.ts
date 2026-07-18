@@ -155,6 +155,10 @@ declare global {
         cache: (empresa: Empresa) => Promise<void>;
         getLocal: (id: string) => Promise<Empresa | null>;
       };
+      session: {
+        setEmpresaLocal: (empresaId: string) => Promise<void>;
+        clearEmpresaLocal: () => Promise<void>;
+      };
       relatorios: {
         producaoListLocal: () => Promise<RelatorioProducaoLinha[]>;
         perdasListLocal: () => Promise<RelatorioPerdaLinha[]>;

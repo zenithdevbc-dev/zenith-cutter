@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUsuario(null);
       setEmpresa(null);
       syncManager.stop();
+      window.zenith.session.clearEmpresaLocal();
       return;
     }
     const client = supabase;
@@ -75,6 +76,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           client.auth.signOut();
           return;
         }
+        // Achado crítico de auditoria: o SQLite local é um único
+        // arquivo por máquina, sem isolamento entre empresas — sem
+        // isso, um usuário de outra empresa logando na mesma máquina
+        // via dados cacheados de uma empresa anterior. Precisa
+        // terminar ANTES de setUsuario (que libera a UI a renderizar
+        // páginas que já disparam leitura local) — se corresse depois,
+        // haveria uma janela onde a UI já autenticada tenta ler antes
+        // do main process saber qual empresa filtrar. Usa
+        // perfil.empresa_id direto (não espera o fetch de "empresas"
+        // abaixo, que é só pra exibir o nome).
+        await window.zenith.session.setEmpresaLocal(perfil.empresa_id);
+        if (cancelled) return;
         setUsuario(perfil);
         // Dispara o motor de sync (retry automático em segundo plano,
         // detecção de rede/reconexão — Sprint 6); nunca bloqueia o uso
@@ -136,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     clearSessionPin();
     syncManager.stop();
+    await window.zenith.session.clearEmpresaLocal();
     await supabase?.auth.signOut();
   }
 

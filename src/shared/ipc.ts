@@ -101,6 +101,8 @@ export const IPC_CHANNELS = {
   producaoObservacoesRegistrarLocal: "producao:observacoes-registrar-local",
   empresasCache: "empresas:cache",
   empresasGetLocal: "empresas:get-local",
+  sessionSetEmpresaLocal: "session:set-empresa-local",
+  sessionClearEmpresaLocal: "session:clear-empresa-local",
   relatoriosProducaoListLocal: "relatorios:producao-list-local",
   relatoriosPerdasListLocal: "relatorios:perdas-list-local",
 } as const;

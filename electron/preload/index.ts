@@ -216,6 +216,12 @@ contextBridge.exposeInMainWorld("zenith", {
     getLocal: (id: string): Promise<Empresa | null> =>
       ipcRenderer.invoke(IPC_CHANNELS.empresasGetLocal, id),
   },
+  session: {
+    setEmpresaLocal: (empresaId: string): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.sessionSetEmpresaLocal, empresaId),
+    clearEmpresaLocal: (): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.sessionClearEmpresaLocal),
+  },
   relatorios: {
     producaoListLocal: (): Promise<RelatorioProducaoLinha[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.relatoriosProducaoListLocal),
