@@ -166,6 +166,17 @@ segredo consegue criar empresa. Ela cria a empresa **e** o primeiro usuário (j�
   e-mail, login, senha), confirma os dados antes de rodar (evita erro de digitação virando
   empresa real). Primeira empresa criada por esse caminho: `Empresa_Exemplo`, conta de
   demonstração pra uso em negociações de venda (não é um cliente real).
+- **Código da empresa (decisão de 2026-07-18, pedido do usuário):** `create-empresa` gera
+  automaticamente um `empresas.codigo` único, formato `AA00` (2 letras maiúsculas + 2
+  dígitos — 67.600 combinações; retry em caso de colisão). É a **terceira credencial de
+  login**, junto com usuário e senha (campo "Empresa" na tela de login,
+  `LoginPage.tsx`) — sem o código certo, `resolve_login_email` nem chega a checar
+  login/senha (mesmo tratamento genérico de erro pros três casos, evita enumeração).
+  Existe especificamente pra impedir logar na empresa errada por acidente (username já é
+  único globalmente, mas isso não deixa óbvio pro usuário humano em qual empresa ele está
+  entrando). Visível no app pra quem já está logado, no rodapé da Sidebar (`nome (código)`)
+  — é a única forma de recuperar o código depois, já que ele não é reenviado por e-mail nem
+  fica em nenhuma outra tela.
 
 **Fora do escopo (não implementar, mesmo se parecer "fácil de adicionar"):**
 Financeiro, Estoque, Compras, PCP, Custos, Engenharia de Produto, Etiquetas, Leitores de
@@ -213,6 +224,25 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-18** — **código de empresa (3ª credencial de login)**
+  entregue (pedido do usuário — detalhe completo na seção 5.1). Nova
+  migration Supabase `0033_empresas_codigo_login.sql` **já aplicada em
+  produção** (`empresas.codigo`, backfill das 2 empresas existentes —
+  `Zenith Dev` = `XW71`, `Empresa_Exemplo` = `BQ03` —, `NOT NULL` +
+  `UNIQUE` + `CHECK` de formato, e `resolve_login_email` trocada pra
+  exigir o código); Edge Function `create-empresa` **já redeployada**
+  gerando o código automaticamente (com retry em colisão). Migration
+  local v26 adiciona o cache do campo. `LoginPage.tsx` ganhou o campo
+  "Empresa" (força maiúsculo ao digitar); `auth-context.tsx.signIn`
+  mudou de assinatura (`codigoEmpresa, login, password`); Sidebar
+  mostra `nome (código)` da empresa logada, pra dar pra recuperar
+  depois. Testado direto contra a Edge Function/RPC em produção: código
+  certo resolve o login, código de outra empresa retorna vazio (mesmo
+  tratamento de erro genérico), minúsculo funciona igual (normalizado).
+  `npm run build` limpo. **Não testado manualmente pela UI ainda** (só
+  via chamada HTTP direta) — login antigo (sem o campo Empresa) não
+  funciona mais pra ninguém a partir de agora, avisar qualquer pessoa
+  testando o app.
 - **2026-07-18** — **falha crítica de isolamento multiempresa
   corrigida** (reportada pelo usuário: "se eu logar com usuário e
   senha de outra empresa, consigo logar nela"). Causa raiz: o SQLite

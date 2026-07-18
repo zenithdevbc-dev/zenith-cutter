@@ -117,10 +117,16 @@ Se funcionou, o PowerShell vai mostrar uma resposta com os dados da
 empresa e do usuário criados, parecido com isto:
 
 ```
-empresa                                          usuario
--------                                          -------
-@{id=...; nome=Nome da Empresa Cliente; ...}     @{id=...; nome=Nome Completo...; papel=administrador; ...}
+empresa                                                            usuario
+-------                                                            -------
+@{id=...; nome=Nome da Empresa Cliente; codigo=AB12; ...}          @{id=...; nome=Nome Completo...; papel=administrador; ...}
 ```
+
+**Guarde o `codigo`** (formato de 2 letras maiúsculas + 2 números, ex.
+`AB12`) — é gerado automaticamente, sozinho, você não escolhe. Ele é
+uma das 3 informações que o cliente vai precisar pra logar (junto com
+usuário e senha). Sem ele em mãos depois, não tem como recuperar — só
+consultando de novo com acesso técnico ao banco.
 
 Se aparecer algo em vermelho com a palavra `error` ou `Não
 autorizado`, algo deu errado — veja a seção de problemas comuns
@@ -146,9 +152,13 @@ Agora que a empresa e o primeiro administrador existem:
    cuida do projeto)
 2. **Rode o instalador** normalmente na máquina do cliente (é só
    seguir os passos na tela, como qualquer programa do Windows).
-3. **Passe pro cliente**: o login e a senha temporária que você
-   definiu no passo 1.3. Ele já consegue abrir o programa e entrar
-   como Administrador.
+3. **Passe pro cliente as 3 informações de login**: o **código da
+   empresa** (o `codigo` do passo 5, ex. `AB12` — campo "Empresa" na
+   tela de login), o login e a senha temporária que você definiu no
+   passo 1.3. As três são obrigatórias — sem o código certo, o
+   programa nem chega a checar login/senha (ele existe exatamente pra
+   isso: impedir logar na empresa errada por engano). Ele já consegue
+   abrir o programa e entrar como Administrador.
 4. A partir daí, o próprio administrador da empresa consegue cadastrar
    o resto da equipe dele (Cadastros → Usuários, dentro do programa) —
    isso não precisa mais de você.
@@ -169,3 +179,9 @@ Agora que a empresa e o primeiro administrador existem:
 - **A janela do PowerShell não abriu / comando não é reconhecido**:
   confirme que você digitou `powershell` (não `cmd`) na barra de
   endereço do Explorador de Arquivos, no passo 2.
+- **Cliente reclama que "login ou senha inválidos" mesmo com os dados
+  certos**: confirme que ele digitou o campo "Empresa" (o `codigo` do
+  passo 5) certinho — maiúscula/minúscula não importa, mas letra por
+  letra sim. Sem esse código batendo, o sistema nem chega a checar
+  login/senha, e a mensagem de erro é a mesma de propósito (não dá
+  pista de qual dos três campos está errado).
