@@ -186,6 +186,36 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-18**: **auto-update com provider configurado**
+  (pedido do usuário — "precisamos do instalador, e atualizador
+  automático"). Instalador já funcionava de ponta a ponta desde o
+  Sprint 0 (confirmado na auditoria do Sprint 7) — nenhum código novo
+  ali. Auto-update: o lado cliente também já existia desde o Sprint 0
+  (`electron/main/updater.ts`, `UpdateNotifier.tsx`) — só faltava
+  onde hospedar os arquivos, o bloqueio conhecido registrado
+  anteriormente. Decisão com o usuário: **bucket público `releases`
+  no Supabase Storage** (criado via SQL,
+  `insert into storage.buckets`), não GitHub Releases — o repositório
+  é privado (`gh repo view` confirmou), e o provider "github" do
+  electron-updater pra repo privado exigiria embutir em todo app
+  instalado um token de leitura do repo, extraível por qualquer
+  cliente com o instalador (exporia o código-fonte privado da
+  Zenith DEV). `package.json` ganhou `build.publish` (provider
+  `generic`, aponta pro bucket) e `nsis.artifactName` fixo com traço
+  (`${productName}-Setup-${version}.${ext}`) — o `latest.yml` que o
+  electron-builder gera já referenciava esse formato, então fixar o
+  nome evita inconsistência entre o `.exe` local e a URL que o
+  auto-updater instalado vai buscar. Novo `scripts/publish-release.js`
+  (script Node simples, usa `@supabase/supabase-js` — já era
+  dependência, nenhuma lib nova) sobe `latest.yml`/`.exe`/`.blockmap`
+  de `release/` pro bucket via `SUPABASE_SERVICE_ROLE_KEY` (novo, só
+  nesse script — nunca lido pelo app em si, sem prefixo `VITE_`); novo
+  script npm `release:publish`. README ganhou o fluxo de release
+  (bump de versão → `build:win` → `release:publish`). Build/typecheck
+  limpos. **Teste ponta a ponta do auto-update (instalar, publicar
+  versão nova, confirmar detecção) ainda não foi feito** — precisa de
+  duas versões empacotadas diferentes, fica pro usuário rodar quando
+  quiser testar de verdade.
 - Entrega **2026-07-18**: **"peças" no lugar de "ordens" no Dashboard
   e nos Relatórios** (pedido do usuário — "use número de peças no
   lugar de Ordens, quando fizer sentido"). Ambiguidade resolvida com 2
@@ -855,11 +885,6 @@ implementar.
   código antes de testar "o app instalado de verdade"; fechar o app
   primeiro (senão dá `EBUSY`). Ver memória
   `feedback_rebuild_packaged_app.md`.
-- Bloqueios conhecidos:
-  - Auto-update sem provider configurado (bucket de releases no
-    Supabase Storage ainda não existe); `build.publish` precisa ser
-    adicionado ao `package.json` quando o bucket existir.
-
 ## 8. Convenções de código
 
 _(preencher conforme forem definidas: nomenclatura, estrutura de pastas, estilo de
