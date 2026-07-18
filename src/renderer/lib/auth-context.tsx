@@ -122,8 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (!error) {
       await setSessionPin(password);
+      return { error: null };
     }
-    return { error: error?.message ?? null };
+    // Achado de auditoria: repassar error.message aqui (ex.: "Invalid
+    // login credentials", em inglês, direto do Supabase) é uma
+    // mensagem diferente da genérica usada acima pra "login não
+    // existe" — dava pra descobrir se um login existia só pela
+    // mensagem de erro voltar diferente. Mesma mensagem genérica pros
+    // dois casos.
+    return { error: "Login ou senha inválidos." };
   }
 
   async function signOut() {
