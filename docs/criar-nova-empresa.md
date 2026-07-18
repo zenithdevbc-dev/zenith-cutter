@@ -25,8 +25,12 @@ uma empresa nova.
 Reúna estas 3 coisas **antes** de começar (peça para quem já tem
 acesso ao projeto, se não tiver):
 
-1. **O computador com o projeto do Zenith Cutter** já baixado (a pasta
-   `Zenith_Cutter`), com um arquivo chamado `.env` dentro dela.
+1. **O computador da Zenith DEV** (o seu, de desenvolvimento — **não**
+   é o computador do cliente) com o projeto do Zenith Cutter já
+   baixado (a pasta `Zenith_Cutter`), com um arquivo chamado `.env`
+   dentro dela. O computador do cliente só entra na história lá no
+   passo 6, e só pra receber o instalador pronto — ele nunca precisa
+   do código-fonte nem do `.env`.
 2. **A "senha mestra" de criação de empresas** — um código secreto
    chamado `EMPRESA_PROVISIONING_SECRET`. Esse código **não aparece em
    nenhuma tela nem comando** por segurança — alguém do time precisa
@@ -43,7 +47,7 @@ acesso ao projeto, se não tiver):
    - Uma senha temporária para o administrador (mínimo 8 caracteres —
      combine com o cliente que ele deve trocar depois, se quiser)
 
-## 2. Abrir o PowerShell na pasta do projeto
+## 2. Abrir o PowerShell na pasta do projeto (ainda no seu computador)
 
 1. Abra o **Explorador de Arquivos** do Windows e navegue até a pasta
    do projeto (algo como
@@ -122,11 +126,12 @@ mesmos dados** — isso criaria uma segunda empresa duplicada (ou daria
 erro de e-mail repetido, o que também é um sinal de que já tinha
 funcionado antes).
 
-## 6. O que fazer depois
+## 6. O que fazer depois (agora sim, no computador do cliente)
 
 Agora que a empresa e o primeiro administrador existem:
 
-1. **Instale o aplicativo na máquina do cliente** — baixe o instalador
+1. **No computador do cliente** (não mais no seu), instale o
+   aplicativo — baixe o instalador
    direto desta URL (não precisa de nenhum login para baixar):
    ```
    https://ymslhcxdoiofqswwlcpn.supabase.co/storage/v1/object/public/releases/Zenith-Cutter-Setup-1.0.1.exe
