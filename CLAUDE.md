@@ -186,6 +186,43 @@ implementar.
 
 ## 7. Estado atual
 
+- Correção **2026-07-18**: **5 achados médios da auditoria completa**
+  (pedido do usuário, sequência dos 3 críticos corrigidos antes).
+  1. **RLS de `ordens_corte` sem trava por coluna pro Operador**: mesma
+     classe do achado de `sessoes_producao` — a policy de UPDATE (0020)
+     só valida o valor final de `status`. Migration
+     `supabase/sql/0032_ordens_corte_operador_restringe_colunas.sql`
+     (trigger, mesmo padrão da 0031) trava tudo exceto
+     `status`/`atualizado_em` pra quem loga como `operador`.
+  2. **Gate de admin/supervisor só existia na UI**: reordenar a fila
+     (`reorderFilaProducaoLocal`) e atribuir mesa
+     (`atribuirMesaFilaLocal`) só eram bloqueados em `ProducaoPage.tsx`
+     — um Operador via DevTools conseguia gravar na base local mesmo
+     assim. Novo `requireAdminOuSupervisor()` em
+     `electron/main/db/repositories/usuarios.ts` repete a checagem na
+     camada de repositório; `reorderFilaProducaoLocal` ganhou o
+     parâmetro `usuarioId`, propagado por todo o caminho IPC/preload/
+     renderer (`filaProducao.reorderLocal`).
+  3. **Restauração de backup sem `integrity_check` nem rede de
+     segurança**: `isValidBackupFile` (`electron/main/backup.ts`) só
+     conferia a existência da tabela `schema_migrations`; agora também
+     roda `PRAGMA integrity_check`. `restoreBackup` passou a tirar um
+     hot backup do banco vivo (mesma API do `runBackup`) antes de
+     sobrescrever, salvo como `<banco>.pre-restore-<timestamp>.bak`.
+  4. **Comparação do segredo de `create-empresa` não era em tempo
+     constante**: `providedSecret !== expectedSecret` trocado por
+     comparação XOR acumulada (`segredoConfere()`), que nunca retorna
+     cedo por causa de um byte específico.
+  `npm run typecheck` limpo a cada commit (4 commits). Migrations
+  `0032` (junto com `0030`/`0031` da rodada anterior) **pendentes de
+  execução manual** no SQL Editor do Supabase. Achados baixos da
+  mesma auditoria (`foreign_keys=ON` sem nenhuma `REFERENCES`
+  declarada no schema **local** — Postgres já declara; `CHECK` faltando
+  em `ordem_corte_itens.quantidade` no schema local; algumas
+  gravações fora de `db.transaction()`; PIN sem limite de tentativas;
+  `sandbox:false` sem justificativa; mensagem de erro de login
+  diferenciando login-inexistente de senha-errada) **continuam
+  registrados, não corrigidos** — fica pra decidir com o usuário.
 - Correção **2026-07-18**: **3 achados críticos da auditoria completa**
   (pedido do usuário — "Finalizamos o MVP. Confira todo o projeto...
   procure por erros de segurança, breackpoints e etc.", rodada com 3
