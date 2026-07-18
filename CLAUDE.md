@@ -228,7 +228,8 @@ implementar.
   entregue (pedido do usuário — detalhe completo na seção 5.1). Nova
   migration Supabase `0033_empresas_codigo_login.sql` **já aplicada em
   produção** (`empresas.codigo`, backfill das 2 empresas existentes —
-  `Zenith Dev` = `XW71`, `Empresa_Exemplo` = `BQ03` —, `NOT NULL` +
+  `Zenith Dev` = `AA01`, `Empresa_Exemplo` = `AA02` (trocados a pedido
+  do usuário pelos valores aleatórios gerados originalmente) —, `NOT NULL` +
   `UNIQUE` + `CHECK` de formato, e `resolve_login_email` trocada pra
   exigir o código); Edge Function `create-empresa` **já redeployada**
   gerando o código automaticamente (com retry em colisão). Migration
