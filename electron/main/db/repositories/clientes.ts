@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type { Cliente, ClienteInput, ClienteUpdatePatch } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+import { getCurrentEmpresaId } from "../../session";
 
 interface ClienteRow {
   id: string;
@@ -31,8 +32,8 @@ function rowToCliente(row: ClienteRow): Cliente {
 
 export function listClientesLocal(db: Database.Database): Cliente[] {
   const rows = db
-    .prepare<[], ClienteRow>("SELECT * FROM clientes ORDER BY nome ASC")
-    .all();
+    .prepare<[string], ClienteRow>("SELECT * FROM clientes WHERE empresa_id = ? ORDER BY nome ASC")
+    .all(getCurrentEmpresaId());
   return rows.map(rowToCliente);
 }
 
@@ -105,8 +106,10 @@ export function updateClienteLocal(
   fields.push("atualizado_em = @atualizado_em");
   params.atualizado_em = new Date().toISOString();
 
+  params.empresa_id = getCurrentEmpresaId();
+
   const apply = db.transaction(() => {
-    db.prepare(`UPDATE clientes SET ${fields.join(", ")} WHERE id = @id`).run(params);
+    db.prepare(`UPDATE clientes SET ${fields.join(", ")} WHERE id = @id AND empresa_id = @empresa_id`).run(params);
     enqueueChange(db, {
       tableName: "clientes",
       recordId: id,
@@ -117,8 +120,8 @@ export function updateClienteLocal(
   apply();
 
   const row = db
-    .prepare<[string], ClienteRow>("SELECT * FROM clientes WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], ClienteRow>("SELECT * FROM clientes WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!row) throw new Error(`Cliente ${id} não encontrado após atualização.`);
   return rowToCliente(row);
 }

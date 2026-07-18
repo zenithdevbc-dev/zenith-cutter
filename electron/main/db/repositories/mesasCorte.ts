@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type { MesaCorte, MesaCorteInput, MesaCorteUpdatePatch } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+import { getCurrentEmpresaId } from "../../session";
 
 interface MesaCorteRow {
   id: string;
@@ -27,8 +28,8 @@ function rowToMesaCorte(row: MesaCorteRow): MesaCorte {
 
 export function listMesasCorteLocal(db: Database.Database): MesaCorte[] {
   const rows = db
-    .prepare<[], MesaCorteRow>("SELECT * FROM mesas_corte ORDER BY nome ASC")
-    .all();
+    .prepare<[string], MesaCorteRow>("SELECT * FROM mesas_corte WHERE empresa_id = ? ORDER BY nome ASC")
+    .all(getCurrentEmpresaId());
   return rows.map(rowToMesaCorte);
 }
 
@@ -90,8 +91,10 @@ export function updateMesaCorteLocal(
   fields.push("atualizado_em = @atualizado_em");
   params.atualizado_em = new Date().toISOString();
 
+  params.empresa_id = getCurrentEmpresaId();
+
   const apply = db.transaction(() => {
-    db.prepare(`UPDATE mesas_corte SET ${fields.join(", ")} WHERE id = @id`).run(params);
+    db.prepare(`UPDATE mesas_corte SET ${fields.join(", ")} WHERE id = @id AND empresa_id = @empresa_id`).run(params);
     enqueueChange(db, {
       tableName: "mesas_corte",
       recordId: id,
@@ -102,8 +105,8 @@ export function updateMesaCorteLocal(
   apply();
 
   const row = db
-    .prepare<[string], MesaCorteRow>("SELECT * FROM mesas_corte WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], MesaCorteRow>("SELECT * FROM mesas_corte WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!row) throw new Error(`Mesa de corte ${id} não encontrada após atualização.`);
   return rowToMesaCorte(row);
 }

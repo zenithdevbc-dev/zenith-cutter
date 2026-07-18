@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type { Tecido, TecidoInput, TecidoUpdatePatch } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+import { getCurrentEmpresaId } from "../../session";
 
 interface TecidoRow {
   id: string;
@@ -29,8 +30,8 @@ function rowToTecido(row: TecidoRow): Tecido {
 
 export function listTecidosLocal(db: Database.Database): Tecido[] {
   const rows = db
-    .prepare<[], TecidoRow>("SELECT * FROM tecidos ORDER BY nome ASC")
-    .all();
+    .prepare<[string], TecidoRow>("SELECT * FROM tecidos WHERE empresa_id = ? ORDER BY nome ASC")
+    .all(getCurrentEmpresaId());
   return rows.map(rowToTecido);
 }
 
@@ -97,8 +98,10 @@ export function updateTecidoLocal(
   fields.push("atualizado_em = @atualizado_em");
   params.atualizado_em = new Date().toISOString();
 
+  params.empresa_id = getCurrentEmpresaId();
+
   const apply = db.transaction(() => {
-    db.prepare(`UPDATE tecidos SET ${fields.join(", ")} WHERE id = @id`).run(params);
+    db.prepare(`UPDATE tecidos SET ${fields.join(", ")} WHERE id = @id AND empresa_id = @empresa_id`).run(params);
     enqueueChange(db, {
       tableName: "tecidos",
       recordId: id,
@@ -109,8 +112,8 @@ export function updateTecidoLocal(
   apply();
 
   const row = db
-    .prepare<[string], TecidoRow>("SELECT * FROM tecidos WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], TecidoRow>("SELECT * FROM tecidos WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!row) throw new Error(`Tecido ${id} não encontrado após atualização.`);
   return rowToTecido(row);
 }

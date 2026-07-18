@@ -6,6 +6,7 @@ import type {
   ProdutoTamanhoUpdatePatch,
 } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+import { getCurrentEmpresaId } from "../../session";
 
 interface ProdutoTamanhoRow {
   id: string;
@@ -36,10 +37,10 @@ export function listProdutoTamanhosLocal(
   produtoId: string,
 ): ProdutoTamanho[] {
   const rows = db
-    .prepare<[string], ProdutoTamanhoRow>(
-      "SELECT * FROM produto_tamanhos WHERE produto_id = ? ORDER BY ordem ASC",
+    .prepare<[string, string], ProdutoTamanhoRow>(
+      "SELECT * FROM produto_tamanhos WHERE produto_id = ? AND empresa_id = ? ORDER BY ordem ASC",
     )
-    .all(produtoId);
+    .all(produtoId, getCurrentEmpresaId());
   return rows.map(rowToProdutoTamanho);
 }
 
@@ -110,8 +111,10 @@ export function updateProdutoTamanhoLocal(
   fields.push("atualizado_em = @atualizado_em");
   params.atualizado_em = new Date().toISOString();
 
+  params.empresa_id = getCurrentEmpresaId();
+
   const apply = db.transaction(() => {
-    db.prepare(`UPDATE produto_tamanhos SET ${fields.join(", ")} WHERE id = @id`).run(params);
+    db.prepare(`UPDATE produto_tamanhos SET ${fields.join(", ")} WHERE id = @id AND empresa_id = @empresa_id`).run(params);
     enqueueChange(db, {
       tableName: "produto_tamanhos",
       recordId: id,
@@ -122,8 +125,8 @@ export function updateProdutoTamanhoLocal(
   apply();
 
   const row = db
-    .prepare<[string], ProdutoTamanhoRow>("SELECT * FROM produto_tamanhos WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], ProdutoTamanhoRow>("SELECT * FROM produto_tamanhos WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!row) throw new Error(`Tamanho ${id} não encontrado após atualização.`);
   return rowToProdutoTamanho(row);
 }
@@ -139,11 +142,13 @@ export function reorderProdutoTamanhosLocal(
 ): ProdutoTamanho[] {
   const now = new Date().toISOString();
 
+  const empresaId = getCurrentEmpresaId();
+
   const apply = db.transaction(() => {
     orderedIds.forEach((id, index) => {
       db.prepare(
-        "UPDATE produto_tamanhos SET ordem = ?, atualizado_em = ? WHERE id = ?",
-      ).run(index, now, id);
+        "UPDATE produto_tamanhos SET ordem = ?, atualizado_em = ? WHERE id = ? AND empresa_id = ?",
+      ).run(index, now, id, empresaId);
       enqueueChange(db, {
         tableName: "produto_tamanhos",
         recordId: id,
@@ -157,8 +162,8 @@ export function reorderProdutoTamanhosLocal(
   const placeholders = orderedIds.map(() => "?").join(", ");
   const rows = db
     .prepare<string[], ProdutoTamanhoRow>(
-      `SELECT * FROM produto_tamanhos WHERE id IN (${placeholders}) ORDER BY ordem ASC`,
+      `SELECT * FROM produto_tamanhos WHERE id IN (${placeholders}) AND empresa_id = ? ORDER BY ordem ASC`,
     )
-    .all(...orderedIds);
+    .all(...orderedIds, empresaId);
   return rows.map(rowToProdutoTamanho);
 }

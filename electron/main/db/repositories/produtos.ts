@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type { Produto, ProdutoInput, ProdutoUpdatePatch } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+import { getCurrentEmpresaId } from "../../session";
 
 interface ProdutoRow {
   id: string;
@@ -29,8 +30,8 @@ function rowToProduto(row: ProdutoRow): Produto {
 
 export function listProdutosLocal(db: Database.Database): Produto[] {
   const rows = db
-    .prepare<[], ProdutoRow>("SELECT * FROM produtos ORDER BY nome ASC")
-    .all();
+    .prepare<[string], ProdutoRow>("SELECT * FROM produtos WHERE empresa_id = ? ORDER BY nome ASC")
+    .all(getCurrentEmpresaId());
   return rows.map(rowToProduto);
 }
 
@@ -96,8 +97,10 @@ export function updateProdutoLocal(
   fields.push("atualizado_em = @atualizado_em");
   params.atualizado_em = new Date().toISOString();
 
+  params.empresa_id = getCurrentEmpresaId();
+
   const apply = db.transaction(() => {
-    db.prepare(`UPDATE produtos SET ${fields.join(", ")} WHERE id = @id`).run(params);
+    db.prepare(`UPDATE produtos SET ${fields.join(", ")} WHERE id = @id AND empresa_id = @empresa_id`).run(params);
     enqueueChange(db, {
       tableName: "produtos",
       recordId: id,
@@ -108,8 +111,8 @@ export function updateProdutoLocal(
   apply();
 
   const row = db
-    .prepare<[string], ProdutoRow>("SELECT * FROM produtos WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], ProdutoRow>("SELECT * FROM produtos WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!row) throw new Error(`Produto ${id} não encontrado após atualização.`);
   return rowToProduto(row);
 }

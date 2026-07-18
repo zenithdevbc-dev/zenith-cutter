@@ -1,6 +1,7 @@
 import type Database from "better-sqlite3";
 import type { Usuario, UsuarioUpdatePatch } from "../../../../src/shared/models";
 import { enqueueChange } from "../../sync/queue";
+import { getCurrentEmpresaId } from "../../session";
 
 interface UsuarioRow {
   id: string;
@@ -42,8 +43,10 @@ export function requireAdminOuSupervisor(
   acao: string,
 ): void {
   const row = db
-    .prepare<[string], { papel: string }>("SELECT papel FROM usuarios WHERE id = ?")
-    .get(usuarioId);
+    .prepare<[string, string], { papel: string }>(
+      "SELECT papel FROM usuarios WHERE id = ? AND empresa_id = ?",
+    )
+    .get(usuarioId, getCurrentEmpresaId());
   if (!row || (row.papel !== "administrador" && row.papel !== "supervisor")) {
     throw new Error(`Apenas administrador ou supervisor pode ${acao}.`);
   }
@@ -51,8 +54,8 @@ export function requireAdminOuSupervisor(
 
 export function listUsuariosLocal(db: Database.Database): Usuario[] {
   const rows = db
-    .prepare<[], UsuarioRow>("SELECT * FROM usuarios ORDER BY nome ASC")
-    .all();
+    .prepare<[string], UsuarioRow>("SELECT * FROM usuarios WHERE empresa_id = ? ORDER BY nome ASC")
+    .all(getCurrentEmpresaId());
   return rows.map(rowToUsuario);
 }
 
@@ -130,8 +133,10 @@ export function updateUsuarioLocal(
   fields.push("atualizado_em = @atualizado_em");
   params.atualizado_em = new Date().toISOString();
 
+  params.empresa_id = getCurrentEmpresaId();
+
   const apply = db.transaction(() => {
-    db.prepare(`UPDATE usuarios SET ${fields.join(", ")} WHERE id = @id`).run(params);
+    db.prepare(`UPDATE usuarios SET ${fields.join(", ")} WHERE id = @id AND empresa_id = @empresa_id`).run(params);
     enqueueChange(db, {
       tableName: "usuarios",
       recordId: id,
@@ -142,8 +147,8 @@ export function updateUsuarioLocal(
   apply();
 
   const row = db
-    .prepare<[string], UsuarioRow>("SELECT * FROM usuarios WHERE id = ?")
-    .get(id);
+    .prepare<[string, string], UsuarioRow>("SELECT * FROM usuarios WHERE id = ? AND empresa_id = ?")
+    .get(id, getCurrentEmpresaId());
   if (!row) throw new Error(`Usuário ${id} não encontrado após atualização.`);
   return rowToUsuario(row);
 }
