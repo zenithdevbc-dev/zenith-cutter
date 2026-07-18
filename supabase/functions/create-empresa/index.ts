@@ -34,6 +34,21 @@ function json(body: unknown, status: number) {
   });
 }
 
+// Comparação em tempo constante (achado de auditoria: "!==" normal
+// vaza timing proporcional a quantos caracteres iniciais batem,
+// permitindo em teoria descobrir o segredo byte a byte). XOR
+// acumulado nunca retorna cedo por causa de um byte específico.
+function segredoConfere(a: string, b: string): boolean {
+  const bufA = new TextEncoder().encode(a);
+  const bufB = new TextEncoder().encode(b);
+  if (bufA.length !== bufB.length) return false;
+  let diff = 0;
+  for (let i = 0; i < bufA.length; i++) {
+    diff |= bufA[i] ^ bufB[i];
+  }
+  return diff === 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -42,7 +57,7 @@ Deno.serve(async (req) => {
   try {
     const expectedSecret = Deno.env.get("EMPRESA_PROVISIONING_SECRET");
     const providedSecret = req.headers.get("x-provisioning-secret");
-    if (!expectedSecret || providedSecret !== expectedSecret) {
+    if (!expectedSecret || !providedSecret || !segredoConfere(providedSecret, expectedSecret)) {
       return json({ error: "Não autorizado." }, 403);
     }
 
