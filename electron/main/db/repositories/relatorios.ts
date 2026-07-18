@@ -1,5 +1,6 @@
 import type Database from "better-sqlite3";
 import type { RelatorioProducaoLinha, RelatorioPerdaLinha } from "../../../../src/shared/models";
+import { getCurrentEmpresaId } from "../../session";
 
 /**
  * Uma linha por ordem, com a sessão de produção mais recente dela
@@ -11,7 +12,7 @@ import type { RelatorioProducaoLinha, RelatorioPerdaLinha } from "../../../../sr
  */
 export function listRelatorioProducaoLocal(db: Database.Database): RelatorioProducaoLinha[] {
   return db
-    .prepare<[], RelatorioProducaoLinha>(`
+    .prepare<[string], RelatorioProducaoLinha>(`
       SELECT
         oc.id AS ordem_id,
         oc.numero,
@@ -35,9 +36,10 @@ export function listRelatorioProducaoLocal(db: Database.Database): RelatorioProd
         SELECT id FROM sessoes_producao WHERE ordem_id = oc.id ORDER BY iniciado_em DESC LIMIT 1
       )
       LEFT JOIN usuarios u ON u.id = sp.iniciado_por
+      WHERE oc.empresa_id = ?
       ORDER BY oc.numero DESC
     `)
-    .all();
+    .all(getCurrentEmpresaId());
 }
 
 /**
@@ -49,7 +51,7 @@ export function listRelatorioProducaoLocal(db: Database.Database): RelatorioProd
  */
 export function listRelatorioPerdasLocal(db: Database.Database): RelatorioPerdaLinha[] {
   return db
-    .prepare<[], RelatorioPerdaLinha>(`
+    .prepare<[string], RelatorioPerdaLinha>(`
       SELECT
         pp.id AS perda_id,
         oc.id AS ordem_id,
@@ -65,7 +67,8 @@ export function listRelatorioPerdasLocal(db: Database.Database): RelatorioPerdaL
       JOIN ordens_corte oc ON oc.id = sp.ordem_id
       JOIN clientes c ON c.id = oc.cliente_id
       JOIN tecidos t ON t.id = oc.tecido_id
+      WHERE pp.empresa_id = ?
       ORDER BY pp.criado_em DESC
     `)
-    .all();
+    .all(getCurrentEmpresaId());
 }
