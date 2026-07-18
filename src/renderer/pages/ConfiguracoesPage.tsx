@@ -1,4 +1,6 @@
 import { SyncStatusCard } from "@/components/SyncStatusCard";
+import { SyncErrorsList } from "@/components/SyncErrorsList";
+import { SyncLogTable } from "@/components/SyncLogTable";
 
 export function ConfiguracoesPage() {
   return (
@@ -10,6 +12,8 @@ export function ConfiguracoesPage() {
         </p>
       </div>
       <SyncStatusCard />
+      <SyncErrorsList />
+      <SyncLogTable />
     </div>
   );
 }
