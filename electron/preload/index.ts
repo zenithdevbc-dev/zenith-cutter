@@ -7,6 +7,7 @@ import {
   type SyncLogEntry,
   type SyncLogRecordInput,
   type LogReportErrorInput,
+  type BackupRestoreResult,
 } from "../../src/shared/ipc";
 import type {
   Usuario,
@@ -61,6 +62,8 @@ contextBridge.exposeInMainWorld("zenith", {
   },
   backup: {
     run: (): Promise<string | null> => ipcRenderer.invoke(IPC_CHANNELS.backupRun),
+    restore: (): Promise<BackupRestoreResult> =>
+      ipcRenderer.invoke(IPC_CHANNELS.backupRestore),
   },
   sync: {
     getStatus: (): Promise<SyncStatus> =>

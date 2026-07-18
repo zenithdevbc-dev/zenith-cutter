@@ -5,6 +5,10 @@ import { migrations } from "./migrations";
 
 let db: Database.Database | null = null;
 
+export function getDbPath(): string {
+  return path.join(app.getPath("userData"), "zenith-cutter.sqlite");
+}
+
 function runMigrations(database: Database.Database) {
   database.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -38,13 +42,25 @@ function runMigrations(database: Database.Database) {
 
 export function getDb(): Database.Database {
   if (!db) {
-    const dbPath = path.join(app.getPath("userData"), "zenith-cutter.sqlite");
-    db = new Database(dbPath);
+    db = new Database(getDbPath());
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");
     runMigrations(db);
   }
   return db;
+}
+
+/**
+ * Fecha a conexão atual (checkpoint do WAL incluso) e limpa o
+ * singleton — usado antes de substituir o arquivo do banco por um
+ * backup (Sprint 7). Uma próxima chamada a getDb() reabre normalmente
+ * contra o arquivo que estiver no disco nesse momento.
+ */
+export function closeDb() {
+  if (db) {
+    db.close();
+    db = null;
+  }
 }
 
 export function getSchemaVersion(): number {

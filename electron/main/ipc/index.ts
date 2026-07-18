@@ -8,6 +8,7 @@ import {
   type SyncLogEntry,
   type SyncLogRecordInput,
   type LogReportErrorInput,
+  type BackupRestoreResult,
 } from "../../../src/shared/ipc";
 import type {
   Usuario,
@@ -56,7 +57,7 @@ import {
 } from "../sync/queue";
 import { recordSyncLog, listSyncLog } from "../sync/log";
 import { logRendererError } from "../log";
-import { runBackup } from "../backup";
+import { runBackup, restoreBackup } from "../backup";
 import { quitAndInstall } from "../updater";
 import {
   listUsuariosLocal,
@@ -133,6 +134,10 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.backupRun, (): Promise<string | null> => {
     return runBackup();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.backupRestore, (): Promise<BackupRestoreResult> => {
+    return restoreBackup();
   });
 
   ipcMain.handle(IPC_CHANNELS.syncGetStatus, (): SyncStatus => {

@@ -42,10 +42,13 @@ export interface LogReportErrorInput {
   stack?: string;
 }
 
+export type BackupRestoreResult = "cancelled" | "invalid" | "restored";
+
 export const IPC_CHANNELS = {
   dbGetStatus: "db:get-status",
   logReportError: "log:report-error",
   backupRun: "backup:run",
+  backupRestore: "backup:restore",
   syncGetStatus: "sync:get-status",
   syncListPending: "sync:list-pending",
   syncMarkSuccess: "sync:mark-success",

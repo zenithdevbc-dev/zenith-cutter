@@ -5,6 +5,7 @@ import type {
   SyncLogEntry,
   SyncLogRecordInput,
   LogReportErrorInput,
+  BackupRestoreResult,
 } from "@shared/ipc";
 import type {
   Usuario,
@@ -59,6 +60,7 @@ declare global {
       };
       backup: {
         run: () => Promise<string | null>;
+        restore: () => Promise<BackupRestoreResult>;
       };
       sync: {
         getStatus: () => Promise<SyncStatus>;
