@@ -186,6 +186,40 @@ implementar.
 
 ## 7. Estado atual
 
+- Entrega **2026-07-18**: **"peças" no lugar de "ordens" no Dashboard
+  e nos Relatórios** (pedido do usuário — "use número de peças no
+  lugar de Ordens, quando fizer sentido"). Ambiguidade resolvida com 2
+  perguntas antes de codar: escopo completo (incluindo mudança de
+  backend) em vez de só o que já dava pra fazer sem tocar a consulta,
+  e métricas de "ordem com problema" (ex. "Atrasadas") continuam
+  contando ordens, não peças — só métricas de volume/produtividade
+  converteram. `RelatorioProducaoLinha` ganhou `quantidade_total`
+  (`electron/main/db/repositories/relatorios.ts`, subquery contra
+  `ordem_corte_itens`, mesmo padrão já usado em `OrdemCorteResumo` —
+  sem migration). Convertido: Dashboard ("Distribuição de Ordens por
+  Status" → "...de Peças...", "Produção dos Últimos 30 Dias", card de
+  resumo inteligente — exceto a frase de atrasadas); Relatório de
+  Produção (KPIs Total/Concluídas/Em Andamento, mantendo Atrasadas);
+  Relatório de Clientes (KPIs, coluna e gráfico "Ordens por Cliente" →
+  "Peças por Cliente", "Atividade de Clientes" por peças encomendadas);
+  Relatório de Operadores (KPIs, colunas Concluídas/Em Andamento,
+  gráfico "Ordens por Operador" → "Peças por Operador",
+  "Produtividade Diária"). Gráficos renomeados de arquivo pra
+  acompanhar o conteúdo: `OrdensPorClienteChart.tsx` →
+  `PecasPorClienteChart.tsx`, `OrdensPorOperadorChart.tsx` →
+  `PecasPorOperadorChart.tsx`. **Deliberadamente NÃO convertido**: o
+  Relatório de Materiais (KPI "Total de Ordens", coluna "Ordens",
+  gráfico "Materiais Mais Usados") — já tem "Total de Peças
+  Produzidas"/coluna "Peças Produzidas"/gráfico "Consumo de Material"
+  medindo volume; converter os primeiros também criaria métricas
+  duplicadas com valor idêntico, então mantidos como contagem de
+  ordens (visão de "quantas ordens usaram este material", distinta de
+  volume) — desvio não perguntado ao usuário antes, sinalizar se
+  quiser revisão. Histórico de Ordens e a seção "Ordens" do Relatório
+  de Produção também não mudaram — são listas de linhas de ordem, não
+  métricas de contagem. Build e `npm run typecheck` limpos a cada
+  commit (6 commits: backend + Dashboard + Produção + Clientes +
+  Operadores). **Não testado manualmente ainda**.
 - Entrega **2026-07-18**: **Sprint 7 — Polimento e Publicação**,
   entregue em 5 frentes sequenciais (decisão com o usuário: uma de
   cada vez, não tudo numa leva). **Auto-update fica adiado** (bloqueio
