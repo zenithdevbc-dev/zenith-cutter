@@ -49,6 +49,19 @@ function segredoConfere(a: string, b: string): boolean {
   return diff === 0;
 }
 
+// Código da empresa (pedido do usuário): formato AA00 — 2 letras
+// maiúsculas + 2 dígitos, atribuído automaticamente aqui na criação.
+// Funciona como segunda credencial no login (resolve_login_email),
+// pra não dar pra logar na empresa errada por acidente.
+const LETRAS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+function gerarCodigoEmpresa(): string {
+  const l1 = LETRAS[Math.floor(Math.random() * LETRAS.length)];
+  const l2 = LETRAS[Math.floor(Math.random() * LETRAS.length)];
+  const n1 = Math.floor(Math.random() * 10);
+  const n2 = Math.floor(Math.random() * 10);
+  return `${l1}${l2}${n1}${n2}`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -83,11 +96,24 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    const { data: empresa, error: empresaError } = await adminClient
-      .from("empresas")
-      .insert({ nome: body.nome_empresa.trim() })
-      .select()
-      .single();
+    // Colisão de código (67.600 combinações possíveis, AA00-ZZ99) é
+    // improvável, mas trata mesmo assim: tenta de novo com um código
+    // novo em vez de falhar a criação da empresa por causa disso.
+    let empresa = null;
+    let empresaError = null;
+    for (let tentativa = 0; tentativa < 5 && !empresa; tentativa++) {
+      const resultado = await adminClient
+        .from("empresas")
+        .insert({ nome: body.nome_empresa.trim(), codigo: gerarCodigoEmpresa() })
+        .select()
+        .single();
+      if (resultado.error) {
+        empresaError = resultado.error;
+        if (!resultado.error.message.includes("empresas_codigo_key")) break;
+        continue;
+      }
+      empresa = resultado.data;
+    }
 
     if (empresaError || !empresa) {
       return json({ error: empresaError?.message ?? "Falha ao criar empresa." }, 400);
