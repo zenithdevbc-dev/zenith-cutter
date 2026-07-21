@@ -39,7 +39,7 @@ export function filtrarRelatorioProducao(
   });
 }
 
-const STATUS_EM_ANDAMENTO: StatusOrdemCorte[] = [
+export const STATUS_EM_ANDAMENTO: StatusOrdemCorte[] = [
   "em_corte",
   "embalagem",
   "revisao",

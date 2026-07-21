@@ -15,16 +15,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { listMesasComStatus } from "@/lib/producao";
 import { listRelatorioProducao } from "@/lib/relatorios";
+import { listBancas } from "@/lib/bancas";
 import { useAuth } from "@/lib/auth-context";
 import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
 import {
   calcularDistribuicaoStatus,
   calcularProducaoUltimos30Dias,
+  calcularPecasEmProducaoPorBanca,
 } from "@/lib/dashboardCharts";
 import { ProducaoUltimos30DiasChart } from "@/components/dashboard/ProducaoUltimos30DiasChart";
 import { DistribuicaoStatusChart } from "@/components/dashboard/DistribuicaoStatusChart";
 import { ResumoProducaoCard } from "@/components/dashboard/ResumoProducaoCard";
 import type {
+  Banca,
   MesaCorteComStatus,
   OrdemCorteResumo,
   RelatorioProducaoLinha,
@@ -46,6 +49,7 @@ export function DashboardPage() {
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
   const [mesas, setMesas] = useState<MesaCorteComStatus[] | null>(null);
   const [producao, setProducao] = useState<RelatorioProducaoLinha[] | null>(null);
+  const [bancas, setBancas] = useState<Banca[] | null>(null);
   const [busca, setBusca] = useState("");
 
   useEffect(() => {
@@ -56,6 +60,9 @@ export function DashboardPage() {
       listRelatorioProducao()
         .then(setProducao)
         .catch(() => toast.error("Não foi possível carregar os dados de produção."));
+      listBancas()
+        .then(setBancas)
+        .catch(() => toast.error("Não foi possível carregar as bancas."));
     }
     listMesasComStatus()
       .then(setMesas)
@@ -72,6 +79,13 @@ export function DashboardPage() {
     () => calcularProducaoUltimos30Dias(producao ?? []),
     [producao],
   );
+
+  const pecasEmProducaoPorBanca = useMemo(
+    () => calcularPecasEmProducaoPorBanca(producao ?? [], bancas ?? []),
+    [producao, bancas],
+  );
+
+  const bancasAtivas = (bancas ?? []).filter((b) => b.ativo).length;
 
   const resultadosBusca = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -162,6 +176,51 @@ export function DashboardPage() {
                 <p className="text-sm text-muted-foreground">Nenhuma ordem cadastrada.</p>
               ) : (
                 <DistribuicaoStatusChart dados={distribuicaoStatus} />
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {podeVerOrdens && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Bancas</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              {bancas === null ? (
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-5 w-40" />
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-5 w-full" />
+                  ))}
+                </div>
+              ) : bancas.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma banca cadastrada.</p>
+              ) : (
+                <>
+                  <div className="flex gap-4 text-sm">
+                    <span>
+                      <Badge variant="secondary">{bancasAtivas}</Badge> banca(s) ativa(s)
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {pecasEmProducaoPorBanca.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Nenhuma peça em produção em bancas no momento.
+                      </p>
+                    ) : (
+                      pecasEmProducaoPorBanca.map((item) => (
+                        <div
+                          key={item.banca_id}
+                          className="flex items-center justify-between text-sm"
+                        >
+                          <span>{item.nome}</span>
+                          <Badge variant="secondary">{item.quantidade} peça(s) em produção</Badge>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>

@@ -1,5 +1,6 @@
-import type { OrdemCorteResumo, RelatorioProducaoLinha, StatusOrdemCorte } from "@shared/models";
+import type { Banca, OrdemCorteResumo, RelatorioProducaoLinha, StatusOrdemCorte } from "@shared/models";
 import { STATUS_ORDEM_CORTE_LABEL } from "@/lib/statusOrdemCorte";
+import { STATUS_EM_ANDAMENTO } from "@/lib/relatorioProducao";
 
 /**
  * Cores por status pro gráfico de rosca — distintas o bastante pra
@@ -84,4 +85,33 @@ export function calcularProducaoUltimos30Dias(
     dias.push({ data: iso, label: `${dia}/${mes}`, quantidade: contagem.get(iso) ?? 0 });
   }
   return dias;
+}
+
+export interface PecasEmProducaoPorBancaItem {
+  banca_id: string;
+  nome: string;
+  quantidade: number;
+}
+
+/**
+ * Peças "em produção" (mesma definição de STATUS_EM_ANDAMENTO já usada
+ * no Relatório de Produção: em_corte/embalagem/revisao/despacho, exclui
+ * pronto) agrupadas por banca terceirizada. Só bancas ativas com pelo
+ * menos 1 peça em produção aparecem — mesmo espírito do card de Mesas
+ * de Corte, que só lista mesas ativas.
+ */
+export function calcularPecasEmProducaoPorBanca(
+  linhas: RelatorioProducaoLinha[],
+  bancas: Banca[],
+): PecasEmProducaoPorBancaItem[] {
+  const nomesAtivos = new Map(bancas.filter((b) => b.ativo).map((b) => [b.id, b.nome]));
+  const contagem = new Map<string, number>();
+  for (const linha of linhas) {
+    if (!linha.banca_id || !nomesAtivos.has(linha.banca_id)) continue;
+    if (!STATUS_EM_ANDAMENTO.includes(linha.status)) continue;
+    contagem.set(linha.banca_id, (contagem.get(linha.banca_id) ?? 0) + linha.quantidade_total);
+  }
+  return Array.from(contagem.entries())
+    .map(([banca_id, quantidade]) => ({ banca_id, nome: nomesAtivos.get(banca_id)!, quantidade }))
+    .sort((a, b) => b.quantidade - a.quantidade);
 }
