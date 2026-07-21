@@ -245,6 +245,54 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-20** — **módulo Bancas (terceiros)** entregue (pedido do
+  usuário — cadastro de bancas terceirizadas que podem receber ordens
+  de produção; não é cliente, não é equipe interna). Seguiu
+  rigorosamente os padrões existentes: molde de CRUD = Tecidos (model →
+  migration local → RLS Supabase → repositório main → IPC → preload →
+  lib renderer → página + dialogs); molde do vínculo opcional numa
+  Ordem = `mesa_atribuida_id`; molde do Relatório = Relatório de
+  Clientes. Nenhuma lib nova.
+  - **Cadastro**: nova tabela `bancas` (id, empresa_id, nome,
+    responsavel, telefone, whatsapp, email, endereco, tipo_servico,
+    observacoes, ativo, criado_em, atualizado_em) — migration local
+    v27 + Supabase `0034_bancas.sql` (RLS igual Tecidos/Mesas de
+    Corte/Produtos: isolamento só por `empresa_id`, sem restrição de
+    papel na policy — a restrição a admin/supervisor é só de
+    navegação/UI, mesmo modelo desses 4 cadastros). Nova aba "Bancas"
+    em Cadastros (`BancasPage.tsx`) com busca + filtro de status
+    (Todas/Ativas/Inativas) — nenhum cadastro simples tinha isso antes
+    (só um Switch por linha); reaproveitou o padrão de filtro já usado
+    em `OrdensCortePage.tsx`. "Tipo de serviço" ficou como texto livre
+    (mesmo tratamento de `Tecido.composicao`/`cor`), não um enum —
+    evita taxonomia não pedida.
+  - **Integração com Ordens de Corte**: `ordens_corte.banca_id`
+    (nullable, migration local v28 + Supabase
+    `0035_ordens_corte_banca_id.sql`) — sem banca = produção interna
+    (comportamento das ordens existentes não muda). Novo `Select`
+    "Banca responsável (opcional)" em Criar/Editar Ordem (sentinel
+    `"nenhuma"` = "Produção interna", mesmo padrão já usado no Select
+    de mesa da Fila de Produção em `ProducaoPage.tsx`); exibido no
+    dialog Info. Não participa da state machine de status (regra 4) —
+    é só um dado descritivo, nenhuma mudança no fluxo de PIN/etapas.
+  - **Dashboard**: novo card "Bancas" (dentro do bloco já restrito a
+    admin/supervisor) com contagem de bancas ativas + lista por banca
+    de peças "em produção" (mesma definição de `STATUS_EM_ANDAMENTO`
+    do Relatório de Produção — `em_corte`/`embalagem`/`revisao`/
+    `despacho`, exclui `pronto`), no mesmo formato visual do card
+    "Mesas de Corte" (lista + badge, sem gráfico novo).
+  - **Relatório de Bancas**: sexta aba em Relatórios. Diferente do
+    Relatório de Clientes (só lista quem tem pelo menos 1 ordem), a
+    tabela mostra **toda banca cadastrada** (mesmo sem nenhuma ordem
+    ainda) — o pedido foi literal "Bancas cadastradas". KPIs (Total,
+    Ativas, Peças Produzidas, Média por Banca Ativa), 2 gráficos
+    (Peças por Banca, Atividade ao Longo do Tempo — mesmo padrão dos
+    outros relatórios de entidade), tabela paginada, exportação
+    CSV/Excel/PDF. Sem IPC novo — reaproveita `listRelatorioProducao()`
+    (que ganhou `banca_id`/`banca_nome` no JOIN).
+  `npm run build` (typecheck + vite build) limpo. **Migrations
+  Supabase `0034`/`0035` pendentes de execução manual** no SQL Editor
+  (mesma rotina de sempre). **Não testado manualmente ainda.**
 - **2026-07-18** — **versão mobile — Fase A (fundação) entregue**
   (pedido do usuário: "Precisamos de uma versão mobile, com
   sincronização de dados e atualizações de sistema conjuntas a versão
