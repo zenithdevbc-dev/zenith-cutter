@@ -92,6 +92,10 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
               </p>
             </div>
             <div>
+              <p className="text-muted-foreground">Banca responsável</p>
+              <p className="font-medium">{ordem.banca_nome ?? "Produção interna"}</p>
+            </div>
+            <div>
               <p className="text-muted-foreground">Criado em</p>
               <p className="font-medium">{new Date(ordem.criado_em).toLocaleString("pt-BR")}</p>
             </div>

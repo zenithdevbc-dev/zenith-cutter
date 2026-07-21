@@ -77,6 +77,7 @@ export function OrdensCortePage() {
         tecido_nome: ordem.tecido_nome,
         quantidade_total: ordem.quantidade_total,
         mesa_atribuida_nome: null,
+        banca_nome: null,
       });
       toast.success("Ordem de corte duplicada.");
     } catch {

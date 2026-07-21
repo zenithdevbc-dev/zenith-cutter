@@ -21,6 +21,7 @@ import {
 import { listClientes } from "@/lib/clientes";
 import { listProdutos } from "@/lib/produtos";
 import { listTecidos } from "@/lib/tecidos";
+import { listBancas } from "@/lib/bancas";
 import { listProdutoTamanhos } from "@/lib/produtoTamanhos";
 import { listOrdemCorteItens, updateOrdemCorte } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
@@ -28,6 +29,7 @@ import { usePinConfirm } from "@/components/usePinConfirm";
 import { STATUS_ORDEM_CORTE_LABEL } from "@/lib/statusOrdemCorte";
 import { GradeQuantidadeInput } from "@/components/ordens/GradeQuantidadeInput";
 import type {
+  Banca,
   Cliente,
   Produto,
   Tecido,
@@ -62,9 +64,11 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [tecidos, setTecidos] = useState<Tecido[]>([]);
+  const [bancas, setBancas] = useState<Banca[]>([]);
   const [clienteId, setClienteId] = useState(ordem.cliente_id);
   const [produtoId, setProdutoId] = useState(ordem.produto_id);
   const [tecidoId, setTecidoId] = useState(ordem.tecido_id);
+  const [bancaId, setBancaId] = useState(ordem.banca_id ?? "");
   const [observacoes, setObservacoes] = useState(ordem.observacoes ?? "");
   const [prazo, setPrazo] = useState(ordem.prazo ?? "");
   const [status, setStatus] = useState<StatusOrdemCorte>(ordem.status);
@@ -75,13 +79,14 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
 
   useEffect(() => {
     if (!open) return;
-    Promise.all([listClientes(), listProdutos(), listTecidos()])
-      .then(([c, p, t]) => {
+    Promise.all([listClientes(), listProdutos(), listTecidos(), listBancas()])
+      .then(([c, p, t, b]) => {
         setClientes(c.filter((x) => x.ativo));
         setProdutos(p.filter((x) => x.ativo));
         setTecidos(t.filter((x) => x.ativo));
+        setBancas(b.filter((x) => x.ativo));
       })
-      .catch(() => toast.error("Não foi possível carregar clientes/produtos/tecidos."));
+      .catch(() => toast.error("Não foi possível carregar clientes/produtos/tecidos/bancas."));
   }, [open]);
 
   useEffect(() => {
@@ -129,6 +134,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
           tecido_id: tecidoId,
           observacoes: observacoes || null,
           prazo: prazo || null,
+          banca_id: bancaId || null,
           status,
           itens,
         },
@@ -137,6 +143,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
       const cliente = clientes.find((c) => c.id === clienteId);
       const produto = produtos.find((p) => p.id === produtoId);
       const tecido = tecidos.find((t) => t.id === tecidoId);
+      const banca = bancas.find((b) => b.id === bancaId);
       const quantidade_total = itens.reduce((sum, i) => sum + i.quantidade, 0);
       toast.success("Ordem de corte atualizada.");
       onUpdated({
@@ -146,6 +153,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
         tecido_nome: tecido?.nome ?? ordem.tecido_nome,
         quantidade_total,
         mesa_atribuida_nome: ordem.mesa_atribuida_nome,
+        banca_nome: bancaId ? (banca?.nome ?? ordem.banca_nome) : null,
       });
       setOpen(false);
     } catch (err) {
@@ -218,6 +226,23 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
               <SelectContent>
                 {(Object.keys(STATUS_LABEL) as StatusEditavel[]).map((s) => (
                   <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label>Banca responsável (opcional)</Label>
+            <Select
+              value={bancaId || "nenhuma"}
+              onValueChange={(v) => setBancaId(v === "nenhuma" ? "" : v)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nenhuma">Produção interna</SelectItem>
+                {bancas.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
