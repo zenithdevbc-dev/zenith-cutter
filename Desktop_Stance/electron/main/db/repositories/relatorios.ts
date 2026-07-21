@@ -28,7 +28,9 @@ export function listRelatorioProducaoLocal(db: Database.Database): RelatorioProd
         u.nome AS operador_nome,
         sp.iniciado_em,
         sp.finalizado_em,
-        COALESCE(sp.tempo_pausado_segundos, 0) AS tempo_pausado_segundos
+        COALESCE(sp.tempo_pausado_segundos, 0) AS tempo_pausado_segundos,
+        oc.banca_id,
+        bc.nome AS banca_nome
       FROM ordens_corte oc
       JOIN clientes c ON c.id = oc.cliente_id
       JOIN tecidos t ON t.id = oc.tecido_id
@@ -36,6 +38,7 @@ export function listRelatorioProducaoLocal(db: Database.Database): RelatorioProd
         SELECT id FROM sessoes_producao WHERE ordem_id = oc.id ORDER BY iniciado_em DESC LIMIT 1
       )
       LEFT JOIN usuarios u ON u.id = sp.iniciado_por
+      LEFT JOIN bancas bc ON bc.id = oc.banca_id
       WHERE oc.empresa_id = ?
       ORDER BY oc.numero DESC
     `)

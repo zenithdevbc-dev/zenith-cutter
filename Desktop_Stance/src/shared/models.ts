@@ -105,6 +105,46 @@ export interface TecidoUpdatePatch {
   ativo?: boolean;
 }
 
+export interface Banca {
+  id: string;
+  empresa_id: string;
+  nome: string;
+  responsavel: string | null;
+  telefone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  endereco: string | null;
+  tipo_servico: string | null;
+  observacoes: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface BancaInput {
+  empresa_id: string;
+  nome: string;
+  responsavel?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  endereco?: string | null;
+  tipo_servico?: string | null;
+  observacoes?: string | null;
+}
+
+export interface BancaUpdatePatch {
+  nome?: string;
+  responsavel?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  endereco?: string | null;
+  tipo_servico?: string | null;
+  observacoes?: string | null;
+  ativo?: boolean;
+}
+
 export interface MesaCorte {
   id: string;
   empresa_id: string;
@@ -198,6 +238,12 @@ export interface OrdemCorte {
    * 'pronto'/'cancelada'.
    */
   prazo: string | null;
+  /**
+   * Banca terceirizada responsável pela produção (opcional — sem
+   * banca = produção interna, módulo Bancas). Não participa da state
+   * machine de status (regra 4): é só um dado descritivo da ordem.
+   */
+  banca_id: string | null;
   criado_em: string;
   atualizado_em: string;
 }
@@ -212,6 +258,7 @@ export interface OrdemCorteResumo extends OrdemCorte {
   tecido_nome: string;
   quantidade_total: number;
   mesa_atribuida_nome: string | null;
+  banca_nome: string | null;
 }
 
 export interface OrdemCorteItem {
@@ -236,6 +283,7 @@ export interface OrdemCorteInput {
   tecido_id: string;
   observacoes?: string | null;
   prazo?: string | null;
+  banca_id?: string | null;
   itens: OrdemCorteItemInput[];
 }
 
@@ -245,6 +293,7 @@ export interface OrdemCorteUpdatePatch {
   tecido_id?: string;
   observacoes?: string | null;
   prazo?: string | null;
+  banca_id?: string | null;
   status?: StatusOrdemCorte;
   itens?: OrdemCorteItemInput[];
 }
@@ -391,6 +440,8 @@ export interface RelatorioProducaoLinha {
   iniciado_em: string | null;
   finalizado_em: string | null;
   tempo_pausado_segundos: number;
+  banca_id: string | null;
+  banca_nome: string | null;
 }
 
 /**

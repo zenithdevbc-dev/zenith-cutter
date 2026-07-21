@@ -22,6 +22,9 @@ import type {
   MesaCorte,
   MesaCorteInput,
   MesaCorteUpdatePatch,
+  Banca,
+  BancaInput,
+  BancaUpdatePatch,
   ProdutoTamanho,
   ProdutoTamanhoInput,
   ProdutoTamanhoUpdatePatch,
@@ -101,6 +104,11 @@ declare global {
         listLocal: () => Promise<MesaCorte[]>;
         createLocal: (input: MesaCorteInput) => Promise<MesaCorte>;
         updateLocal: (id: string, patch: MesaCorteUpdatePatch) => Promise<MesaCorte>;
+      };
+      bancas: {
+        listLocal: () => Promise<Banca[]>;
+        createLocal: (input: BancaInput) => Promise<Banca>;
+        updateLocal: (id: string, patch: BancaUpdatePatch) => Promise<Banca>;
       };
       produtoTamanhos: {
         listLocal: (produtoId: string) => Promise<ProdutoTamanho[]>;

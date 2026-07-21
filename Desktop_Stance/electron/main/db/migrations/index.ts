@@ -685,4 +685,51 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 27,
+    name: "create_bancas",
+    up: (db) => {
+      db.exec(`
+        -- Módulo Bancas: prestadores de serviço terceirizados que podem
+        -- receber ordens de produção (não é cliente, não é equipe
+        -- interna). Mesmo padrão offline-first de tecidos/produtos: id
+        -- gerado no app, empresa_id presente desde a criação.
+        CREATE TABLE bancas (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          nome          TEXT NOT NULL,
+          responsavel   TEXT,
+          telefone      TEXT,
+          whatsapp      TEXT,
+          email         TEXT,
+          endereco      TEXT,
+          tipo_servico  TEXT,
+          observacoes   TEXT,
+          ativo         INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_bancas_nome ON bancas (nome);
+        CREATE INDEX idx_bancas_empresa ON bancas (empresa_id);
+      `);
+    },
+  },
+  {
+    version: 28,
+    name: "add_banca_id_to_ordens_corte",
+    up: (db) => {
+      db.exec(`
+        -- Vínculo opcional da ordem com uma banca terceirizada (sem
+        -- banca = produção interna, comportamento já existente antes
+        -- desta coluna). Não participa da state machine de status
+        -- (regra 4 do CLAUDE.md) — é só um dado descritivo, por isso
+        -- não precisa recriar a tabela (sem CHECK novo), mesmo padrão
+        -- simples de mesa_atribuida_id (v22)/prazo (v23).
+        ALTER TABLE ordens_corte ADD COLUMN banca_id TEXT;
+
+        CREATE INDEX idx_ordens_corte_banca ON ordens_corte (banca_id);
+      `);
+    },
+  },
 ];

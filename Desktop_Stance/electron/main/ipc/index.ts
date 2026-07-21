@@ -25,6 +25,9 @@ import type {
   MesaCorte,
   MesaCorteInput,
   MesaCorteUpdatePatch,
+  Banca,
+  BancaInput,
+  BancaUpdatePatch,
   ProdutoTamanho,
   ProdutoTamanhoInput,
   ProdutoTamanhoUpdatePatch,
@@ -84,6 +87,11 @@ import {
   createMesaCorteLocal,
   updateMesaCorteLocal,
 } from "../db/repositories/mesasCorte";
+import {
+  listBancasLocal,
+  createBancaLocal,
+  updateBancaLocal,
+} from "../db/repositories/bancas";
 import {
   listProdutoTamanhosLocal,
   createProdutoTamanhoLocal,
@@ -254,6 +262,21 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.mesasCorteUpdateLocal,
     (_event, id: string, patch: MesaCorteUpdatePatch): MesaCorte => {
       return updateMesaCorteLocal(getDb(), id, patch);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.bancasListLocal, (): Banca[] => {
+    return listBancasLocal(getDb());
+  });
+
+  ipcMain.handle(IPC_CHANNELS.bancasCreateLocal, (_event, input: BancaInput): Banca => {
+    return createBancaLocal(getDb(), input);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.bancasUpdateLocal,
+    (_event, id: string, patch: BancaUpdatePatch): Banca => {
+      return updateBancaLocal(getDb(), id, patch);
     },
   );
 

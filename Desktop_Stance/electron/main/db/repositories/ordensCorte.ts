@@ -103,6 +103,7 @@ export interface OrdemCorteRow {
   observacoes: string | null;
   mesa_atribuida_id: string | null;
   prazo: string | null;
+  banca_id: string | null;
   criado_em: string;
   atualizado_em: string;
 }
@@ -113,6 +114,7 @@ interface OrdemCorteResumoRow extends OrdemCorteRow {
   tecido_nome: string;
   quantidade_total: number;
   mesa_atribuida_nome: string | null;
+  banca_nome: string | null;
 }
 
 interface OrdemCorteItemRow {
@@ -137,6 +139,7 @@ export function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
     observacoes: row.observacoes,
     mesa_atribuida_id: row.mesa_atribuida_id,
     prazo: row.prazo,
+    banca_id: row.banca_id,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
   };
@@ -150,6 +153,7 @@ function rowToResumo(row: OrdemCorteResumoRow): OrdemCorteResumo {
     tecido_nome: row.tecido_nome,
     quantidade_total: row.quantidade_total,
     mesa_atribuida_nome: row.mesa_atribuida_nome,
+    banca_nome: row.banca_nome,
   };
 }
 
@@ -160,12 +164,14 @@ const RESUMO_SELECT = `
     p.nome AS produto_nome,
     t.nome AS tecido_nome,
     mc.nome AS mesa_atribuida_nome,
+    bc.nome AS banca_nome,
     COALESCE((SELECT SUM(quantidade) FROM ordem_corte_itens WHERE ordem_id = oc.id), 0) AS quantidade_total
   FROM ordens_corte oc
   JOIN clientes c ON c.id = oc.cliente_id
   JOIN produtos p ON p.id = oc.produto_id
   JOIN tecidos t ON t.id = oc.tecido_id
   LEFT JOIN mesas_corte mc ON mc.id = oc.mesa_atribuida_id
+  LEFT JOIN bancas bc ON bc.id = oc.banca_id
 `;
 
 export function listOrdensCorteLocal(db: Database.Database): OrdemCorteResumo[] {
@@ -281,14 +287,15 @@ export function createOrdemCorteLocal(
     observacoes: input.observacoes ?? null,
     mesa_atribuida_id: null,
     prazo: input.prazo ?? null,
+    banca_id: input.banca_id ?? null,
     criado_em: now,
     atualizado_em: now,
   };
 
   const create = db.transaction(() => {
     db.prepare(`
-      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, criado_em, atualizado_em)
-      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @prazo, @criado_em, @atualizado_em)
+      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @prazo, @banca_id, @criado_em, @atualizado_em)
     `).run(ordem);
     enqueueChange(db, {
       tableName: "ordens_corte",
@@ -346,6 +353,10 @@ export function updateOrdemCorteLocal(
   if (patch.prazo !== undefined) {
     fields.push("prazo = @prazo");
     params.prazo = patch.prazo;
+  }
+  if (patch.banca_id !== undefined) {
+    fields.push("banca_id = @banca_id");
+    params.banca_id = patch.banca_id;
   }
   if (patch.status !== undefined) {
     fields.push("status = @status");
@@ -411,6 +422,7 @@ export function updateOrdemCorteLocal(
       patch.tecido_id !== undefined ||
       patch.observacoes !== undefined ||
       patch.prazo !== undefined ||
+      patch.banca_id !== undefined ||
       patch.itens !== undefined;
 
     if (statusChanged) {

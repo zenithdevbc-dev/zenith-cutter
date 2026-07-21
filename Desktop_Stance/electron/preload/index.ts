@@ -24,6 +24,9 @@ import type {
   MesaCorte,
   MesaCorteInput,
   MesaCorteUpdatePatch,
+  Banca,
+  BancaInput,
+  BancaUpdatePatch,
   ProdutoTamanho,
   ProdutoTamanhoInput,
   ProdutoTamanhoUpdatePatch,
@@ -138,6 +141,14 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.mesasCorteCreateLocal, input),
     updateLocal: (id: string, patch: MesaCorteUpdatePatch): Promise<MesaCorte> =>
       ipcRenderer.invoke(IPC_CHANNELS.mesasCorteUpdateLocal, id, patch),
+  },
+  bancas: {
+    listLocal: (): Promise<Banca[]> =>
+      ipcRenderer.invoke(IPC_CHANNELS.bancasListLocal),
+    createLocal: (input: BancaInput): Promise<Banca> =>
+      ipcRenderer.invoke(IPC_CHANNELS.bancasCreateLocal, input),
+    updateLocal: (id: string, patch: BancaUpdatePatch): Promise<Banca> =>
+      ipcRenderer.invoke(IPC_CHANNELS.bancasUpdateLocal, id, patch),
   },
   produtoTamanhos: {
     listLocal: (produtoId: string): Promise<ProdutoTamanho[]> =>
