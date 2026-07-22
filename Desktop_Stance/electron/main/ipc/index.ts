@@ -71,32 +71,38 @@ import {
   listClientesLocal,
   createClienteLocal,
   updateClienteLocal,
+  cacheClientesLocal,
 } from "../db/repositories/clientes";
 import {
   listProdutosLocal,
   createProdutoLocal,
   updateProdutoLocal,
+  cacheProdutosLocal,
 } from "../db/repositories/produtos";
 import {
   listTecidosLocal,
   createTecidoLocal,
   updateTecidoLocal,
+  cacheTecidosLocal,
 } from "../db/repositories/tecidos";
 import {
   listMesasCorteLocal,
   createMesaCorteLocal,
   updateMesaCorteLocal,
+  cacheMesasCorteLocal,
 } from "../db/repositories/mesasCorte";
 import {
   listBancasLocal,
   createBancaLocal,
   updateBancaLocal,
+  cacheBancasLocal,
 } from "../db/repositories/bancas";
 import {
   listProdutoTamanhosLocal,
   createProdutoTamanhoLocal,
   updateProdutoTamanhoLocal,
   reorderProdutoTamanhosLocal,
+  cacheProdutoTamanhosLocal,
 } from "../db/repositories/produtoTamanhos";
 import {
   listOrdensCorteLocal,
@@ -107,6 +113,9 @@ import {
   listOrdemCorteHistoricoLocal,
   getNextOrdemCorteNumeroLocal,
   atribuirMesaFilaLocal,
+  cacheOrdensCorteLocal,
+  cacheOrdemCorteItensLocal,
+  cacheOrdemCorteHistoricoLocal,
 } from "../db/repositories/ordensCorte";
 import { cacheEmpresa, getEmpresaLocal } from "../db/repositories/empresas";
 import { setCurrentEmpresaId, clearCurrentEmpresaId } from "../session";
@@ -127,6 +136,9 @@ import {
   registrarProducaoPerdaLocal,
   listProducaoObservacoesLocal,
   registrarProducaoObservacaoLocal,
+  cacheSessoesProducaoLocal,
+  cacheProducaoPerdasLocal,
+  cacheProducaoObservacoesLocal,
 } from "../db/repositories/producao";
 
 export function registerIpcHandlers() {
@@ -220,6 +232,10 @@ export function registerIpcHandlers() {
     },
   );
 
+  ipcMain.handle(IPC_CHANNELS.clientesCacheLocal, (_event, clientes: Cliente[]) => {
+    cacheClientesLocal(getDb(), clientes);
+  });
+
   ipcMain.handle(IPC_CHANNELS.produtosListLocal, (): Produto[] => {
     return listProdutosLocal(getDb());
   });
@@ -234,6 +250,10 @@ export function registerIpcHandlers() {
       return updateProdutoLocal(getDb(), id, patch);
     },
   );
+
+  ipcMain.handle(IPC_CHANNELS.produtosCacheLocal, (_event, produtos: Produto[]) => {
+    cacheProdutosLocal(getDb(), produtos);
+  });
 
   ipcMain.handle(IPC_CHANNELS.tecidosListLocal, (): Tecido[] => {
     return listTecidosLocal(getDb());
@@ -250,6 +270,10 @@ export function registerIpcHandlers() {
     },
   );
 
+  ipcMain.handle(IPC_CHANNELS.tecidosCacheLocal, (_event, tecidos: Tecido[]) => {
+    cacheTecidosLocal(getDb(), tecidos);
+  });
+
   ipcMain.handle(IPC_CHANNELS.mesasCorteListLocal, (): MesaCorte[] => {
     return listMesasCorteLocal(getDb());
   });
@@ -265,6 +289,10 @@ export function registerIpcHandlers() {
     },
   );
 
+  ipcMain.handle(IPC_CHANNELS.mesasCorteCacheLocal, (_event, mesas: MesaCorte[]) => {
+    cacheMesasCorteLocal(getDb(), mesas);
+  });
+
   ipcMain.handle(IPC_CHANNELS.bancasListLocal, (): Banca[] => {
     return listBancasLocal(getDb());
   });
@@ -279,6 +307,10 @@ export function registerIpcHandlers() {
       return updateBancaLocal(getDb(), id, patch);
     },
   );
+
+  ipcMain.handle(IPC_CHANNELS.bancasCacheLocal, (_event, bancas: Banca[]) => {
+    cacheBancasLocal(getDb(), bancas);
+  });
 
   ipcMain.handle(
     IPC_CHANNELS.produtoTamanhosListLocal,
@@ -307,6 +339,10 @@ export function registerIpcHandlers() {
       return reorderProdutoTamanhosLocal(getDb(), orderedIds);
     },
   );
+
+  ipcMain.handle(IPC_CHANNELS.produtoTamanhosCacheLocal, (_event, tamanhos: ProdutoTamanho[]) => {
+    cacheProdutoTamanhosLocal(getDb(), tamanhos);
+  });
 
   ipcMain.handle(IPC_CHANNELS.ordensCorteListLocal, (): OrdemCorteResumo[] => {
     return listOrdensCorteLocal(getDb());
@@ -363,6 +399,21 @@ export function registerIpcHandlers() {
       usuarioId: string,
     ): OrdemCorteResumo => {
       return atribuirMesaFilaLocal(getDb(), ordemId, mesaAtribuidaId, usuarioId);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.ordensCorteCacheLocal, (_event, ordens: OrdemCorte[]) => {
+    cacheOrdensCorteLocal(getDb(), ordens);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.ordensCorteItensCacheLocal, (_event, itens: OrdemCorteItem[]) => {
+    cacheOrdemCorteItensLocal(getDb(), itens);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.ordensCorteHistoricoCacheLocal,
+    (_event, entradas: OrdemCorteHistoricoEntry[]) => {
+      cacheOrdemCorteHistoricoLocal(getDb(), entradas);
     },
   );
 
@@ -445,6 +496,21 @@ export function registerIpcHandlers() {
     IPC_CHANNELS.producaoObservacoesRegistrarLocal,
     (_event, input: ProducaoObservacaoInput, usuarioId: string): ProducaoObservacao => {
       return registrarProducaoObservacaoLocal(getDb(), input, usuarioId);
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.producaoSessoesCacheLocal, (_event, sessoes: SessaoProducao[]) => {
+    cacheSessoesProducaoLocal(getDb(), sessoes);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.producaoPerdasCacheLocal, (_event, perdas: ProducaoPerda[]) => {
+    cacheProducaoPerdasLocal(getDb(), perdas);
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.producaoObservacoesCacheLocal,
+    (_event, observacoes: ProducaoObservacao[]) => {
+      cacheProducaoObservacoesLocal(getDb(), observacoes);
     },
   );
 

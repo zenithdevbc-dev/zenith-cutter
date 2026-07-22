@@ -266,6 +266,58 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-21** — **motor de sincronização ganha pull (bidirecional)**
+  (reportado pelo usuário: "ao abrir o programa na mesma empresa e
+  usuário, em outro dispositivo, não carrega os dados do Supabase").
+  Causa raiz confirmada por investigação: o motor de sync
+  (`src/renderer/lib/sync.ts`/`syncManager.ts`) só empurrava
+  local→nuvem; nenhuma tabela de negócio (clientes, produtos, tecidos,
+  mesas de corte, bancas, grade de tamanhos, ordens de corte + itens +
+  histórico, sessões de produção, perdas, observações) era buscada de
+  volta do Supabase — só o próprio usuário logado (`usuarios`, self
+  fetch no login) e, sob demanda, o roster inteiro de `usuarios`
+  (`listUsuarios()`, só quando Cadastros > Usuários era aberto). Um
+  segundo dispositivo com o mesmo usuário/empresa começava com o
+  SQLite local vazio e nunca recebia o que tinha sido criado no
+  primeiro. Duas decisões alinhadas com o usuário antes de codar: 1)
+  pull roda no login, no botão "Sincronizar agora" **e** no ciclo
+  periódico automático do motor de sync (não só login/manual); 2)
+  conflito (mesmo registro alterado local e remotamente) resolvido por
+  "mais recente vence", comparando `atualizado_em`.
+  Implementado: `src/renderer/lib/pull.ts` (novo) busca cada tabela no
+  Supabase (RLS já escopa por empresa/papel — nenhum filtro manual
+  necessário) e repassa pro cache local via IPC; chamado dentro de
+  `syncNow()` em `syncManager.ts`, antes do push (pull desce, depois
+  sobe). Cada tabela ganhou uma função `cache*Local` no repositório
+  main correspondente (clientes/produtos/tecidos/mesasCorte/bancas/
+  produtoTamanhos/ordensCorte/producao), com estratégia por tipo de
+  tabela: **upsert "mais recente vence"** via
+  `ON CONFLICT (id) DO UPDATE ... WHERE excluded.atualizado_em >
+  <tabela>.atualizado_em` (SQLite suporta `WHERE` no upsert — se a
+  condição falhar, a linha local mais nova é preservada) para tabelas
+  com edição normal; **insert-only** (`ON CONFLICT DO NOTHING`) para
+  logs imutáveis (`ordem_corte_historico`, `producao_perdas`,
+  `producao_observacoes` — nunca são editados depois de criados, sem
+  conflito possível); e um caso especial pra `ordem_corte_itens` (sem
+  `atualizado_em` própria — grade é sempre apagada e regravada inteira
+  na edição): o pull substitui o conjunto inteiro da empresa pelo que
+  veio da nuvem, mas só se não houver nenhuma alteração local de itens
+  ainda pendente em `sync_queue` (novo helper `hasPendingSyncFor`,
+  `electron/main/sync/queue.ts`) — evita apagar um delete+insert local
+  que ainda não chegou no Supabase; ela pega o resto no próximo ciclo,
+  depois que o push esvaziar a fila. `cacheUsuarios` (já existente)
+  também passou a usar "mais recente vence" — antes sobrescrevia sem
+  checar, inofensivo enquanto só rodava sob demanda, mas passou a
+  rodar no ciclo periódico também. **Nenhuma migration nova** (nem
+  local nem Supabase) — todo o RLS de SELECT necessário já existia
+  (conferido policy por policy antes de codar). Efeito colateral:
+  isso também cobre o que a Fase C do módulo mobile (§ entradas de
+  2026-07-18) previa ("desktop ganha um pull leve pra refletir o que o
+  celular grava") — como o celular já escreve direto no Supabase, o
+  pull novo traz essas mudanças pro desktop também, sem trabalho
+  adicional. `npm run build` (typecheck + vite build) limpo.
+  **Não testado manualmente ainda** (não validado ponta a ponta com
+  dois dispositivos reais).
 - **2026-07-21** — **pipeline de produção reajustado** (pedido do
   usuário — ver decisão de 2026-07-21 na seção 4). Novo desenho:
   Planejado → Em Fila → Enfesto → Corte → Embalagem → Despache →

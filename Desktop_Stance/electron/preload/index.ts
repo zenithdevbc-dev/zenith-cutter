@@ -117,6 +117,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.clientesCreateLocal, input),
     updateLocal: (id: string, patch: ClienteUpdatePatch): Promise<Cliente> =>
       ipcRenderer.invoke(IPC_CHANNELS.clientesUpdateLocal, id, patch),
+    cacheLocal: (clientes: Cliente[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.clientesCacheLocal, clientes),
   },
   produtos: {
     listLocal: (): Promise<Produto[]> =>
@@ -125,6 +127,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.produtosCreateLocal, input),
     updateLocal: (id: string, patch: ProdutoUpdatePatch): Promise<Produto> =>
       ipcRenderer.invoke(IPC_CHANNELS.produtosUpdateLocal, id, patch),
+    cacheLocal: (produtos: Produto[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.produtosCacheLocal, produtos),
   },
   tecidos: {
     listLocal: (): Promise<Tecido[]> =>
@@ -133,6 +137,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.tecidosCreateLocal, input),
     updateLocal: (id: string, patch: TecidoUpdatePatch): Promise<Tecido> =>
       ipcRenderer.invoke(IPC_CHANNELS.tecidosUpdateLocal, id, patch),
+    cacheLocal: (tecidos: Tecido[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.tecidosCacheLocal, tecidos),
   },
   mesasCorte: {
     listLocal: (): Promise<MesaCorte[]> =>
@@ -141,6 +147,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.mesasCorteCreateLocal, input),
     updateLocal: (id: string, patch: MesaCorteUpdatePatch): Promise<MesaCorte> =>
       ipcRenderer.invoke(IPC_CHANNELS.mesasCorteUpdateLocal, id, patch),
+    cacheLocal: (mesas: MesaCorte[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.mesasCorteCacheLocal, mesas),
   },
   bancas: {
     listLocal: (): Promise<Banca[]> =>
@@ -149,6 +157,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.bancasCreateLocal, input),
     updateLocal: (id: string, patch: BancaUpdatePatch): Promise<Banca> =>
       ipcRenderer.invoke(IPC_CHANNELS.bancasUpdateLocal, id, patch),
+    cacheLocal: (bancas: Banca[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.bancasCacheLocal, bancas),
   },
   produtoTamanhos: {
     listLocal: (produtoId: string): Promise<ProdutoTamanho[]> =>
@@ -159,6 +169,8 @@ contextBridge.exposeInMainWorld("zenith", {
       ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosUpdateLocal, id, patch),
     reorderLocal: (orderedIds: string[]): Promise<ProdutoTamanho[]> =>
       ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosReorderLocal, orderedIds),
+    cacheLocal: (tamanhos: ProdutoTamanho[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.produtoTamanhosCacheLocal, tamanhos),
   },
   ordensCorte: {
     listLocal: (): Promise<OrdemCorteResumo[]> =>
@@ -190,6 +202,12 @@ contextBridge.exposeInMainWorld("zenith", {
         mesaAtribuidaId,
         usuarioId,
       ),
+    cacheLocal: (ordens: OrdemCorte[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteCacheLocal, ordens),
+    itensCacheLocal: (itens: OrdemCorteItem[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteItensCacheLocal, itens),
+    historicoCacheLocal: (entradas: OrdemCorteHistoricoEntry[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteHistoricoCacheLocal, entradas),
   },
   filaProducao: {
     listLocal: (): Promise<OrdemCorteResumo[]> =>
@@ -226,6 +244,12 @@ contextBridge.exposeInMainWorld("zenith", {
       usuarioId: string,
     ): Promise<ProducaoObservacao> =>
       ipcRenderer.invoke(IPC_CHANNELS.producaoObservacoesRegistrarLocal, input, usuarioId),
+    sessoesCacheLocal: (sessoes: SessaoProducao[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoSessoesCacheLocal, sessoes),
+    perdasCacheLocal: (perdas: ProducaoPerda[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoPerdasCacheLocal, perdas),
+    observacoesCacheLocal: (observacoes: ProducaoObservacao[]): Promise<void> =>
+      ipcRenderer.invoke(IPC_CHANNELS.producaoObservacoesCacheLocal, observacoes),
   },
   empresas: {
     cache: (empresa: Empresa): Promise<void> =>

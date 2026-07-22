@@ -35,6 +35,29 @@ export function listProdutosLocal(db: Database.Database): Produto[] {
   return rows.map(rowToProduto);
 }
 
+/** Pull de sincronização (2026-07-21) — mesmo padrão de cacheClientesLocal. */
+export function cacheProdutosLocal(db: Database.Database, produtos: Produto[]) {
+  const stmt = db.prepare(`
+    INSERT INTO produtos (id, empresa_id, nome, codigo, descricao, ativo, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @nome, @codigo, @descricao, @ativo, @criado_em, @atualizado_em)
+    ON CONFLICT (id) DO UPDATE SET
+      empresa_id = excluded.empresa_id,
+      nome = excluded.nome,
+      codigo = excluded.codigo,
+      descricao = excluded.descricao,
+      ativo = excluded.ativo,
+      criado_em = excluded.criado_em,
+      atualizado_em = excluded.atualizado_em
+    WHERE excluded.atualizado_em > produtos.atualizado_em
+  `);
+  const cacheAll = db.transaction((items: Produto[]) => {
+    for (const p of items) {
+      stmt.run({ ...p, ativo: p.ativo ? 1 : 0 });
+    }
+  });
+  cacheAll(produtos);
+}
+
 /**
  * Mesmo padrão de clientes: 100% offline-first, id gerado aqui e usado
  * sem remapeamento quando o motor de sync (Sprint 6) enviar ao Supabase.

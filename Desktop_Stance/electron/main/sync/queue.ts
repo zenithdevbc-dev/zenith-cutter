@@ -34,6 +34,22 @@ export function getPendingSyncCount(db: Database.Database): number {
   return row?.count ?? 0;
 }
 
+/**
+ * Usado pelo pull de sincronização (busca do Supabase pro local) em
+ * tabelas sem `atualizado_em` própria — não dá pra resolver conflito
+ * por "mais recente vence" nelas, então o pull evita sobrescrever uma
+ * tabela com alteração local ainda não enviada (ver
+ * cacheOrdemCorteItensLocal).
+ */
+export function hasPendingSyncFor(db: Database.Database, tableName: string): boolean {
+  const row = db
+    .prepare<[string], { count: number }>(
+      "SELECT COUNT(*) as count FROM sync_queue WHERE table_name = ? AND status IN ('pending', 'error')",
+    )
+    .get(tableName);
+  return (row?.count ?? 0) > 0;
+}
+
 export interface PendingSyncItem {
   id: number;
   tableName: string;

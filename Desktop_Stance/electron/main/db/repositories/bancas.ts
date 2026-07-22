@@ -45,6 +45,34 @@ export function listBancasLocal(db: Database.Database): Banca[] {
   return rows.map(rowToBanca);
 }
 
+/** Pull de sincronização (2026-07-21) — mesmo padrão de cacheClientesLocal. */
+export function cacheBancasLocal(db: Database.Database, bancas: Banca[]) {
+  const stmt = db.prepare(`
+    INSERT INTO bancas (id, empresa_id, nome, responsavel, telefone, whatsapp, email, endereco, tipo_servico, observacoes, ativo, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @nome, @responsavel, @telefone, @whatsapp, @email, @endereco, @tipo_servico, @observacoes, @ativo, @criado_em, @atualizado_em)
+    ON CONFLICT (id) DO UPDATE SET
+      empresa_id = excluded.empresa_id,
+      nome = excluded.nome,
+      responsavel = excluded.responsavel,
+      telefone = excluded.telefone,
+      whatsapp = excluded.whatsapp,
+      email = excluded.email,
+      endereco = excluded.endereco,
+      tipo_servico = excluded.tipo_servico,
+      observacoes = excluded.observacoes,
+      ativo = excluded.ativo,
+      criado_em = excluded.criado_em,
+      atualizado_em = excluded.atualizado_em
+    WHERE excluded.atualizado_em > bancas.atualizado_em
+  `);
+  const cacheAll = db.transaction((items: Banca[]) => {
+    for (const b of items) {
+      stmt.run({ ...b, ativo: b.ativo ? 1 : 0 });
+    }
+  });
+  cacheAll(bancas);
+}
+
 /**
  * Mesmo padrão de clientes/produtos/tecidos: 100% offline-first, id
  * gerado aqui e usado sem remapeamento quando o motor de sync enviar

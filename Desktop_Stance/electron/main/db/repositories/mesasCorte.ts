@@ -33,6 +33,28 @@ export function listMesasCorteLocal(db: Database.Database): MesaCorte[] {
   return rows.map(rowToMesaCorte);
 }
 
+/** Pull de sincronização (2026-07-21) — mesmo padrão de cacheClientesLocal. */
+export function cacheMesasCorteLocal(db: Database.Database, mesas: MesaCorte[]) {
+  const stmt = db.prepare(`
+    INSERT INTO mesas_corte (id, empresa_id, nome, observacoes, ativo, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @nome, @observacoes, @ativo, @criado_em, @atualizado_em)
+    ON CONFLICT (id) DO UPDATE SET
+      empresa_id = excluded.empresa_id,
+      nome = excluded.nome,
+      observacoes = excluded.observacoes,
+      ativo = excluded.ativo,
+      criado_em = excluded.criado_em,
+      atualizado_em = excluded.atualizado_em
+    WHERE excluded.atualizado_em > mesas_corte.atualizado_em
+  `);
+  const cacheAll = db.transaction((items: MesaCorte[]) => {
+    for (const m of items) {
+      stmt.run({ ...m, ativo: m.ativo ? 1 : 0 });
+    }
+  });
+  cacheAll(mesas);
+}
+
 /**
  * Mesmo padrão de clientes/produtos/tecidos: 100% offline-first, id
  * gerado aqui e usado sem remapeamento quando o motor de sync (Sprint 6)

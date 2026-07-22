@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { runSync, type SyncResult } from "./sync";
+import { pullAll } from "./pull";
 import type { SyncLogTrigger } from "@shared/ipc";
 
 export interface SyncManagerState {
@@ -77,6 +78,18 @@ async function syncNow(trigger: SyncLogTrigger): Promise<SyncResult | null> {
 
   setState({ syncing: true });
   try {
+    // Pull antes do push (2026-07-21): busca o que outros dispositivos
+    // gravaram na nuvem antes de mandar as alterações locais pendentes
+    // — "sincroniza pra baixo, depois pra cima". Isolado num try/catch
+    // próprio: uma falha no pull nunca pode impedir o push de rodar.
+    try {
+      await pullAll();
+    } catch {
+      // pullAll() já isola falha por tabela; chegar aqui é um erro
+      // inesperado (ex.: window.zenith indisponível) — ignora e segue
+      // pro push, que é a parte crítica (nunca perder dado local).
+    }
+
     let result: SyncResult;
     try {
       result = await runSync();

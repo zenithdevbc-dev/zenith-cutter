@@ -32,6 +32,29 @@ function rowToProdutoTamanho(row: ProdutoTamanhoRow): ProdutoTamanho {
   };
 }
 
+/** Pull de sincronização (2026-07-21) — mesmo padrão de cacheClientesLocal. */
+export function cacheProdutoTamanhosLocal(db: Database.Database, tamanhos: ProdutoTamanho[]) {
+  const stmt = db.prepare(`
+    INSERT INTO produto_tamanhos (id, empresa_id, produto_id, tamanho, ordem, ativo, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @produto_id, @tamanho, @ordem, @ativo, @criado_em, @atualizado_em)
+    ON CONFLICT (id) DO UPDATE SET
+      empresa_id = excluded.empresa_id,
+      produto_id = excluded.produto_id,
+      tamanho = excluded.tamanho,
+      ordem = excluded.ordem,
+      ativo = excluded.ativo,
+      criado_em = excluded.criado_em,
+      atualizado_em = excluded.atualizado_em
+    WHERE excluded.atualizado_em > produto_tamanhos.atualizado_em
+  `);
+  const cacheAll = db.transaction((items: ProdutoTamanho[]) => {
+    for (const t of items) {
+      stmt.run({ ...t, ativo: t.ativo ? 1 : 0 });
+    }
+  });
+  cacheAll(tamanhos);
+}
+
 export function listProdutoTamanhosLocal(
   db: Database.Database,
   produtoId: string,

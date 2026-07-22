@@ -10,7 +10,7 @@ import {
   type OrdemCorteResumo,
   type OrdemCorteUpdatePatch,
 } from "../../../../src/shared/models";
-import { enqueueChange } from "../../sync/queue";
+import { enqueueChange, hasPendingSyncFor } from "../../sync/queue";
 import { requireAdminOuSupervisor } from "./usuarios";
 import { getCurrentEmpresaId } from "../../session";
 
@@ -179,6 +179,100 @@ export function listOrdensCorteLocal(db: Database.Database): OrdemCorteResumo[] 
     .prepare<[string], OrdemCorteResumoRow>(`${RESUMO_SELECT} WHERE oc.empresa_id = ? ORDER BY oc.numero DESC`)
     .all(getCurrentEmpresaId());
   return rows.map(rowToResumo);
+}
+
+/**
+ * Pull de sincronização (2026-07-21) — mesmo padrão de
+ * cacheClientesLocal, "mais recente vence" por atualizado_em.
+ */
+export function cacheOrdensCorteLocal(db: Database.Database, ordens: OrdemCorte[]) {
+  const stmt = db.prepare(`
+    INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @prazo, @banca_id, @criado_em, @atualizado_em)
+    ON CONFLICT (id) DO UPDATE SET
+      empresa_id = excluded.empresa_id,
+      numero = excluded.numero,
+      cliente_id = excluded.cliente_id,
+      produto_id = excluded.produto_id,
+      tecido_id = excluded.tecido_id,
+      status = excluded.status,
+      prioridade = excluded.prioridade,
+      observacoes = excluded.observacoes,
+      mesa_atribuida_id = excluded.mesa_atribuida_id,
+      prazo = excluded.prazo,
+      banca_id = excluded.banca_id,
+      criado_em = excluded.criado_em,
+      atualizado_em = excluded.atualizado_em
+    WHERE excluded.atualizado_em > ordens_corte.atualizado_em
+  `);
+  const cacheAll = db.transaction((items: OrdemCorte[]) => {
+    for (const o of items) stmt.run(o);
+  });
+  cacheAll(ordens);
+}
+
+/**
+ * Pull de ordem_corte_itens: a tabela não tem `atualizado_em` própria
+ * (editar a grade sempre apaga tudo e regrava — ver
+ * updateOrdemCorteLocal), então não dá pra resolver conflito por
+ * timestamp. Em vez disso, substitui o conjunto inteiro da empresa
+ * pelo que veio do Supabase — mas só se não houver nenhuma alteração
+ * local de itens ainda pendente de envio (sync_queue), pra nunca
+ * apagar um delete+insert local que ainda não chegou na nuvem. Se
+ * houver, este ciclo de pull pula esta tabela (ela pega o resto assim
+ * que o push da fila esvaziar, no próximo ciclo).
+ */
+export function cacheOrdemCorteItensLocal(db: Database.Database, itens: OrdemCorteItem[]) {
+  if (hasPendingSyncFor(db, "ordem_corte_itens")) return;
+
+  const empresaId = getCurrentEmpresaId();
+  const stmt = db.prepare(`
+    INSERT INTO ordem_corte_itens (id, empresa_id, ordem_id, produto_tamanho_id, quantidade)
+    VALUES (@id, @empresa_id, @ordem_id, @produto_tamanho_id, @quantidade)
+  `);
+  const replaceAll = db.transaction((items: OrdemCorteItem[]) => {
+    db.prepare("DELETE FROM ordem_corte_itens WHERE empresa_id = ?").run(empresaId);
+    for (const item of items) {
+      stmt.run({
+        id: item.id,
+        empresa_id: empresaId,
+        ordem_id: item.ordem_id,
+        produto_tamanho_id: item.produto_tamanho_id,
+        quantidade: item.quantidade,
+      });
+    }
+  });
+  replaceAll(itens);
+}
+
+/**
+ * Pull de ordem_corte_historico: log de auditoria imutável (só
+ * INSERT, nunca UPDATE) — não há conflito possível, então basta
+ * inserir o que ainda não existe localmente.
+ */
+export function cacheOrdemCorteHistoricoLocal(
+  db: Database.Database,
+  entradas: OrdemCorteHistoricoEntry[],
+) {
+  const stmt = db.prepare(`
+    INSERT INTO ordem_corte_historico (id, empresa_id, ordem_id, usuario_id, acao, descricao, criado_em)
+    VALUES (@id, @empresa_id, @ordem_id, @usuario_id, @acao, @descricao, @criado_em)
+    ON CONFLICT (id) DO NOTHING
+  `);
+  const cacheAll = db.transaction((items: OrdemCorteHistoricoEntry[]) => {
+    for (const entry of items) {
+      stmt.run({
+        id: entry.id,
+        empresa_id: entry.empresa_id,
+        ordem_id: entry.ordem_id,
+        usuario_id: entry.usuario_id,
+        acao: entry.acao,
+        descricao: entry.descricao,
+        criado_em: entry.criado_em,
+      });
+    }
+  });
+  cacheAll(entradas);
 }
 
 export function getOrdemCorteResumoLocal(

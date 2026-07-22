@@ -89,32 +89,38 @@ declare global {
         listLocal: () => Promise<Cliente[]>;
         createLocal: (input: ClienteInput) => Promise<Cliente>;
         updateLocal: (id: string, patch: ClienteUpdatePatch) => Promise<Cliente>;
+        cacheLocal: (clientes: Cliente[]) => Promise<void>;
       };
       produtos: {
         listLocal: () => Promise<Produto[]>;
         createLocal: (input: ProdutoInput) => Promise<Produto>;
         updateLocal: (id: string, patch: ProdutoUpdatePatch) => Promise<Produto>;
+        cacheLocal: (produtos: Produto[]) => Promise<void>;
       };
       tecidos: {
         listLocal: () => Promise<Tecido[]>;
         createLocal: (input: TecidoInput) => Promise<Tecido>;
         updateLocal: (id: string, patch: TecidoUpdatePatch) => Promise<Tecido>;
+        cacheLocal: (tecidos: Tecido[]) => Promise<void>;
       };
       mesasCorte: {
         listLocal: () => Promise<MesaCorte[]>;
         createLocal: (input: MesaCorteInput) => Promise<MesaCorte>;
         updateLocal: (id: string, patch: MesaCorteUpdatePatch) => Promise<MesaCorte>;
+        cacheLocal: (mesas: MesaCorte[]) => Promise<void>;
       };
       bancas: {
         listLocal: () => Promise<Banca[]>;
         createLocal: (input: BancaInput) => Promise<Banca>;
         updateLocal: (id: string, patch: BancaUpdatePatch) => Promise<Banca>;
+        cacheLocal: (bancas: Banca[]) => Promise<void>;
       };
       produtoTamanhos: {
         listLocal: (produtoId: string) => Promise<ProdutoTamanho[]>;
         createLocal: (input: ProdutoTamanhoInput) => Promise<ProdutoTamanho>;
         updateLocal: (id: string, patch: ProdutoTamanhoUpdatePatch) => Promise<ProdutoTamanho>;
         reorderLocal: (orderedIds: string[]) => Promise<ProdutoTamanho[]>;
+        cacheLocal: (tamanhos: ProdutoTamanho[]) => Promise<void>;
       };
       ordensCorte: {
         listLocal: () => Promise<OrdemCorteResumo[]>;
@@ -133,6 +139,9 @@ declare global {
           mesaAtribuidaId: string | null,
           usuarioId: string,
         ) => Promise<OrdemCorteResumo>;
+        cacheLocal: (ordens: OrdemCorte[]) => Promise<void>;
+        itensCacheLocal: (itens: OrdemCorteItem[]) => Promise<void>;
+        historicoCacheLocal: (entradas: OrdemCorteHistoricoEntry[]) => Promise<void>;
       };
       filaProducao: {
         listLocal: () => Promise<OrdemCorteResumo[]>;
@@ -159,6 +168,9 @@ declare global {
           input: ProducaoObservacaoInput,
           usuarioId: string,
         ) => Promise<ProducaoObservacao>;
+        sessoesCacheLocal: (sessoes: SessaoProducao[]) => Promise<void>;
+        perdasCacheLocal: (perdas: ProducaoPerda[]) => Promise<void>;
+        observacoesCacheLocal: (observacoes: ProducaoObservacao[]) => Promise<void>;
       };
       empresas: {
         cache: (empresa: Empresa) => Promise<void>;

@@ -35,6 +35,29 @@ export function listTecidosLocal(db: Database.Database): Tecido[] {
   return rows.map(rowToTecido);
 }
 
+/** Pull de sincronização (2026-07-21) — mesmo padrão de cacheClientesLocal. */
+export function cacheTecidosLocal(db: Database.Database, tecidos: Tecido[]) {
+  const stmt = db.prepare(`
+    INSERT INTO tecidos (id, empresa_id, nome, composicao, cor, ativo, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @nome, @composicao, @cor, @ativo, @criado_em, @atualizado_em)
+    ON CONFLICT (id) DO UPDATE SET
+      empresa_id = excluded.empresa_id,
+      nome = excluded.nome,
+      composicao = excluded.composicao,
+      cor = excluded.cor,
+      ativo = excluded.ativo,
+      criado_em = excluded.criado_em,
+      atualizado_em = excluded.atualizado_em
+    WHERE excluded.atualizado_em > tecidos.atualizado_em
+  `);
+  const cacheAll = db.transaction((items: Tecido[]) => {
+    for (const t of items) {
+      stmt.run({ ...t, ativo: t.ativo ? 1 : 0 });
+    }
+  });
+  cacheAll(tecidos);
+}
+
 /**
  * Mesmo padrão de clientes/produtos: 100% offline-first, id gerado aqui
  * e usado sem remapeamento quando o motor de sync (Sprint 6) enviar ao

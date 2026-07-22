@@ -62,7 +62,10 @@ export function listUsuariosLocal(db: Database.Database): Usuario[] {
 /**
  * Grava (upsert) a versão mais recente vinda do Supabase no cache local.
  * Não enfileira nada em sync_queue — isto é a "verdade" chegando de fora,
- * não uma alteração local pendente de envio.
+ * não uma alteração local pendente de envio. Resolvido por "mais
+ * recente vence" (atualizado_em) desde 2026-07-21 — antes sobrescrevia
+ * sem checar, inofensivo enquanto só rodava ao abrir Cadastros >
+ * Usuários, mas passou a rodar no ciclo periódico de pull também.
  */
 export function cacheUsuarios(db: Database.Database, usuarios: Usuario[]) {
   // "login" tem índice único próprio (não é o conflict target do upsert,
@@ -87,6 +90,7 @@ export function cacheUsuarios(db: Database.Database, usuarios: Usuario[]) {
       criado_em = excluded.criado_em,
       atualizado_em = excluded.atualizado_em,
       cached_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+    WHERE excluded.atualizado_em > usuarios.atualizado_em
   `);
 
   const cacheAll = db.transaction((items: Usuario[]) => {

@@ -108,6 +108,31 @@ function rowToSessaoResumo(row: SessaoProducaoResumoRow): SessaoProducaoResumo {
   };
 }
 
+/** Pull de sincronização (2026-07-21) — mesmo padrão de cacheClientesLocal. */
+export function cacheSessoesProducaoLocal(db: Database.Database, sessoes: SessaoProducao[]) {
+  const stmt = db.prepare(`
+    INSERT INTO sessoes_producao (id, empresa_id, ordem_id, mesa_id, status, iniciado_por, iniciado_em, finalizado_em, pausado_em, tempo_pausado_segundos, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @ordem_id, @mesa_id, @status, @iniciado_por, @iniciado_em, @finalizado_em, @pausado_em, @tempo_pausado_segundos, @criado_em, @atualizado_em)
+    ON CONFLICT (id) DO UPDATE SET
+      empresa_id = excluded.empresa_id,
+      ordem_id = excluded.ordem_id,
+      mesa_id = excluded.mesa_id,
+      status = excluded.status,
+      iniciado_por = excluded.iniciado_por,
+      iniciado_em = excluded.iniciado_em,
+      finalizado_em = excluded.finalizado_em,
+      pausado_em = excluded.pausado_em,
+      tempo_pausado_segundos = excluded.tempo_pausado_segundos,
+      criado_em = excluded.criado_em,
+      atualizado_em = excluded.atualizado_em
+    WHERE excluded.atualizado_em > sessoes_producao.atualizado_em
+  `);
+  const cacheAll = db.transaction((items: SessaoProducao[]) => {
+    for (const s of items) stmt.run(s);
+  });
+  cacheAll(sessoes);
+}
+
 export function listSessoesAtivasLocal(db: Database.Database): SessaoProducaoResumo[] {
   const rows = db
     .prepare<[string], SessaoProducaoResumoRow>(`
@@ -514,6 +539,33 @@ export function listProducaoPerdasLocal(
 }
 
 /**
+ * Pull de producao_perdas: log imutável (só INSERT) — sem conflito
+ * possível, basta inserir o que ainda não existe localmente.
+ */
+export function cacheProducaoPerdasLocal(db: Database.Database, perdas: ProducaoPerda[]) {
+  const stmt = db.prepare(`
+    INSERT INTO producao_perdas (id, empresa_id, sessao_id, produto_tamanho_id, quantidade, motivo, usuario_id, criado_em)
+    VALUES (@id, @empresa_id, @sessao_id, @produto_tamanho_id, @quantidade, @motivo, @usuario_id, @criado_em)
+    ON CONFLICT (id) DO NOTHING
+  `);
+  const cacheAll = db.transaction((items: ProducaoPerda[]) => {
+    for (const p of items) {
+      stmt.run({
+        id: p.id,
+        empresa_id: p.empresa_id,
+        sessao_id: p.sessao_id,
+        produto_tamanho_id: p.produto_tamanho_id,
+        quantidade: p.quantidade,
+        motivo: p.motivo,
+        usuario_id: p.usuario_id,
+        criado_em: p.criado_em,
+      });
+    }
+  });
+  cacheAll(perdas);
+}
+
+/**
  * Perdas de todas as sessões de uma ordem (na prática, no máximo uma —
  * a ordem nunca volta pra fila depois de iniciada — mas a consulta é
  * por ordem, não por sessão, pra não depender dessa suposição).
@@ -631,6 +683,34 @@ export function listProducaoObservacoesLocal(
     `)
     .all(sessaoId, getCurrentEmpresaId());
   return rows.map(rowToObservacao);
+}
+
+/**
+ * Pull de producao_observacoes: log imutável (só INSERT) — mesmo
+ * padrão de cacheProducaoPerdasLocal.
+ */
+export function cacheProducaoObservacoesLocal(
+  db: Database.Database,
+  observacoes: ProducaoObservacao[],
+) {
+  const stmt = db.prepare(`
+    INSERT INTO producao_observacoes (id, empresa_id, sessao_id, texto, usuario_id, criado_em)
+    VALUES (@id, @empresa_id, @sessao_id, @texto, @usuario_id, @criado_em)
+    ON CONFLICT (id) DO NOTHING
+  `);
+  const cacheAll = db.transaction((items: ProducaoObservacao[]) => {
+    for (const o of items) {
+      stmt.run({
+        id: o.id,
+        empresa_id: o.empresa_id,
+        sessao_id: o.sessao_id,
+        texto: o.texto,
+        usuario_id: o.usuario_id,
+        criado_em: o.criado_em,
+      });
+    }
+  });
+  cacheAll(observacoes);
 }
 
 export function registrarProducaoObservacaoLocal(
