@@ -45,14 +45,16 @@ interface EditOrdemCorteDialogProps {
 
 // Etapas do pipeline pós-fila ficam de fora: só são setadas por
 // iniciarProducaoLocal/avancarEtapaOrdemLocal, nunca por edição livre
-// (regra 4).
+// (regra 4). É por aqui (Select de Status, PIN-gated, página só
+// acessível a admin/supervisor) que uma ordem "Planejado" passa pra
+// "Em Fila" — decisão de 2026-07-21, não precisou de ação dedicada.
 type StatusEditavel = Exclude<
   StatusOrdemCorte,
-  "em_corte" | "embalagem" | "revisao" | "despacho" | "pronto"
+  "enfesto" | "corte" | "embalagem" | "despacho" | "pronto"
 >;
 
 const STATUS_LABEL: Record<StatusEditavel, string> = {
-  aberta: STATUS_ORDEM_CORTE_LABEL.aberta,
+  planejado: STATUS_ORDEM_CORTE_LABEL.planejado,
   em_fila: STATUS_ORDEM_CORTE_LABEL.em_fila,
   cancelada: STATUS_ORDEM_CORTE_LABEL.cancelada,
 };

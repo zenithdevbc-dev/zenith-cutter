@@ -43,11 +43,11 @@ import {
 import type { RelatorioProducaoLinha, StatusOrdemCorte } from "@shared/models";
 
 const STATUS_OPCOES: StatusOrdemCorte[] = [
-  "aberta",
+  "planejado",
   "em_fila",
-  "em_corte",
+  "enfesto",
+  "corte",
   "embalagem",
-  "revisao",
   "despacho",
   "pronto",
   "cancelada",

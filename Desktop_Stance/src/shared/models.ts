@@ -190,25 +190,28 @@ export interface ProdutoTamanhoUpdatePatch {
 }
 
 export type StatusOrdemCorte =
-  | "aberta"
+  | "planejado"
   | "em_fila"
   | "cancelada"
-  | "em_corte"
+  | "enfesto"
+  | "corte"
   | "embalagem"
-  | "revisao"
   | "despacho"
   | "pronto";
 
 /**
- * Sequência pós-fila (seção 4 do CLAUDE.md, decisão de 2026-07-11):
+ * Sequência pós-fila (seção 4 do CLAUDE.md, decisão de 2026-07-21):
  * cada etapa avança manualmente pra próxima, uma de cada vez, nunca
- * pulando (regra 4). 'aberta'/'em_fila'/'cancelada' ficam fora — não
- * fazem parte deste pipeline de execução.
+ * pulando (regra 4). 'planejado'/'em_fila'/'cancelada' ficam fora —
+ * não fazem parte deste pipeline de execução. Mesa de corte ocupada
+ * cobre 'enfesto' e 'corte' (mesma mesa física, sessão só finaliza
+ * saindo de 'corte'); ao entrar em 'despacho' e avançar mais uma vez a
+ * ordem chega no terminal 'pronto'.
  */
 export const PIPELINE_PRODUCAO: readonly StatusOrdemCorte[] = [
-  "em_corte",
+  "enfesto",
+  "corte",
   "embalagem",
-  "revisao",
   "despacho",
   "pronto",
 ];

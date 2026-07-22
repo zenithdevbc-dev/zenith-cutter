@@ -31,8 +31,8 @@ export function listSessoesAtivas(): Promise<SessaoProducaoResumo[]> {
 }
 
 /**
- * Avança a ordem uma etapa do pipeline pós-fila (em_corte→embalagem→
- * revisao→despacho→pronto), nunca pulando etapa.
+ * Avança a ordem uma etapa do pipeline pós-fila (enfesto→corte→
+ * embalagem→despacho→pronto), nunca pulando etapa.
  */
 export function avancarEtapaOrdem(ordemId: string, usuarioId: string): Promise<OrdemCorte> {
   return window.zenith.producao.avancarEtapaLocal(ordemId, usuarioId);

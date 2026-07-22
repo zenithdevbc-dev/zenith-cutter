@@ -115,36 +115,57 @@ separada); Operador vê a fila só como lista (sem os botões de mover).
 ## 4. Fluxo oficial da produção (state machine de referência)
 
 ```
-Nova Ordem
-  → Fila de Produção
+Nova Ordem → Planejado
+  → Ação manual (administrador/supervisor): editar Status → Em Fila
     → Operador seleciona "Iniciar"
       → Seleciona uma Mesa Livre
         → Confirma
-          → Em Corte
+          → Enfesto
             → Pausar (opcional) → Retomar (opcional)
-          → Avança etapa (finaliza a sessão, libera a mesa)
-            → Embalagem
-              → Avança etapa
-                → Revisão
-                  → Avança etapa
-                    → Despacho
-                      → Avança etapa
-                        → Pronto
+          → Avança etapa
+            → Corte
+              → Pausar (opcional) → Retomar (opcional)
+            → Avança etapa (finaliza a sessão, libera a mesa)
+              → Embalagem
+                → Avança etapa
+                  → Despache
+                    → Avança etapa
+                      → Pronto
 ```
 
-Decisão de 2026-07-11 (pedido do usuário): o par "Finalizar → Conferência →
-Finalizada" foi substituído por 4 etapas mais granulares pós-corte — Embalagem,
-Revisão (mesmo papel da antiga "Conferência"), Despacho, Pronto —, cada uma
-avançada manualmente uma de cada vez (nunca pulando etapa, sempre com
-confirmação explícita — reforça 3.1). Mesa de corte só existe durante "Em
-Corte": ao avançar para Embalagem a sessão de produção é finalizada e a mesa
-libera automaticamente; dali em diante a ordem não usa mais mesa. Uma ordem
-nunca é atribuída a mais de uma mesa — garantido no banco pelo índice único
-parcial de `sessoes_producao.ordem_id` (sessão ativa), não só por validação de
-app (ver seção 7).
+Decisão de 2026-07-21 (pedido do usuário): pipeline reajustado para
+Planejado - Em Fila - Enfesto - Corte - Embalagem - Despache, substituindo o
+desenho de 2026-07-11 (texto original preservado no fim desta seção).
+Mudanças:
+- **Planejado** volta a ser o status inicial da ordem — reverte a entrada
+  automática em "Em Fila" da decisão de 2026-07-11. Precisa de uma ação
+  manual de administrador/supervisor (trocar o campo Status no diálogo
+  Editar Ordem, já protegido por PIN — nenhum IPC/tela nova, reaproveita o
+  fluxo de edição existente) para a ordem entrar de fato na fila.
+- **Enfesto** é uma etapa nova antes do corte (estender o tecido na mesa
+  antes de cortar). "Iniciar" (seleção de mesa + PIN) agora move a ordem
+  para Enfesto, não direto para Corte. A mesa fica ocupada durante Enfesto
+  **e** Corte juntos (mesma sessão de produção, mesma mesa física) — só
+  libera ao avançar de Corte para Embalagem, igual "Em Corte" liberava
+  antes.
+- **Revisão** sai do pipeline.
+- **Despacho** passa a ser rotulado "Despache" na interface (mesmo campo
+  de status internamente); avançar dessa etapa marca a ordem como Pronto,
+  igual já funcionava entre Despacho e Pronto antes.
 
 Nenhuma etapa é iniciada automaticamente. Qualquer implementação de transição de estado
 deve seguir exatamente essa sequência — sem pular etapas, sem atalhos automáticos.
+
+Decisão de 2026-07-11 (superada pela de 2026-07-21 acima, preservada aqui só
+como histórico): o par "Finalizar → Conferência → Finalizada" foi substituído
+por 4 etapas mais granulares pós-corte — Embalagem, Revisão (mesmo papel da
+antiga "Conferência"), Despacho, Pronto —, cada uma avançada manualmente uma
+de cada vez (nunca pulando etapa, sempre com confirmação explícita — reforça
+3.1). Mesa de corte só existia durante "Em Corte": ao avançar para Embalagem
+a sessão de produção era finalizada e a mesa liberava automaticamente. Uma
+ordem nunca é atribuída a mais de uma mesa — garantido no banco pelo índice
+único parcial de `sessoes_producao.ordem_id` (sessão ativa), não só por
+validação de app (ver seção 7).
 
 ## 5. Escopo do MVP
 
@@ -245,6 +266,38 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-21** — **pipeline de produção reajustado** (pedido do
+  usuário — ver decisão de 2026-07-21 na seção 4). Novo desenho:
+  Planejado → Em Fila → Enfesto → Corte → Embalagem → Despache →
+  Pronto. Antes de codar, 3 perguntas resolveram os pontos ambíguos:
+  1) ordem volta a nascer "Planejado" (reverte a entrada automática em
+  "Em Fila" de 2026-07-11) — precisa de ação manual (Editar > Status,
+  já com PIN, sem tela/IPC novo) pra entrar na fila; 2) "Iniciar"
+  (mesa + PIN) agora move a ordem pra Enfesto, não direto pra Corte —
+  mesma mesa/sessão cobre as duas etapas, só libera saindo de Corte;
+  3) "Despache" é só o novo rótulo de "Despacho" (Revisão sai do
+  pipeline). Tocou os dois stacks: `StatusOrdemCorte`/
+  `PIPELINE_PRODUCAO`/labels em `Desktop_Stance/src/shared/models.ts`
+  e `Mobile_Stance/src/models.ts`; `createOrdemCorteLocal` (status
+  inicial), `iniciarProducaoLocal`/`avancarEtapaOrdemLocal`
+  (Desktop, main) e `iniciarProducao`/`avancarEtapaOrdem`
+  (Mobile, lib/producao.ts) — em ambos, o guard de "sessão pausada
+  bloqueia avançar etapa" passou a cobrir Enfesto **e** Corte (achado
+  ao revisar a lógica: antes só cobria a etapa que ocupava a mesa
+  sozinha); filtros/gráficos/exportação de Relatórios e Dashboard
+  (`STATUS_EM_ANDAMENTO` em 3 arquivos, cores do gráfico de rosca);
+  filtro de status e Select de edição de Ordens de Corte. Migration
+  local **v29** recria `ordens_corte` com o novo CHECK (mesmo padrão
+  de recreate da v16/v25) e faz backfill automático de qualquer linha
+  ainda em `aberta`/`em_corte`/`revisao` — aplica sozinha na próxima
+  abertura do app. Migration Supabase **`0036_pipeline_producao_
+  enfesto_planejado.sql`** (novo CHECK + backfill + RLS do Operador em
+  `ordens_corte` atualizada com os novos nomes de status) **pendente
+  de execução manual** no SQL Editor — conferido antes de escrever a
+  migration que nenhuma ordem em produção usa `aberta`/`em_corte`/
+  `revisao` hoje (só `cancelada`/`em_fila`/`embalagem`/`pronto`), então
+  o backfill é defensivo, não corretivo. `npm run build` (Desktop) e
+  `npx tsc --noEmit` (Mobile) limpos. **Não testado manualmente ainda.**
 - **2026-07-20** — **módulo Bancas (terceiros)** entregue (pedido do
   usuário — cadastro de bancas terceirizadas que podem receber ordens
   de produção; não é cliente, não é equipe interna). Seguiu

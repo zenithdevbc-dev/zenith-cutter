@@ -732,4 +732,62 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 29,
+    name: "reajustar_pipeline_producao_enfesto_planejado",
+    up: (db) => {
+      db.exec(`
+        -- Reajuste do pipeline de produção (decisão de 2026-07-21,
+        -- seção 4 do CLAUDE.md): Planejado - Em Fila - Enfesto - Corte -
+        -- Embalagem - Despache. 'planejado' substitui 'aberta' como
+        -- status inicial (ordem passa a exigir uma ação manual pra
+        -- entrar na fila, reverte a decisão de 2026-07-11); 'enfesto'
+        -- é uma nova etapa antes do corte, na mesma mesa física
+        -- (mesa fica ocupada por 'enfesto' e 'corte' juntos, só libera
+        -- saindo de 'corte'); 'em_corte' vira 'corte'; 'revisao' sai do
+        -- pipeline (ao avançar de 'despacho' — rótulo "Despache" — a
+        -- ordem chega direto em 'pronto', igual já funcionava antes
+        -- entre despacho e pronto). SQLite não permite ALTER de CHECK —
+        -- recria a tabela preservando dados, mesmo padrão da v16/v25.
+        CREATE TABLE ordens_corte_new (
+          id            TEXT PRIMARY KEY,
+          empresa_id    TEXT NOT NULL,
+          numero        INTEGER NOT NULL,
+          cliente_id    TEXT NOT NULL,
+          produto_id    TEXT NOT NULL,
+          tecido_id     TEXT NOT NULL,
+          status        TEXT NOT NULL DEFAULT 'planejado' CHECK (status IN ('planejado', 'em_fila', 'cancelada', 'enfesto', 'corte', 'embalagem', 'despacho', 'pronto')),
+          prioridade    INTEGER NOT NULL DEFAULT 0,
+          observacoes   TEXT,
+          mesa_atribuida_id TEXT,
+          prazo         TEXT,
+          banca_id      TEXT,
+          criado_em     TEXT NOT NULL,
+          atualizado_em TEXT NOT NULL,
+          UNIQUE (empresa_id, numero)
+        );
+
+        INSERT INTO ordens_corte_new
+          (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, criado_em, atualizado_em)
+          SELECT
+            id, empresa_id, numero, cliente_id, produto_id, tecido_id,
+            CASE status
+              WHEN 'aberta' THEN 'planejado'
+              WHEN 'em_corte' THEN 'corte'
+              WHEN 'revisao' THEN 'despacho'
+              ELSE status
+            END,
+            prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, criado_em, atualizado_em
+          FROM ordens_corte;
+
+        DROP TABLE ordens_corte;
+        ALTER TABLE ordens_corte_new RENAME TO ordens_corte;
+
+        CREATE INDEX idx_ordens_corte_empresa ON ordens_corte (empresa_id);
+        CREATE INDEX idx_ordens_corte_status ON ordens_corte (status);
+        CREATE INDEX idx_ordens_corte_mesa_atribuida ON ordens_corte (mesa_atribuida_id);
+        CREATE INDEX idx_ordens_corte_banca ON ordens_corte (banca_id);
+      `);
+    },
+  },
 ];

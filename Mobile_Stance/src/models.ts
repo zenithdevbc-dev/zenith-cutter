@@ -40,32 +40,36 @@ export interface MesaCorteComStatus extends MesaCorte {
 }
 
 export type StatusOrdemCorte =
-  | 'aberta'
+  | 'planejado'
   | 'em_fila'
   | 'cancelada'
-  | 'em_corte'
+  | 'enfesto'
+  | 'corte'
   | 'embalagem'
-  | 'revisao'
   | 'despacho'
   | 'pronto';
 
-/** Sequência pós-fila (CLAUDE.md §4): cada etapa avança manualmente, uma de cada vez. */
+/**
+ * Sequência pós-fila (CLAUDE.md §4, decisão de 2026-07-21): cada etapa
+ * avança manualmente, uma de cada vez. Mesa fica ocupada durante
+ * 'enfesto' e 'corte' (mesma sessão), só libera saindo de 'corte'.
+ */
 export const PIPELINE_PRODUCAO: readonly StatusOrdemCorte[] = [
-  'em_corte',
+  'enfesto',
+  'corte',
   'embalagem',
-  'revisao',
   'despacho',
   'pronto',
 ];
 
 export const STATUS_ORDEM_CORTE_LABEL: Record<StatusOrdemCorte, string> = {
-  aberta: 'Aberta',
+  planejado: 'Planejado',
   em_fila: 'Em Fila',
   cancelada: 'Cancelada',
-  em_corte: 'Em Corte',
+  enfesto: 'Enfesto',
+  corte: 'Corte',
   embalagem: 'Embalagem',
-  revisao: 'Revisão',
-  despacho: 'Despacho',
+  despacho: 'Despache',
   pronto: 'Pronto',
 };
 

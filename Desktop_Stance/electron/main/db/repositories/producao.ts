@@ -131,10 +131,13 @@ export function listSessoesAtivasLocal(db: Database.Database): SessaoProducaoRes
 /**
  * Início de produção (regra 3.1: exige seleção manual de mesa +
  * confirmação explícita — nunca automático). Cria a sessão, move a
- * ordem de 'em_fila' para 'em_corte' e registra no histórico da ordem.
- * Os índices únicos parciais em sessoes_producao são a garantia real
- * contra mesa ocupada/ordem já iniciada (checagem de app aqui é só
- * pra dar uma mensagem de erro amigável antes de bater no banco).
+ * ordem de 'em_fila' para 'enfesto' e registra no histórico da ordem.
+ * A mesa fica ocupada por 'enfesto' e 'corte' juntos (mesma mesa
+ * física — enfesta e depois corta) e só libera ao avançar de 'corte'
+ * pra 'embalagem'. Os índices únicos parciais em sessoes_producao são
+ * a garantia real contra mesa ocupada/ordem já iniciada (checagem de
+ * app aqui é só pra dar uma mensagem de erro amigável antes de bater
+ * no banco).
  */
 export function iniciarProducaoLocal(
   db: Database.Database,
@@ -197,7 +200,7 @@ export function iniciarProducaoLocal(
       payload: sessao,
     });
 
-    db.prepare("UPDATE ordens_corte SET status = 'em_corte', atualizado_em = ? WHERE id = ?").run(
+    db.prepare("UPDATE ordens_corte SET status = 'enfesto', atualizado_em = ? WHERE id = ?").run(
       now,
       ordem.id,
     );
@@ -205,7 +208,7 @@ export function iniciarProducaoLocal(
       tableName: "ordens_corte",
       recordId: ordem.id,
       operation: "update",
-      payload: { status: "em_corte" },
+      payload: { status: "enfesto" },
     });
 
     registrarHistorico(db, {
@@ -234,10 +237,12 @@ export function iniciarProducaoLocal(
 
 /**
  * Avança a ordem uma etapa do pipeline pós-fila (PIPELINE_PRODUCAO:
- * em_corte → embalagem → revisao → despacho → pronto), sempre uma de
- * cada vez — nunca pulando etapa (regra 4, decisão de 2026-07-11).
- * Ao sair de 'em_corte', finaliza a sessão de produção ativa, o que
- * libera a mesa automaticamente (mesa só existe durante o corte).
+ * enfesto → corte → embalagem → despacho → pronto), sempre uma de
+ * cada vez — nunca pulando etapa (regra 4, decisão de 2026-07-21).
+ * A mesa fica ocupada durante 'enfesto' e 'corte' (mesma sessão,
+ * avançar de enfesto pra corte não mexe nela); só ao sair de 'corte'
+ * a sessão de produção ativa é finalizada, liberando a mesa
+ * automaticamente. Avançar de 'despacho' marca a ordem como 'pronto'.
  */
 export function avancarEtapaOrdemLocal(
   db: Database.Database,
@@ -259,7 +264,7 @@ export function avancarEtapaOrdemLocal(
   const proximo = PIPELINE_PRODUCAO[index + 1];
   const now = new Date().toISOString();
 
-  if (row.status === "em_corte") {
+  if (row.status === "enfesto" || row.status === "corte") {
     const sessaoPausada = db
       .prepare<[string], { id: string }>(
         "SELECT id FROM sessoes_producao WHERE ordem_id = ? AND status = 'pausada'",
@@ -271,7 +276,7 @@ export function avancarEtapaOrdemLocal(
   }
 
   const avancar = db.transaction(() => {
-    if (row.status === "em_corte") {
+    if (row.status === "corte") {
       const sessaoAtiva = db
         .prepare<[string], { id: string }>(
           "SELECT id FROM sessoes_producao WHERE ordem_id = ? AND status = 'em_andamento'",
@@ -352,7 +357,7 @@ function rowToSessao(row: SessaoProducaoRow): SessaoProducao {
 }
 
 /**
- * Pausa a sessão ativa de uma ordem 'em_corte' (regra 3.1: ação
+ * Pausa a sessão ativa de uma ordem em 'enfesto'/'corte' (regra 3.1: ação
  * explícita, nunca automática). A mesa continua ocupada — pausar não
  * é finalizar (ver índices únicos que cobrem 'pausada' também).
  */

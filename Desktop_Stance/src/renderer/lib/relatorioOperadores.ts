@@ -55,9 +55,9 @@ export function filtrarRelatorioOperadores(
 }
 
 const STATUS_EM_ANDAMENTO: StatusOrdemCorte[] = [
-  "em_corte",
+  "enfesto",
+  "corte",
   "embalagem",
-  "revisao",
   "despacho",
 ];
 

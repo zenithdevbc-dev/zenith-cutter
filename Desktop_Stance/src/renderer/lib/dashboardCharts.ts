@@ -12,11 +12,11 @@ import { STATUS_EM_ANDAMENTO } from "@/lib/relatorioProducao";
  * delayed=vermelho.
  */
 const STATUS_COR_GRAFICO: Record<StatusOrdemCorte, string> = {
-  aberta: "#94A3B8",
+  planejado: "#94A3B8",
   em_fila: "#F59E0B",
-  em_corte: "#2563EB",
+  enfesto: "#8B5CF6",
+  corte: "#2563EB",
   embalagem: "#6366F1",
-  revisao: "#8B5CF6",
   despacho: "#0EA5E9",
   pronto: "#16A34A",
   cancelada: "#DC2626",
@@ -95,7 +95,7 @@ export interface PecasEmProducaoPorBancaItem {
 
 /**
  * Peças "em produção" (mesma definição de STATUS_EM_ANDAMENTO já usada
- * no Relatório de Produção: em_corte/embalagem/revisao/despacho, exclui
+ * no Relatório de Produção: enfesto/corte/embalagem/despacho, exclui
  * pronto) agrupadas por banca terceirizada. Só bancas ativas com pelo
  * menos 1 peça em produção aparecem — mesmo espírito do card de Mesas
  * de Corte, que só lista mesas ativas.

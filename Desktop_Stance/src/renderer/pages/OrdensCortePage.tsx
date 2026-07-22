@@ -34,7 +34,7 @@ export function OrdensCortePage() {
   const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
   const [busca, setBusca] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState<StatusOrdemCorte | "todos">("todos");
+  const [statusFiltro, setStatusFiltro] = useState<StatusOrdemCorte | "todos" | "aberta">("todos");
 
   useEffect(() => {
     listOrdensCorte()
@@ -91,7 +91,7 @@ export function OrdensCortePage() {
     return ordens.filter((o) => {
       // "Aberta" é um filtro agregado (não status literal): qualquer
       // ordem que ainda não terminou nem foi cancelada — cobre
-      // aberta/em_fila/em_corte/embalagem/revisao/despacho de uma vez
+      // planejado/em_fila/enfesto/corte/embalagem/despacho de uma vez
       // (pedido do usuário, 2026-07-16).
       if (statusFiltro === "aberta") {
         if (o.status === "pronto" || o.status === "cancelada") return false;
@@ -129,11 +129,12 @@ export function OrdensCortePage() {
             <SelectContent>
               <SelectItem value="todos">Todos os status</SelectItem>
               <SelectItem value="aberta">Aberta</SelectItem>
+              <SelectItem value="planejado">Planejado</SelectItem>
               <SelectItem value="em_fila">Em Fila</SelectItem>
-              <SelectItem value="em_corte">Em Corte</SelectItem>
+              <SelectItem value="enfesto">Enfesto</SelectItem>
+              <SelectItem value="corte">Corte</SelectItem>
               <SelectItem value="embalagem">Embalagem</SelectItem>
-              <SelectItem value="revisao">Revisão</SelectItem>
-              <SelectItem value="despacho">Despacho</SelectItem>
+              <SelectItem value="despacho">Despache</SelectItem>
               <SelectItem value="pronto">Pronto</SelectItem>
               <SelectItem value="cancelada">Cancelada</SelectItem>
             </SelectContent>

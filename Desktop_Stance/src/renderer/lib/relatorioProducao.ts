@@ -40,9 +40,9 @@ export function filtrarRelatorioProducao(
 }
 
 export const STATUS_EM_ANDAMENTO: StatusOrdemCorte[] = [
-  "em_corte",
+  "enfesto",
+  "corte",
   "embalagem",
-  "revisao",
   "despacho",
 ];
 

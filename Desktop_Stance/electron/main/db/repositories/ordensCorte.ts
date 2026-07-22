@@ -15,13 +15,13 @@ import { requireAdminOuSupervisor } from "./usuarios";
 import { getCurrentEmpresaId } from "../../session";
 
 export const STATUS_LABEL: Record<string, string> = {
-  aberta: "Aberta",
+  planejado: "Planejado",
   em_fila: "Em Fila",
   cancelada: "Cancelada",
-  em_corte: "Em Corte",
+  enfesto: "Enfesto",
+  corte: "Corte",
   embalagem: "Embalagem",
-  revisao: "Revisão",
-  despacho: "Despacho",
+  despacho: "Despache",
   pronto: "Pronto",
 };
 
@@ -262,11 +262,10 @@ function getNextPrioridadeFilaLocal(db: Database.Database, empresaId: string): n
 }
 
 /**
- * Ordem entra direto na fila de produção ao ser criada (fecha o item
- * pendente do Sprint 2 — "entrada automática na fila"): status nasce
- * 'em_fila', não 'aberta'. 'aberta' continua um status válido (editável
- * manualmente depois, ex.: puxar a ordem de volta pra rascunho), só
- * deixa de ser o padrão de criação.
+ * Ordem nasce 'planejado' (decisão de 2026-07-21 — reverte a entrada
+ * automática em 'em_fila' de 2026-07-11): precisa de uma ação manual
+ * de admin/supervisor (mudar o Status pelo Editar, já com PIN) pra
+ * entrar de fato na fila de produção.
  */
 export function createOrdemCorteLocal(
   db: Database.Database,
@@ -282,7 +281,7 @@ export function createOrdemCorteLocal(
     cliente_id: input.cliente_id,
     produto_id: input.produto_id,
     tecido_id: input.tecido_id,
-    status: "em_fila",
+    status: "planejado",
     prioridade: getNextPrioridadeFilaLocal(db, input.empresa_id),
     observacoes: input.observacoes ?? null,
     mesa_atribuida_id: null,
@@ -309,7 +308,7 @@ export function createOrdemCorteLocal(
       ordemId: id,
       usuarioId,
       acao: "criacao",
-      descricao: "Ordem de corte criada e enviada à fila de produção.",
+      descricao: "Ordem de corte criada.",
     });
   });
 
@@ -370,7 +369,7 @@ export function updateOrdemCorteLocal(
     .get(id, getCurrentEmpresaId());
   if (!row) throw new Error(`Ordem de Corte ${id} não encontrada.`);
 
-  // Etapas do pipeline de execução (em_corte/embalagem/revisao/
+  // Etapas do pipeline de execução (enfesto/corte/embalagem/
   // despacho/pronto) só são setadas por iniciarProducaoLocal ou
   // avancarEtapaOrdemLocal — nunca por edição livre (regra 4: sem
   // pular etapas). Bloqueia só a transição real pra uma dessas
@@ -454,7 +453,7 @@ export function updateOrdemCorteLocal(
 }
 
 /**
- * Duplicar cria uma ordem nova (id novo, status volta para 'aberta')
+ * Duplicar cria uma ordem nova (id novo, status volta para 'planejado')
  * copiando cliente/produto/tecido/observações e os itens da grade.
  */
 export function duplicateOrdemCorteLocal(

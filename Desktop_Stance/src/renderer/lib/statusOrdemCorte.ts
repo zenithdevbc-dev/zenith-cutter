@@ -5,13 +5,13 @@ import type { VariantProps } from "class-variance-authority";
 type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>["variant"]>;
 
 export const STATUS_ORDEM_CORTE_LABEL: Record<StatusOrdemCorte, string> = {
-  aberta: "Aberta",
+  planejado: "Planejado",
   em_fila: "Em Fila",
   cancelada: "Cancelada",
-  em_corte: "Em Corte",
+  enfesto: "Enfesto",
+  corte: "Corte",
   embalagem: "Embalagem",
-  revisao: "Revisão",
-  despacho: "Despacho",
+  despacho: "Despache",
   pronto: "Pronto",
 };
 
@@ -22,12 +22,12 @@ export const STATUS_ORDEM_CORTE_LABEL: Record<StatusOrdemCorte, string> = {
  * "delayed" (vermelho).
  */
 export const STATUS_ORDEM_CORTE_VARIANT: Record<StatusOrdemCorte, BadgeVariant> = {
-  aberta: "pending",
+  planejado: "pending",
   em_fila: "pending",
   cancelada: "delayed",
-  em_corte: "production",
+  enfesto: "production",
+  corte: "production",
   embalagem: "production",
-  revisao: "production",
   despacho: "production",
   pronto: "completed",
 };

@@ -120,7 +120,7 @@ export async function listFilaProducao(): Promise<OrdemCorteResumo[]> {
   return anexarNomesEQuantidade(data ?? []);
 }
 
-/** Ordens em qualquer etapa do pipeline pós-fila (em_corte…pronto excluído — só as em andamento). */
+/** Ordens em qualquer etapa do pipeline pós-fila (enfesto…pronto excluído — só as em andamento). */
 export async function listEmProducao(): Promise<OrdemCorteResumo[]> {
   const { data, error } = await supabase
     .from('ordens_corte')
@@ -228,7 +228,9 @@ function erroAmigavel(error: { code?: string; message: string }, ocupada: string
 /**
  * Início de produção (regra 3.1: seleção manual de mesa + confirmação
  * explícita — nunca automático). Cria a sessão, move a ordem de
- * 'em_fila' para 'em_corte' e registra no histórico.
+ * 'em_fila' para 'enfesto' e registra no histórico. A mesa fica
+ * ocupada por 'enfesto' e 'corte' juntos (mesma sessão) — só libera ao
+ * avançar de 'corte' pra 'embalagem'.
  */
 export async function iniciarProducao(
   input: IniciarProducaoInput,
@@ -276,7 +278,7 @@ export async function iniciarProducao(
 
   const { error: updateError } = await supabase
     .from('ordens_corte')
-    .update({ status: 'em_corte' })
+    .update({ status: 'enfesto' })
     .eq('id', ordem.id);
   if (updateError) throw new Error(updateError.message);
 
@@ -293,7 +295,8 @@ export async function iniciarProducao(
 
 /**
  * Avança a ordem uma etapa do pipeline pós-fila, nunca pulando (regra
- * 4). Ao sair de 'em_corte', finaliza a sessão ativa (libera a mesa).
+ * 4). A mesa fica ocupada durante 'enfesto' e 'corte' (mesma sessão);
+ * só ao sair de 'corte' a sessão ativa é finalizada (libera a mesa).
  */
 export async function avancarEtapaOrdem(ordemId: string, usuarioId: string) {
   const { data: ordem, error } = await supabase
@@ -310,7 +313,7 @@ export async function avancarEtapaOrdem(ordemId: string, usuarioId: string) {
   }
   const proximo = PIPELINE_PRODUCAO[index + 1];
 
-  if (ordem.status === 'em_corte') {
+  if (ordem.status === 'enfesto' || ordem.status === 'corte') {
     const { data: pausada } = await supabase
       .from('sessoes_producao')
       .select('id')
@@ -318,7 +321,9 @@ export async function avancarEtapaOrdem(ordemId: string, usuarioId: string) {
       .eq('status', 'pausada')
       .maybeSingle();
     if (pausada) throw new Error('Retome a produção antes de avançar de etapa.');
+  }
 
+  if (ordem.status === 'corte') {
     const now = new Date().toISOString();
     const { data: ativa } = await supabase
       .from('sessoes_producao')
