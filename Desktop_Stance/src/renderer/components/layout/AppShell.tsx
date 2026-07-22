@@ -21,13 +21,17 @@ export function AppShell({ currentPage, onNavigate, children }: AppShellProps) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-14 shrink-0 items-center justify-between border-b px-6">
-          <h1 className="text-base font-semibold">{activeItem?.label}</h1>
+          <h1 className="flex items-center gap-2.5 text-base font-semibold">
+            <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
+            {activeItem?.label}
+          </h1>
           <div className="flex items-center gap-4">
             <SyncIndicator />
             <span className="text-sm text-muted-foreground">
               {session?.user.email}
             </span>
-            <Button variant="outline" size="sm" onClick={() => signOut()}>
+            <span className="h-5 w-px bg-border" aria-hidden="true" />
+            <Button variant="ghost" size="sm" onClick={() => signOut()}>
               Sair
             </Button>
           </div>
