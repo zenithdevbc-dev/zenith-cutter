@@ -7,6 +7,7 @@ import {
 } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { setSessionPin, clearSessionPin } from './pin';
 import type { Usuario, Empresa } from '../models';
 
 interface AuthContextValue {
@@ -104,6 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
     if (!error) {
+      // PIN reusa a senha de login (hash em memória, nunca em disco) —
+      // capturado aqui, mesmo padrão do desktop.
+      setSessionPin(password);
       return { error: null };
     }
     // Mensagem genérica igual pros dois casos (login inexistente vs.
@@ -112,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    clearSessionPin();
     await supabase.auth.signOut();
   }
 

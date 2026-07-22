@@ -8,7 +8,7 @@ import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/lib/auth-context';
 import { LoginScreen } from './src/screens/LoginScreen';
-import { HomeScreen } from './src/screens/HomeScreen';
+import { ProducaoScreen } from './src/screens/ProducaoScreen';
 
 function AppContent() {
   const { session, usuario, loading } = useAuth();
@@ -25,7 +25,7 @@ function AppContent() {
     return <LoginScreen />;
   }
 
-  return <HomeScreen />;
+  return <ProducaoScreen />;
 }
 
 function App() {
