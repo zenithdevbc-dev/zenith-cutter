@@ -266,6 +266,47 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-23** — **causa raiz de "ainda não sincroniza entre
+  dispositivos" identificada e corrigida — era infraestrutura de
+  release, não bug de código**. Depois do pull (entrega de
+  2026-07-21 abaixo), usuário reportou que o problema persistia.
+  Duas causas encontradas, nenhuma no motor de sync em si:
+  1. **Build local desatualizado**: o atalho da Desktop aponta pro
+     `.exe` estático em `release/win-unpacked/` (gotcha já conhecido,
+     `feedback_rebuild_packaged_app.md`) — esse build era de antes do
+     código de pull existir (21/07 19:55, o pull foi commitado às
+     22:07). `npm run build:win` resolveu **só nesta máquina**.
+  2. **A causa real, no "outro dispositivo" de verdade**: nenhuma
+     versão nova tinha sido publicada no bucket `releases` do Supabase
+     Storage desde a v1.0.0 (a v1.1.2 foi só um teste do auto-update,
+     removida depois — ver entrada de 2026-07-18). `package.json` já
+     estava em `1.1.0` desde o módulo Bancas (commit `818d5f3`), mas
+     esse bump nunca tinha sido publicado — ou seja, qualquer segunda
+     instalação real ainda rodava a v1.0.0, uma versão **anterior** a
+     Bancas, ao reajuste de pipeline e à própria feature de pull.
+     Auto-update não tinha nada mais novo pra oferecer. Corrigido:
+     `npm run release:publish` rodado, subindo
+     `Zenith-Cutter-Setup-1.1.0.exe` + `.blockmap` + `latest.yml` pro
+     bucket — o(s) outro(s) dispositivo(s) devem detectar e aplicar a
+     atualização automaticamente no próximo uso (auto-update já
+     validado ponta a ponta antes, ver entrada de 2026-07-18).
+     **Lição**: `chore: bump de versão` no código não equivale a
+     release publicado — os dois passos (bump no commit e
+     `release:publish`) ficaram desalinhados por várias entregas
+     seguidas sem que ninguém notasse, porque nada aqui checa isso
+     automaticamente.
+  No caminho, diagnosticado (via `npx supabase db query --linked` +
+  leitura direta do SQLite local com o `sqlite3` do Android SDK,
+  já que o `better-sqlite3` do repo é compilado pro Node do Electron,
+  não pro Node do sistema) que os "7 itens com erro" visíveis no card
+  de Sincronização eram **ruído antigo, não relacionado**: uma ordem
+  de teste órfã de 10/07 (`"TESTE 2 - PIN"`, anterior ao campo
+  `numero` obrigatório) presa desde então, mais 6 erros em cascata
+  (itens/histórico que dependem dela via FK) — não foram limpos nesta
+  rodada (não pedido), só diagnosticados; dá pra remover pela própria
+  tela de Configurações ("tentar novamente" não resolve, é dado
+  inválido — precisaria de exclusão manual da fila ou aceitar que
+  ficam ali como erro permanente).
 - **2026-07-21** — **motor de sincronização ganha pull (bidirecional)**
   (reportado pelo usuário: "ao abrir o programa na mesma empresa e
   usuário, em outro dispositivo, não carrega os dados do Supabase").
