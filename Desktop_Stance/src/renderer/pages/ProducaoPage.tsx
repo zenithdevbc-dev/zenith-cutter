@@ -224,6 +224,7 @@ export function ProducaoPage() {
                     <TableHead>Produto</TableHead>
                     <TableHead>Tecido</TableHead>
                     <TableHead>Qtd. total</TableHead>
+                    <TableHead>Banca</TableHead>
                     <TableHead>Mesa atribuída</TableHead>
                     {podeReordenar && <TableHead>Mover</TableHead>}
                     <TableHead className="text-right">Ações</TableHead>
@@ -237,6 +238,9 @@ export function ProducaoPage() {
                       <TableCell>{ordem.produto_nome}</TableCell>
                       <TableCell>{ordem.tecido_nome}</TableCell>
                       <TableCell>{ordem.quantidade_total}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {ordem.banca_nome ?? "Produção interna"}
+                      </TableCell>
                       <TableCell>
                         {podeReordenar ? (
                           <Select
@@ -362,6 +366,7 @@ export function ProducaoPage() {
                 <TableRow>
                   <TableHead>Nº</TableHead>
                   <TableHead>Cliente</TableHead>
+                  <TableHead>Banca</TableHead>
                   <TableHead>Etapa atual</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -371,6 +376,9 @@ export function ProducaoPage() {
                   <TableRow key={ordem.id}>
                     <TableCell className="font-medium">{ordem.numero}</TableCell>
                     <TableCell>{ordem.cliente_nome}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {ordem.banca_nome ?? "Produção interna"}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_ORDEM_CORTE_VARIANT[ordem.status]}>
                         {STATUS_ORDEM_CORTE_LABEL[ordem.status]}

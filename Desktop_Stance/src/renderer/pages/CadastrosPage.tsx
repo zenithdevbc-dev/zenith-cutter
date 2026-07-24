@@ -4,7 +4,6 @@ import { ClientesPage } from "@/pages/ClientesPage";
 import { ProdutosPage } from "@/pages/ProdutosPage";
 import { TecidosPage } from "@/pages/TecidosPage";
 import { MesasCortePage } from "@/pages/MesasCortePage";
-import { BancasPage } from "@/pages/BancasPage";
 import { useAuth } from "@/lib/auth-context";
 
 export function CadastrosPage() {
@@ -18,7 +17,6 @@ export function CadastrosPage() {
         <TabsTrigger value="produtos">Produtos</TabsTrigger>
         <TabsTrigger value="tecidos">Tecidos</TabsTrigger>
         <TabsTrigger value="mesas">Mesas de Corte</TabsTrigger>
-        <TabsTrigger value="bancas">Bancas</TabsTrigger>
       </TabsList>
       {isAdmin && (
         <TabsContent value="usuarios" className="min-h-0 overflow-hidden">
@@ -36,9 +34,6 @@ export function CadastrosPage() {
       </TabsContent>
       <TabsContent value="mesas" className="min-h-0 overflow-hidden">
         <MesasCortePage />
-      </TabsContent>
-      <TabsContent value="bancas" className="min-h-0 overflow-hidden">
-        <BancasPage />
       </TabsContent>
     </Tabs>
   );

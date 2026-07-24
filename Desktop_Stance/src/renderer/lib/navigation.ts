@@ -5,6 +5,7 @@ import {
   Settings,
   PlayCircle,
   BarChart3,
+  Factory,
   type LucideIcon,
 } from "lucide-react";
 import type { PapelUsuario } from "@shared/models";
@@ -14,6 +15,7 @@ export type PageId =
   | "ordens-corte"
   | "producao"
   | "cadastros"
+  | "bancas"
   | "relatorios"
   | "configuracoes";
 
@@ -41,6 +43,11 @@ export interface NavItem {
  *   de administrador/supervisor (gate por papel no próprio
  *   componente, ver ProducaoPage.tsx — não há mais rota separada pra
  *   isso).
+ *
+ * "Bancas" (2026-07-24, pedido do usuário): promovida de aba dentro
+ * de Cadastros pra item próprio da sidebar — mesmos papéis de
+ * Cadastros (administrador/supervisor). BancasPage.tsx não mudou de
+ * componente, só de onde é montado (ver App.tsx).
  */
 export const NAV_ITEMS: NavItem[] = [
   {
@@ -62,6 +69,12 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["administrador", "supervisor", "operador"],
   },
   { id: "cadastros", label: "Cadastros", icon: Users, roles: ["administrador", "supervisor"] },
+  {
+    id: "bancas",
+    label: "Bancas",
+    icon: Factory,
+    roles: ["administrador", "supervisor"],
+  },
   {
     id: "relatorios",
     label: "Relatórios",

@@ -15,6 +15,9 @@ import { getAllowedNavItems, type PageId } from "@/lib/navigation";
 const CadastrosPage = lazy(() =>
   import("@/pages/CadastrosPage").then((m) => ({ default: m.CadastrosPage })),
 );
+const BancasPage = lazy(() =>
+  import("@/pages/BancasPage").then((m) => ({ default: m.BancasPage })),
+);
 const OrdensCortePage = lazy(() =>
   import("@/pages/OrdensCortePage").then((m) => ({ default: m.OrdensCortePage })),
 );
@@ -68,6 +71,8 @@ function App() {
             <Suspense fallback={<PageFallback />}>
               {currentPage === "cadastros" ? (
                 <CadastrosPage />
+              ) : currentPage === "bancas" ? (
+                <BancasPage />
               ) : currentPage === "ordens-corte" ? (
                 <OrdensCortePage />
               ) : currentPage === "producao" ? (
