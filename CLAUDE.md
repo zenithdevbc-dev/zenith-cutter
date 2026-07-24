@@ -97,6 +97,7 @@ Três papéis (`usuarios.papel`), decisão de 2026-07-09:
 | Produção (fila + execução: iniciar/avançar etapa/pausar/retomar/finalizar/perdas/observações) | ✅ | ✅ | ✅ |
 | Cadastros — Clientes/Produtos/Tecidos/Mesas de Corte | ✅ | ✅ | ❌ |
 | Cadastros — Usuários | ✅ | ❌ | ❌ |
+| Bancas (cadastro + controle de produção por banca) | ✅ | ✅ | ❌ |
 | Configurações | ✅ | ❌ | ❌ |
 
 Aplicado em duas camadas, nunca só uma (ver 3.1): navegação/UI
@@ -266,6 +267,26 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-24** — **Bancas ganha aba própria na sidebar + visibilidade
+  na Produção** (pedido do usuário — "as bancas não aparecem no setor
+  de produção, nem tem retorno"). Duas causas raiz distintas, uma por
+  cada metade da queixa:
+  1. `ProducaoPage.tsx` nunca mostrava `banca_nome` em lugar nenhum
+     (o dado já existia em `OrdemCorteResumo` desde o módulo Bancas,
+     2026-07-20, só não estava sendo exibido) — corrigido com uma
+     coluna "Banca" na Fila de Produção e no Pipeline pós-corte
+     (mostra "Produção interna" quando não há banca vinculada).
+  2. O cadastro de Bancas (`BancasPage.tsx`) só existia como uma aba
+     dentro de Cadastros, sem nenhum "retorno" sobre produção — movido
+     pra item próprio da sidebar (`navigation.ts`/`App.tsx`, mesmos
+     papéis de Cadastros: administrador/supervisor; removido de
+     `CadastrosPage.tsx`, sem duplicar) e ganhou uma coluna "Em
+     produção" (ordens/peças em `STATUS_EM_ANDAMENTO`, reaproveitando
+     `listRelatorioProducao()` já existente — sem IPC novo) que abre
+     um diálogo com a lista de ordens por trás do número, mesmo padrão
+     do diálogo de mesa em `ProducaoPage.tsx`. Nenhuma migration nova.
+  `npm run build` (typecheck + vite build) limpo. **Não testado
+  manualmente ainda.**
 - **2026-07-24** — usuário confirmou: **migration Supabase `0036`
   executada** (verificado também de forma independente via `npx
   supabase db query --linked` — `ordens_corte_status_check` e as
