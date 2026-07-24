@@ -266,6 +266,20 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-24** — usuário confirmou: **migration Supabase `0036`
+  executada** (verificado também de forma independente via `npx
+  supabase db query --linked` — `ordens_corte_status_check` e as
+  policies `ordens_corte_select_operador`/
+  `ordens_corte_update_operador_pipeline` já refletem os novos status
+  do pipeline: `planejado`/`enfesto`/`corte`/`despacho`), **sincronização
+  entre dispositivos validada ponta a ponta** (motor de pull, entrega
+  de 2026-07-21, e o auto-update pra v1.1.0, ver causa raiz de
+  2026-07-23) e **segundo dispositivo de desenvolvimento pronto**
+  (Node/npm/Git/Visual Studio Build Tools instalados, clone e `npm
+  install` funcionando nos dois stacks). Fecha os itens que ficavam
+  sinalizados como "não testado manualmente"/"pendente de execução
+  manual" nas entregas de reajuste de pipeline e pull-sync
+  (2026-07-21).
 - **2026-07-24** — **polimento visual do Mobile_Stance** (continuação
   do desenvolvimento mobile, pedido do usuário — escolhido entre isso
   e a distribuição/auto-update do APK, que ficou pra depois por
