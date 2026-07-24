@@ -266,6 +266,30 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-24** — **polimento visual do Mobile_Stance** (continuação
+  do desenvolvimento mobile, pedido do usuário — escolhido entre isso
+  e a distribuição/auto-update do APK, que ficou pra depois por
+  exigir uma lib nova ainda não avaliada). Login e Produção usavam o
+  azul/preto genérico do template React Native, mesma queixa de
+  "visual genérico" já corrigida no Desktop_Stance em 2026-07-16.
+  Novo `Mobile_Stance/src/theme.ts` espelha a paleta de
+  `Desktop_Stance/src/renderer/index.css` (vermelho `#A30620`, fundo
+  `#FAFAF8`, cores de status) e é aplicado em `LoginScreen`,
+  `ProducaoScreen`, `SelectModal`, `usePinConfirm` e
+  `PerdasObservacoesModal` — mesmo tratamento de accent vermelho em
+  cards/dialogs (borda superior colorida) que o desktop ganhou em
+  2026-07-21, sem nenhuma lib nova. Ícone do launcher Android (todas
+  as densidades `mipmap-*`) trocado pro símbolo da marca, reaproveitado
+  de `Desktop_Stance/build/icon.png` (mesmo arquivo do ícone do
+  instalador Windows, gerado por script Python/Pillow, sem depender de
+  ferramenta nova no projeto); nome do app trocado de
+  `ZenithCutterMobile` pra `Zenith Cutter` (`strings.xml`); cor de
+  fundo do cold-start (`colors.xml` novo + `styles.xml`) alinhada à
+  paleta pra reduzir o flash branco/preto antes do JS carregar.
+  `npx tsc --noEmit`, `npx eslint .` e `npx jest` limpos. **Não
+  testado manualmente num dispositivo/emulador ainda** — pendente
+  também de decidir sobre a distribuição/auto-update do APK (não
+  iniciado).
 - **2026-07-23** — **causa raiz de "ainda não sincroniza entre
   dispositivos" identificada e corrigida — era infraestrutura de
   release, não bug de código**. Depois do pull (entrega de
