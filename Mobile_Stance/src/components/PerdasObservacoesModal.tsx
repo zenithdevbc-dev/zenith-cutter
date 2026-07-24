@@ -20,6 +20,7 @@ import {
 } from '../lib/producao';
 import { useAuth } from '../lib/auth-context';
 import type { ProducaoObservacao, ProducaoPerda, ProdutoTamanho, SessaoProducaoResumo } from '../models';
+import { colors } from '../theme';
 
 interface PerdasObservacoesModalProps {
   visible: boolean;
@@ -246,21 +247,23 @@ const styles = StyleSheet.create({
   },
   card: {
     maxHeight: '85%',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.card,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    borderTopWidth: 3,
+    borderColor: colors.primary,
     padding: 16,
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0f172a',
+    color: colors.foreground,
     marginBottom: 12,
   },
   tabs: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: colors.border,
     marginBottom: 12,
   },
   tab: {
@@ -269,14 +272,14 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     borderBottomWidth: 2,
-    borderBottomColor: '#0f172a',
+    borderBottomColor: colors.primary,
   },
   tabText: {
-    color: '#6b7280',
+    color: colors.muted,
     fontWeight: '600',
   },
   tabTextActive: {
-    color: '#0f172a',
+    color: colors.foreground,
   },
   tabContent: {
     gap: 12,
@@ -288,7 +291,7 @@ const styles = StyleSheet.create({
   },
   gradeItem: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     padding: 8,
     alignItems: 'center',
@@ -297,18 +300,18 @@ const styles = StyleSheet.create({
   gradeLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6b7280',
+    color: colors.muted,
     marginBottom: 4,
   },
   gradeInput: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.borderStrong,
     borderRadius: 6,
     width: '100%',
     textAlign: 'center',
     paddingVertical: 4,
     fontSize: 14,
-    color: '#0f172a',
+    color: colors.foreground,
   },
   row: {
     flexDirection: 'row',
@@ -319,15 +322,15 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,
-    color: '#0f172a',
+    color: colors.foreground,
   },
   button: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingHorizontal: 14,
     justifyContent: 'center',
@@ -336,7 +339,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.primaryForeground,
     fontWeight: '600',
     fontSize: 13,
   },
@@ -345,7 +348,7 @@ const styles = StyleSheet.create({
   },
   listItem: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 8,
     marginBottom: 8,
@@ -356,11 +359,11 @@ const styles = StyleSheet.create({
   },
   listItemTitle: {
     fontWeight: '600',
-    color: '#0f172a',
+    color: colors.foreground,
   },
   listItemDate: {
     fontSize: 11,
-    color: '#6b7280',
+    color: colors.muted,
   },
   listItemBody: {
     color: '#374151',
@@ -368,12 +371,12 @@ const styles = StyleSheet.create({
   },
   listItemUser: {
     fontSize: 11,
-    color: '#6b7280',
+    color: colors.muted,
     marginTop: 4,
   },
   empty: {
     fontSize: 13,
-    color: '#6b7280',
+    color: colors.muted,
     paddingVertical: 8,
   },
   closeButton: {
@@ -382,7 +385,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeButtonText: {
-    color: '#6b7280',
+    color: colors.muted,
     fontWeight: '600',
   },
 });

@@ -24,6 +24,7 @@ import {
   retomarProducao,
 } from '../lib/producao';
 import { STATUS_ORDEM_CORTE_LABEL, type MesaCorteComStatus, type OrdemCorteResumo, type SessaoProducaoResumo } from '../models';
+import { colors } from '../theme';
 
 /**
  * Tempo de produção efetivo (cálculo estático no momento do reload,
@@ -145,11 +146,14 @@ export function ProducaoScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Zenith Cutter</Text>
-          <Text style={styles.headerSubtitle}>
-            {empresa?.nome ?? '...'} · {usuario?.nome ?? '...'}
-          </Text>
+        <View style={styles.headerTitleRow}>
+          <View style={styles.headerAccent} />
+          <View>
+            <Text style={styles.headerTitle}>Zenith Cutter</Text>
+            <Text style={styles.headerSubtitle}>
+              {empresa?.nome ?? '...'} · {usuario?.nome ?? '...'}
+            </Text>
+          </View>
         </View>
         <TouchableOpacity onPress={() => signOut()}>
           <Text style={styles.signOut}>Sair</Text>
@@ -300,15 +304,26 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.foreground,
     paddingHorizontal: 16,
     paddingVertical: 14,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  headerAccent: {
+    width: 4,
+    height: 18,
+    borderRadius: 2,
+    backgroundColor: colors.primary,
   },
   headerTitle: {
     color: '#fff',
@@ -334,43 +349,45 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0f172a',
+    color: colors.foreground,
   },
   empty: {
     fontSize: 13,
-    color: '#6b7280',
+    color: colors.muted,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
+    borderTopWidth: 2,
+    borderTopColor: colors.primary,
     padding: 12,
     gap: 4,
   },
   cardTitle: {
     fontWeight: '700',
-    color: '#0f172a',
+    color: colors.foreground,
     fontSize: 14,
   },
   cardSubtitle: {
     fontSize: 12,
-    color: '#6b7280',
+    color: colors.muted,
   },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   rowLabel: {
     fontSize: 13,
-    color: '#0f172a',
+    color: colors.foreground,
   },
   rowGap: {
     flexDirection: 'row',
@@ -386,16 +403,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   badgeSecondary: {
-    backgroundColor: '#e2e8f0',
-    color: '#0f172a',
+    backgroundColor: colors.border,
+    color: colors.foreground,
   },
   badgeDanger: {
     backgroundColor: '#fee2e2',
-    color: '#b91c1c',
+    color: colors.statusDelayed,
   },
   button: {
     marginTop: 6,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 8,
     alignItems: 'center',
@@ -404,27 +421,27 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.primaryForeground,
     fontWeight: '600',
     fontSize: 13,
   },
   buttonOutline: {
     marginTop: 6,
     borderWidth: 1,
-    borderColor: '#0f172a',
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     paddingVertical: 8,
     alignItems: 'center',
   },
   buttonOutlineSmall: {
     borderWidth: 1,
-    borderColor: '#0f172a',
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
   buttonOutlineText: {
-    color: '#0f172a',
+    color: colors.foreground,
     fontWeight: '600',
     fontSize: 12,
   },

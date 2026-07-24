@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { verifyPin, pinBloqueadoRestanteMs } from '../lib/pin';
+import { colors } from '../theme';
 
 /**
  * Confirmação de PIN antes de iniciar/pausar/retomar/avançar etapa —
@@ -111,33 +112,35 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.card,
     borderRadius: 12,
+    borderTopWidth: 3,
+    borderTopColor: colors.primary,
     padding: 20,
   },
   title: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#0f172a',
+    color: colors.foreground,
     marginBottom: 16,
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.muted,
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#0f172a',
+    color: colors.foreground,
   },
   error: {
-    color: '#dc2626',
+    color: colors.statusDelayed,
     fontSize: 13,
     marginTop: 10,
   },
@@ -156,17 +159,17 @@ const styles = StyleSheet.create({
   },
   buttonOutline: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.borderStrong,
   },
   buttonOutlineText: {
-    color: '#0f172a',
+    color: colors.foreground,
     fontWeight: '600',
   },
   buttonPrimary: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.primary,
   },
   buttonPrimaryText: {
-    color: '#fff',
+    color: colors.primaryForeground,
     fontWeight: '600',
   },
   buttonDisabled: {

@@ -1,0 +1,4 @@
+<resources>
+    <!-- Espelha --background do Desktop_Stance (src/renderer/index.css) -->
+    <color name="app_background">#FAFAF8</color>
+</resources>

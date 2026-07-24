@@ -1,4 +1,5 @@
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { colors } from '../theme';
 
 export interface SelectOption {
   value: string;
@@ -69,19 +70,21 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     maxHeight: '70%',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.card,
     borderRadius: 12,
+    borderTopWidth: 3,
+    borderTopColor: colors.primary,
     padding: 16,
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0f172a',
+    color: colors.foreground,
     marginBottom: 12,
   },
   empty: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.muted,
     paddingVertical: 12,
   },
   list: {
@@ -91,11 +94,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: colors.border,
   },
   optionText: {
     fontSize: 15,
-    color: '#0f172a',
+    color: colors.foreground,
   },
   cancelButton: {
     marginTop: 12,
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelText: {
-    color: '#6b7280',
+    color: colors.muted,
     fontWeight: '600',
   },
 });

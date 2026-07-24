@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useAuth } from '../lib/auth-context';
+import { colors } from '../theme';
 
 export function LoginScreen() {
   const { signIn } = useAuth();
@@ -32,7 +34,11 @@ export function LoginScreen() {
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.card}>
-        <Text style={styles.title}>Zenith Cutter</Text>
+        <Image
+          source={require('../assets/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
         <Text style={styles.label}>Empresa</Text>
         <TextInput
@@ -85,47 +91,49 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
     padding: 24,
   },
   card: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.card,
     borderRadius: 12,
+    borderTopWidth: 3,
+    borderTopColor: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: 24,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 24,
-    color: '#0f172a',
+  logo: {
+    width: '100%',
+    height: 100,
+    marginBottom: 8,
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.muted,
     marginBottom: 6,
     marginTop: 12,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#0f172a',
+    color: colors.foreground,
   },
   error: {
-    color: '#dc2626',
+    color: colors.statusDelayed,
     fontSize: 13,
     marginTop: 12,
   },
   button: {
     marginTop: 20,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -134,7 +142,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#ffffff',
+    color: colors.primaryForeground,
     fontSize: 15,
     fontWeight: '600',
   },
