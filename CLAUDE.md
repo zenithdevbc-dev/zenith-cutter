@@ -267,6 +267,111 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-26** — **expansão do app mobile: Dashboard, Ordens de
+  Corte, Cadastros e Relatórios** (pedido do usuário — "implemente o
+  restante das telas"). Substitui o escopo original do
+  `Mobile_Stance` (Fase A, 2026-07-18: só Login + Produção, "terminal
+  fino") — confirmado explicitamente com o usuário via pergunta antes
+  de planejar. Plano completo alinhado antes de codar (4 decisões
+  confirmadas: portar as 4 áreas; gráficos de verdade em vez de
+  KPI/tabela só; corrigir o gap de RLS de `mesas_corte`; corrigir o
+  gap de RLS de `bancas`) — justificativa completa em
+  `C:\Users\mafio\.claude\plans\polymorphic-waddling-octopus.md`.
+  Implementado em 5 fases sequenciais (build/typecheck/lint/jest
+  limpos a cada uma, commit próprio):
+  - **Fase 0 — fundação**: mobile não tinha nenhuma lib de navegação
+    nem de ícones (`App.tsx` era um `if/else` puro). Decisão: **sem**
+    `react-navigation` — seus pares nativos obrigatórios
+    (`react-native-screens`, `react-native-gesture-handler`, e
+    `react-native-safe-area-context`, que **já causou** a falha de
+    build Windows MAX_PATH desta sessão) seriam mais superfície de
+    codegen sem necessidade real (app interno, ~6 destinos fixos, sem
+    deep link). Em vez disso: `src/navigation.ts` novo (mesma forma de
+    `Desktop_Stance/src/renderer/lib/navigation.ts` —
+    `NAV_ITEMS`/`getAllowedNavItems(papel)`), barra de abas inferior
+    só-texto (`BottomTabBar.tsx`) controlada por `useState`, e todo
+    formulário/diálogo novo é `Modal` do RN — mesmos padrões que já
+    existiam (`SelectModal`, `PerdasObservacoesModal`). `AppHeader.tsx`
+    novo extrai o cabeçalho que antes vivia só em `ProducaoScreen.tsx`
+    (única tela até então). `models.ts` ganhou os tipos que faltavam
+    (`Cliente`/`Produto`/`Tecido`/`Banca`/`MesaCorte` completo,
+    `OrdemCorte` inteiro, `RelatorioProducaoLinha`/`RelatorioPerdaLinha`),
+    copiados campo a campo de `Desktop_Stance/src/shared/models.ts`
+    (convenção já estabelecida — sem workspace/monorepo entre as
+    Stances).
+  - **Fase 1 — Dashboard**: mesas (todos os papéis), resumo
+    inteligente, pesquisa rápida, distribuição de peças por status
+    (donut), terceiros em produção, produção dos últimos 30 dias
+    (barras) — os 3 últimos atrás do mesmo gate administrador/
+    supervisor do desktop. **Gráficos**: `react-native-gifted-charts`
+    foi instalada e depois **descartada** — mesmo sem usar gradiente,
+    o import de `PieChart`/`BarChart` já falha em runtime se
+    `react-native-linear-gradient`/`expo-linear-gradient` não estiver
+    instalado (bug real da lib, contradiz seu próprio
+    `peerDependenciesMeta.optional`; confirmado lendo o código-fonte
+    do pacote). Em vez de aceitar mais uma dependência nativa só pra
+    contornar isso, os gráficos viraram SVG puro sobre
+    `react-native-svg` (`DonutChart`/`SimpleBarChart`/`SimpleLineChart`
+    em `components/charts/`) — mesmo resultado visual, um módulo
+    nativo a menos, consistente com o motivo de evitar
+    `react-navigation` na Fase 0.
+  - **Fase 2 — Cadastros**: Clientes/Produtos (+ grade de tamanhos,
+    reordenável)/Materiais/Mesas de Corte como sub-abas de uma tela
+    Cadastros; Terceiros com tela própria (busca + filtro de status —
+    mesma diferença que já existe no desktop). CRUD completo
+    Supabase-direto, sem DELETE físico (soft-delete via `Switch`
+    "Ativo", igual desktop); nenhum dos 5 usa PIN no desktop
+    (conferido lendo os diálogos), então nenhum ganhou no mobile
+    também.
+  - **Fase 3 — Ordens de Corte**: criar/editar num único modal (mobile
+    não precisa de 2 diálogos como o desktop); número sugerido+editável
+    só na criação; status só editável antes de entrar no pipeline de
+    produção (nas demais etapas fica leitura, sempre reenviado sem
+    mudança — mesma trava que o repositório do desktop já aplica);
+    duplicar/cancelar/arquivar com as mesmas regras exatas do desktop;
+    tudo PIN-gated via `usePinConfirm` já existente (100% local/offline,
+    reaproveitado sem mudança). Filtro completo (busca, etapa
+    multi-select, período, cliente/produto/material, "mostrar
+    arquivadas" mutuamente exclusivo com etapa — mesma lógica exata do
+    desktop). `SelectModal.tsx` ganhou modo de seleção múltipla em vez
+    de um componente paralelo pro filtro de Etapa.
+  - **Fase 4 — Relatórios**: as 6 abas do desktop (Produção, Histórico
+    de Ordens, Materiais, Clientes, Operadores, Terceiros), libs de
+    filtro/agregação portados quase-verbatim (mesma matemática, não
+    diverge dos números do desktop). **Sem exportação CSV/Excel/PDF**
+    — `jspdf`/`exceljs`/`html2canvas` são DOM/Node-only, não portam pro
+    React Native; fica só consulta no mobile (limitação técnica dura,
+    não um corte de escopo). Sem paginação no Histórico de Ordens
+    (lista completa) — simplicidade, dataset de uma empresa não
+    costuma justificar.
+  - **2 gaps de RLS achados durante a pesquisa e corrigidos** (não
+    pedidos originalmente, confirmados com o usuário antes de
+    corrigir): migration `0038_mesas_corte_select_operador.sql` reabre
+    SELECT de `mesas_corte` pra todos os papéis — a policy de `0011`
+    deixava só administrador/supervisor lerem a tabela, o que **já
+    quebrava** a tela de Produção do mobile pro papel Operador (sem
+    cache SQLite local pra mascarar isso como no desktop, um Operador
+    logado no celular não conseguia ver mesas livres pra iniciar
+    produção — bug ativo, não novo). Migration
+    `0039_bancas_admin_supervisor.sql` fecha `bancas`, que tinha ficado
+    como a única das 6 tabelas de cadastro sem checagem de papel na
+    RLS desde `0034` (as outras 5 já foram travadas em `0011`) —
+    Operador deixa de conseguir ler/gravar Terceiros via chamada
+    direta ao Supabase. **Ambas pendentes de execução manual** no SQL
+    Editor, mesma rotina de sempre.
+  - Refatorações no caminho: `lib/join.ts` (helper `mapaPorId`) e
+    `lib/historico.ts` (`registrarHistorico`) extraídos de
+    `producao.ts` pra serem compartilhados com `ordensCorte.ts` — evita
+    duplicar a mesma lógica de join/auditoria em dois arquivos;
+    `lib/produtoTamanhos.ts` novo vira a fonte canônica da grade
+    (leitura movida de `producao.ts`, que agora importa de lá).
+  `npx tsc --noEmit`, `npx eslint .` e `npx jest` limpos a cada uma
+  das 5 fases (commits separados). **Não testado num
+  dispositivo/emulador Android ainda** — o build de release desta
+  máquina segue bloqueado pelo limite de 260 caracteres de path do
+  Windows (MAX_PATH) relatado numa tentativa anterior nesta mesma
+  sessão (fix de registro passado ao usuário, reboot não confirmado).
+  Migrations `0038`/`0039` pendentes de execução manual.
 - **2026-07-26** — **filtros completos em Ordens de Corte e nos
   relatórios de ordem** (pedido do usuário: "por etapa (checkbox de
   seleção múltipla), período, cliente, material, produto — em todos
