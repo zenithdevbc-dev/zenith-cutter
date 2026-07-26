@@ -188,8 +188,9 @@ async function getNextPrioridadeFila(empresaId: string): Promise<number> {
 }
 
 /**
- * Ordem nasce 'planejado' (nunca entra automaticamente em 'em_fila' —
- * precisa de ação manual de admin/supervisor via Editar Status).
+ * Ordem nasce 'em_fila' (decisão de 2026-07-26 — entra direto na fila,
+ * sem precisar de edição manual de Status). 'planejado' continua um
+ * status válido, só deixou de ser o padrão automático.
  */
 export async function createOrdemCorte(input: OrdemCorteInput, usuarioId: string): Promise<OrdemCorte> {
   const now = new Date().toISOString();
@@ -200,7 +201,7 @@ export async function createOrdemCorte(input: OrdemCorteInput, usuarioId: string
     cliente_id: input.cliente_id,
     produto_id: input.produto_id,
     tecido_id: input.tecido_id,
-    status: 'planejado',
+    status: 'em_fila',
     prioridade: await getNextPrioridadeFila(input.empresa_id),
     observacoes: input.observacoes ?? null,
     mesa_atribuida_id: null,
