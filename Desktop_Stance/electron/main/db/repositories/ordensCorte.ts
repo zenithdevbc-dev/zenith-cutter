@@ -359,10 +359,10 @@ function getNextPrioridadeFilaLocal(db: Database.Database, empresaId: string): n
 }
 
 /**
- * Ordem nasce 'planejado' (decisão de 2026-07-21 — reverte a entrada
- * automática em 'em_fila' de 2026-07-11): precisa de uma ação manual
- * de admin/supervisor (mudar o Status pelo Editar, já com PIN) pra
- * entrar de fato na fila de produção.
+ * Ordem nasce 'em_fila' (decisão de 2026-07-26 — reverte a entrada
+ * manual introduzida em 2026-07-21): entra direto na fila de produção,
+ * sem precisar de edição manual de Status. 'planejado' continua um
+ * status válido (editável), só deixou de ser o padrão automático.
  */
 export function createOrdemCorteLocal(
   db: Database.Database,
@@ -378,7 +378,7 @@ export function createOrdemCorteLocal(
     cliente_id: input.cliente_id,
     produto_id: input.produto_id,
     tecido_id: input.tecido_id,
-    status: "planejado",
+    status: "em_fila",
     prioridade: getNextPrioridadeFilaLocal(db, input.empresa_id),
     observacoes: input.observacoes ?? null,
     mesa_atribuida_id: null,
