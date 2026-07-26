@@ -139,6 +139,7 @@ declare global {
           mesaAtribuidaId: string | null,
           usuarioId: string,
         ) => Promise<OrdemCorteResumo>;
+        arquivarLocal: (ordemId: string, usuarioId: string) => Promise<OrdemCorteResumo>;
         cacheLocal: (ordens: OrdemCorte[]) => Promise<void>;
         itensCacheLocal: (itens: OrdemCorteItem[]) => Promise<void>;
         historicoCacheLocal: (entradas: OrdemCorteHistoricoEntry[]) => Promise<void>;

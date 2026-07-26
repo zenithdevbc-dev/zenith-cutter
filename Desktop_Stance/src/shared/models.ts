@@ -247,6 +247,14 @@ export interface OrdemCorte {
    * machine de status (regra 4): é só um dado descritivo da ordem.
    */
   banca_id: string | null;
+  /**
+   * Arquivada = escondida da lista padrão de Ordens de Corte, sem
+   * DELETE físico (mesmo princípio de soft-delete do resto da base —
+   * decisão de 2026-07-26). Só pode ser marcada quando `status` já é
+   * `'cancelada'` (regra aplicada no repositório, não só na UI) — não
+   * é uma etapa do pipeline (regra 4), é só um estado de visibilidade.
+   */
+  arquivada: boolean;
   criado_em: string;
   atualizado_em: string;
 }
@@ -308,7 +316,8 @@ export type AcaoOrdemCorteHistorico =
   | "cancelamento"
   | "duplicacao"
   | "pausa"
-  | "retomada";
+  | "retomada"
+  | "arquivamento";
 
 /**
  * Auditoria da ordem (ver CLAUDE.md 3.5): quem fez o quê e quando.

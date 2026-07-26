@@ -23,7 +23,7 @@ import {
 import { CreateOrdemCorteDialog } from "@/components/ordens/CreateOrdemCorteDialog";
 import { EditOrdemCorteDialog } from "@/components/ordens/EditOrdemCorteDialog";
 import { InfoOrdemCorteDialog } from "@/components/ordens/InfoOrdemCorteDialog";
-import { listOrdensCorte, updateOrdemCorte, duplicateOrdemCorte } from "@/lib/ordensCorte";
+import { listOrdensCorte, updateOrdemCorte, duplicateOrdemCorte, arquivarOrdem } from "@/lib/ordensCorte";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
 import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
@@ -34,7 +34,9 @@ export function OrdensCortePage() {
   const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
   const [busca, setBusca] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState<StatusOrdemCorte | "todos" | "aberta">("todos");
+  const [statusFiltro, setStatusFiltro] = useState<
+    StatusOrdemCorte | "todos" | "aberta" | "arquivada"
+  >("todos");
 
   useEffect(() => {
     listOrdensCorte()
@@ -65,6 +67,18 @@ export function OrdensCortePage() {
     }
   }
 
+  async function handleArquivar(ordem: OrdemCorteResumo) {
+    if (!usuario) return;
+    if (!(await confirmPin())) return;
+    try {
+      const updated = await arquivarOrdem(ordem.id, usuario.id);
+      upsertLocal({ ...ordem, ...updated });
+      toast.success("Ordem de corte arquivada.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível arquivar a ordem de corte.");
+    }
+  }
+
   async function handleDuplicar(ordem: OrdemCorteResumo) {
     if (!usuario) return;
     if (!(await confirmPin())) return;
@@ -89,14 +103,22 @@ export function OrdensCortePage() {
     if (!ordens) return null;
     const termo = busca.trim().toLowerCase();
     return ordens.filter((o) => {
-      // "Aberta" é um filtro agregado (não status literal): qualquer
-      // ordem que ainda não terminou nem foi cancelada — cobre
-      // planejado/em_fila/enfesto/corte/embalagem/despacho de uma vez
-      // (pedido do usuário, 2026-07-16).
-      if (statusFiltro === "aberta") {
-        if (o.status === "pronto" || o.status === "cancelada") return false;
-      } else if (statusFiltro !== "todos" && o.status !== statusFiltro) {
-        return false;
+      // Arquivada é escondida de todo filtro, exceto quando o próprio
+      // filtro selecionado é "Arquivadas" (decisão de 2026-07-26 — o
+      // objetivo de arquivar é sumir da lista padrão, não só marcar).
+      if (statusFiltro === "arquivada") {
+        if (!o.arquivada) return false;
+      } else {
+        if (o.arquivada) return false;
+        // "Aberta" é um filtro agregado (não status literal): qualquer
+        // ordem que ainda não terminou nem foi cancelada — cobre
+        // planejado/em_fila/enfesto/corte/embalagem/despacho de uma vez
+        // (pedido do usuário, 2026-07-16).
+        if (statusFiltro === "aberta") {
+          if (o.status === "pronto" || o.status === "cancelada") return false;
+        } else if (statusFiltro !== "todos" && o.status !== statusFiltro) {
+          return false;
+        }
       }
       if (!termo) return true;
       return (
@@ -137,6 +159,7 @@ export function OrdensCortePage() {
               <SelectItem value="despacho">Despache</SelectItem>
               <SelectItem value="pronto">Pronto</SelectItem>
               <SelectItem value="cancelada">Cancelada</SelectItem>
+              <SelectItem value="arquivada">Arquivadas</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -195,6 +218,11 @@ export function OrdensCortePage() {
                           !PIPELINE_PRODUCAO.includes(ordem.status) && (
                           <Button variant="outline" size="sm" onClick={() => handleCancelar(ordem)}>
                             Cancelar
+                          </Button>
+                        )}
+                        {ordem.status === "cancelada" && !ordem.arquivada && (
+                          <Button variant="outline" size="sm" onClick={() => handleArquivar(ordem)}>
+                            Arquivar
                           </Button>
                         )}
                         <EditOrdemCorteDialog ordem={ordem} onUpdated={upsertLocal} />

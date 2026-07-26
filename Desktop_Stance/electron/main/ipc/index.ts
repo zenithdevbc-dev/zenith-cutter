@@ -113,6 +113,7 @@ import {
   listOrdemCorteHistoricoLocal,
   getNextOrdemCorteNumeroLocal,
   atribuirMesaFilaLocal,
+  arquivarOrdemCorteLocal,
   cacheOrdensCorteLocal,
   cacheOrdemCorteItensLocal,
   cacheOrdemCorteHistoricoLocal,
@@ -399,6 +400,13 @@ export function registerIpcHandlers() {
       usuarioId: string,
     ): OrdemCorteResumo => {
       return atribuirMesaFilaLocal(getDb(), ordemId, mesaAtribuidaId, usuarioId);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.ordensCorteArquivarLocal,
+    (_event, ordemId: string, usuarioId: string): OrdemCorteResumo => {
+      return arquivarOrdemCorteLocal(getDb(), ordemId, usuarioId);
     },
   );
 

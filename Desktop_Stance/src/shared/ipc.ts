@@ -96,6 +96,7 @@ export const IPC_CHANNELS = {
   ordensCorteHistoricoListLocal: "ordens-corte:historico-list-local",
   ordensCorteNextNumeroLocal: "ordens-corte:next-numero-local",
   ordensCorteAtribuirMesaLocal: "ordens-corte:atribuir-mesa-local",
+  ordensCorteArquivarLocal: "ordens-corte:arquivar-local",
   ordensCorteCacheLocal: "ordens-corte:cache-local",
   ordensCorteItensCacheLocal: "ordens-corte:itens-cache-local",
   ordensCorteHistoricoCacheLocal: "ordens-corte:historico-cache-local",

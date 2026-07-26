@@ -790,4 +790,21 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 30,
+    name: "add_arquivada_to_ordens_corte",
+    up: (db) => {
+      db.exec(`
+        -- Arquivar (pedido do usuário, 2026-07-26): esconde a ordem da
+        -- lista padrão sem DELETE físico (mesmo princípio de
+        -- soft-delete do resto da base). Não participa da state
+        -- machine de status (regra 4) — é só visibilidade, por isso
+        -- não precisa recriar a tabela (sem CHECK novo), mesmo padrão
+        -- simples de banca_id (v28)/prazo (v23). A regra "só pode
+        -- arquivar ordem cancelada" é aplicada no repositório, não no
+        -- schema.
+        ALTER TABLE ordens_corte ADD COLUMN arquivada INTEGER NOT NULL DEFAULT 0 CHECK (arquivada IN (0, 1));
+      `);
+    },
+  },
 ];

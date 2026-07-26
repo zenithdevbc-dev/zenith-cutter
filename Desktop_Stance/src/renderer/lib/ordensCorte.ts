@@ -59,3 +59,12 @@ export function atribuirMesaOrdem(
 ): Promise<OrdemCorteResumo> {
   return window.zenith.ordensCorte.atribuirMesaLocal(ordemId, mesaAtribuidaId, usuarioId);
 }
+
+/**
+ * Arquivar (2026-07-26): esconde a ordem da lista padrão — só
+ * permitido para ordens já 'cancelada' (regra aplicada no
+ * repositório, não só aqui).
+ */
+export function arquivarOrdem(ordemId: string, usuarioId: string): Promise<OrdemCorteResumo> {
+  return window.zenith.ordensCorte.arquivarLocal(ordemId, usuarioId);
+}

@@ -17,6 +17,7 @@ interface OrdemCorteResumoRow {
   mesa_atribuida_id: string | null;
   prazo: string | null;
   banca_id: string | null;
+  arquivada: number;
   criado_em: string;
   atualizado_em: string;
   cliente_nome: string;
@@ -41,6 +42,7 @@ function rowToResumo(row: OrdemCorteResumoRow): OrdemCorteResumo {
     mesa_atribuida_id: row.mesa_atribuida_id,
     prazo: row.prazo,
     banca_id: row.banca_id,
+    arquivada: row.arquivada === 1,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
     cliente_nome: row.cliente_nome,

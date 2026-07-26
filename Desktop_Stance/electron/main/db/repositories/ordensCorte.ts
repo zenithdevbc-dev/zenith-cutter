@@ -104,6 +104,7 @@ export interface OrdemCorteRow {
   mesa_atribuida_id: string | null;
   prazo: string | null;
   banca_id: string | null;
+  arquivada: number;
   criado_em: string;
   atualizado_em: string;
 }
@@ -140,6 +141,7 @@ export function rowToOrdemCorte(row: OrdemCorteRow): OrdemCorte {
     mesa_atribuida_id: row.mesa_atribuida_id,
     prazo: row.prazo,
     banca_id: row.banca_id,
+    arquivada: row.arquivada === 1,
     criado_em: row.criado_em,
     atualizado_em: row.atualizado_em,
   };
@@ -187,8 +189,8 @@ export function listOrdensCorteLocal(db: Database.Database): OrdemCorteResumo[] 
  */
 export function cacheOrdensCorteLocal(db: Database.Database, ordens: OrdemCorte[]) {
   const stmt = db.prepare(`
-    INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, criado_em, atualizado_em)
-    VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @prazo, @banca_id, @criado_em, @atualizado_em)
+    INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, arquivada, criado_em, atualizado_em)
+    VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @prazo, @banca_id, @arquivada, @criado_em, @atualizado_em)
     ON CONFLICT (id) DO UPDATE SET
       empresa_id = excluded.empresa_id,
       numero = excluded.numero,
@@ -201,12 +203,13 @@ export function cacheOrdensCorteLocal(db: Database.Database, ordens: OrdemCorte[
       mesa_atribuida_id = excluded.mesa_atribuida_id,
       prazo = excluded.prazo,
       banca_id = excluded.banca_id,
+      arquivada = excluded.arquivada,
       criado_em = excluded.criado_em,
       atualizado_em = excluded.atualizado_em
     WHERE excluded.atualizado_em > ordens_corte.atualizado_em
   `);
   const cacheAll = db.transaction((items: OrdemCorte[]) => {
-    for (const o of items) stmt.run(o);
+    for (const o of items) stmt.run({ ...o, arquivada: o.arquivada ? 1 : 0 });
   });
   cacheAll(ordens);
 }
@@ -381,15 +384,16 @@ export function createOrdemCorteLocal(
     mesa_atribuida_id: null,
     prazo: input.prazo ?? null,
     banca_id: input.banca_id ?? null,
+    arquivada: false,
     criado_em: now,
     atualizado_em: now,
   };
 
   const create = db.transaction(() => {
     db.prepare(`
-      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, criado_em, atualizado_em)
-      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @prazo, @banca_id, @criado_em, @atualizado_em)
-    `).run(ordem);
+      INSERT INTO ordens_corte (id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, arquivada, criado_em, atualizado_em)
+      VALUES (@id, @empresa_id, @numero, @cliente_id, @produto_id, @tecido_id, @status, @prioridade, @observacoes, @mesa_atribuida_id, @prazo, @banca_id, @arquivada, @criado_em, @atualizado_em)
+    `).run({ ...ordem, arquivada: ordem.arquivada ? 1 : 0 });
     enqueueChange(db, {
       tableName: "ordens_corte",
       recordId: id,
@@ -643,6 +647,58 @@ export function atribuirMesaFilaLocal(
       descricao: mesaNome
         ? `Mesa "${mesaNome}" atribuída na fila de produção.`
         : "Atribuição de mesa removida da fila de produção.",
+    });
+  });
+  apply();
+
+  const updated = getOrdemCorteResumoLocal(db, ordemId);
+  if (!updated) throw new Error(`Ordem de Corte ${ordemId} não encontrada após atualização.`);
+  return updated;
+}
+
+/**
+ * Arquivar (pedido do usuário, 2026-07-26): esconde a ordem da lista
+ * padrão, sem DELETE físico (mesmo princípio de soft-delete do resto
+ * da base). Só permitido quando a ordem já está 'cancelada' — regra
+ * aplicada aqui, não só na UI (mesmo espírito do restante do arquivo).
+ * Exclusiva de administrador/supervisor, como o resto da página de
+ * Ordens de Corte.
+ */
+export function arquivarOrdemCorteLocal(
+  db: Database.Database,
+  ordemId: string,
+  usuarioId: string,
+): OrdemCorteResumo {
+  requireAdminOuSupervisor(db, usuarioId, "arquivar uma ordem de corte");
+
+  const row = db
+    .prepare<[string, string], OrdemCorteRow>("SELECT * FROM ordens_corte WHERE id = ? AND empresa_id = ?")
+    .get(ordemId, getCurrentEmpresaId());
+  if (!row) throw new Error(`Ordem de Corte ${ordemId} não encontrada.`);
+  if (row.status !== "cancelada") {
+    throw new Error("Só é possível arquivar uma ordem de corte já cancelada.");
+  }
+  if (row.arquivada === 1) {
+    throw new Error("Esta ordem de corte já está arquivada.");
+  }
+
+  const now = new Date().toISOString();
+  const apply = db.transaction(() => {
+    db.prepare(
+      "UPDATE ordens_corte SET arquivada = 1, atualizado_em = ? WHERE id = ?",
+    ).run(now, ordemId);
+    enqueueChange(db, {
+      tableName: "ordens_corte",
+      recordId: ordemId,
+      operation: "update",
+      payload: { arquivada: true },
+    });
+    registrarHistorico(db, {
+      empresaId: row.empresa_id,
+      ordemId,
+      usuarioId,
+      acao: "arquivamento",
+      descricao: "Ordem de corte arquivada.",
     });
   });
   apply();

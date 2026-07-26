@@ -267,6 +267,32 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-26** — **botão "Arquivar" em Ordens de Corte** (pedido do
+  usuário — só disponível depois de cancelada). Novo campo
+  `ordens_corte.arquivada` (boolean, default `false`) — mesmo
+  princípio de soft-delete do resto da base (nunca DELETE físico), mas
+  não é uma etapa do pipeline (regra 4): é só um estado de
+  visibilidade, ortogonal ao `status`. Migration local **v30** (ALTER
+  TABLE simples, mesmo padrão de `banca_id`/v28) + Supabase
+  **`0037_ordens_corte_arquivada.sql`** — que também estende o trigger
+  de 0032 (Operador só muda `status`/`atualizado_em` em `ordens_corte`)
+  pra travar `arquivada` também, fechando de saída o mesmo tipo de gap
+  que `banca_id` deixou em aberto na 0035 (não corrigido agora, fora
+  do pedido — só sinalizado aqui).
+  Regra de negócio — "só arquiva ordem já cancelada" — aplicada no
+  repositório (`arquivarOrdemCorteLocal`, novo, mesmo molde de
+  `atribuirMesaFilaLocal`: valida, aplica, registra histórico
+  `"arquivamento"`, exclusivo de administrador/supervisor via
+  `requireAdminOuSupervisor`), não só na UI. Botão "Arquivar" aparece
+  na tabela só quando `status === "cancelada" && !arquivada`, com PIN
+  (mesmo padrão de Cancelar/Duplicar). Ordens arquivadas somem de
+  **todo** filtro da página (inclusive "Cancelada" e "Todos os
+  status") — só aparecem escolhendo o novo filtro "Arquivadas"; é
+  filtragem client-side, mesmo padrão do filtro agregado "Aberta"
+  (2026-07-16), sem IPC/query nova. Sem ação de desarquivar (não
+  pedida). `npm run build` (typecheck + vite build) limpo. Migration
+  Supabase `0037` **pendente de execução manual** no SQL Editor.
+  **Não testado manualmente ainda.**
 - **2026-07-24** — **vocabulário da interface suavizado — "Tecido" vira
   "Material", "Banca" vira "Terceiro"** (pedido do usuário, com
   avaliação prévia por já esbarrar no princípio de "representação

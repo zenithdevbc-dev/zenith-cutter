@@ -202,6 +202,8 @@ contextBridge.exposeInMainWorld("zenith", {
         mesaAtribuidaId,
         usuarioId,
       ),
+    arquivarLocal: (ordemId: string, usuarioId: string): Promise<OrdemCorteResumo> =>
+      ipcRenderer.invoke(IPC_CHANNELS.ordensCorteArquivarLocal, ordemId, usuarioId),
     cacheLocal: (ordens: OrdemCorte[]): Promise<void> =>
       ipcRenderer.invoke(IPC_CHANNELS.ordensCorteCacheLocal, ordens),
     itensCacheLocal: (itens: OrdemCorteItem[]): Promise<void> =>
