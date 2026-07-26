@@ -1,4 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NavItem, PageId } from '../navigation';
 import { colors } from '../theme';
 
@@ -9,6 +10,11 @@ import { colors } from '../theme';
  * `react-native-gesture-handler`) somam mais superfície de codegen sem
  * necessidade real pra um app interno de ~6 destinos fixos, sem deep
  * link. Troca de tela é só `useState` em `App.tsx`.
+ *
+ * `paddingBottom` soma a safe-area inferior — sem isso, em telas
+ * edge-to-edge (a maioria dos Android recentes) a barra de navegação do
+ * sistema cobre as abas e os toques acabam caindo nos botões do
+ * sistema, não no app (achado testando num aparelho real).
  */
 export function BottomTabBar({
   items,
@@ -19,8 +25,10 @@ export function BottomTabBar({
   active: PageId;
   onSelect: (id: PageId) => void;
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { paddingBottom: insets.bottom }]}>
       {items.map((item) => {
         const isActive = item.id === active;
         return (
