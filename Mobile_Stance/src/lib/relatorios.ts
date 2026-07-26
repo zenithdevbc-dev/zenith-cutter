@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { mapaPorId } from './join';
 import { listOrdensCorte } from './ordensCorte';
-import type { RelatorioProducaoLinha } from '../models';
+import type { RelatorioPerdaLinha, RelatorioProducaoLinha } from '../models';
 
 /**
  * Camada de dados de Relatórios do mobile — monta em memória o que o
@@ -64,4 +64,46 @@ export async function listRelatorioProducao(): Promise<RelatorioProducaoLinha[]>
       banca_nome: ordem.banca_nome,
     };
   });
+}
+
+/** Uma linha por perda de produção registrada, com dados da ordem/cliente/material — admin/supervisor. */
+export async function listRelatorioPerdas(): Promise<RelatorioPerdaLinha[]> {
+  const { data: perdas, error } = await supabase
+    .from('producao_perdas')
+    .select('id, sessao_id, quantidade, criado_em');
+  if (error) throw error;
+  const linhas = perdas ?? [];
+  if (linhas.length === 0) return [];
+
+  const { data: sessoes, error: sessoesError } = await supabase
+    .from('sessoes_producao')
+    .select('id, ordem_id')
+    .in(
+      'id',
+      linhas.map((p) => p.sessao_id),
+    );
+  if (sessoesError) throw sessoesError;
+  const sessaoPorId = new Map((sessoes ?? []).map((s) => [s.id, s]));
+
+  const ordens = await listOrdensCorte();
+  const ordemPorId = new Map(ordens.map((o) => [o.id, o]));
+
+  return linhas
+    .map((p) => {
+      const sessao = sessaoPorId.get(p.sessao_id);
+      const ordem = sessao ? ordemPorId.get(sessao.ordem_id) : undefined;
+      if (!ordem) return null;
+      return {
+        perda_id: p.id,
+        ordem_id: ordem.id,
+        numero: ordem.numero,
+        cliente_id: ordem.cliente_id,
+        cliente_nome: ordem.cliente_nome,
+        tecido_id: ordem.tecido_id,
+        tecido_nome: ordem.tecido_nome,
+        quantidade: p.quantidade,
+        criado_em: p.criado_em,
+      };
+    })
+    .filter((l): l is RelatorioPerdaLinha => l !== null);
 }
