@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { randomUUID } from './uuid';
 import { mapaPorId } from './join';
 import { anexarNomesEQuantidade, ORDEM_CORTE_CAMPOS } from './ordensCorte';
+import { registrarHistorico } from './historico';
 import {
   PIPELINE_PRODUCAO,
   type IniciarProducaoInput,
@@ -122,26 +123,6 @@ export async function listSessoesAtivas(): Promise<SessaoProducaoResumo[]> {
     mesa_nome: (mesas.get(s.mesa_id)?.nome as string) ?? '',
     iniciado_por_nome: (usuarios.get(s.iniciado_por)?.nome as string) ?? 'Usuário',
   }));
-}
-
-async function registrarHistorico(params: {
-  empresaId: string;
-  ordemId: string;
-  usuarioId: string;
-  acao: string;
-  descricao: string;
-}) {
-  const { error } = await supabase.from('ordem_corte_historico').insert({
-    id: randomUUID(),
-    empresa_id: params.empresaId,
-    ordem_id: params.ordemId,
-    usuario_id: params.usuarioId,
-    acao: params.acao,
-    descricao: params.descricao,
-  });
-  // Histórico é auditoria (CLAUDE.md 3.5) — falha aqui não deve
-  // impedir a ação operacional já concluída, só fica sem log.
-  if (error) console.warn('Falha ao registrar histórico:', error.message);
 }
 
 function erroAmigavel(error: { code?: string; message: string }, ocupada: string, dobrada: string): Error {

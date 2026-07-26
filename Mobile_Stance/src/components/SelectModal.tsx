@@ -13,6 +13,15 @@ interface SelectModalProps {
   onSelect: (value: string) => void;
   onClose: () => void;
   emptyMessage?: string;
+  /**
+   * Seleção múltipla (checkbox) — usada pelo filtro de Etapa em Ordens
+   * de Corte. `onSelect` continua recebendo o value tocado; quem chama
+   * decide se adiciona/remove de `selectedValues`. Modal fica aberto
+   * entre toques (diferente do modo single-select, que fecha ao
+   * escolher) — fechar é sempre por "Concluir"/"Cancelar".
+   */
+  multiple?: boolean;
+  selectedValues?: string[];
 }
 
 /**
@@ -27,6 +36,8 @@ export function SelectModal({
   onSelect,
   onClose,
   emptyMessage = 'Nenhuma opção disponível.',
+  multiple = false,
+  selectedValues = [],
 }: SelectModalProps) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -40,17 +51,19 @@ export function SelectModal({
               data={options}
               keyExtractor={(item) => item.value}
               style={styles.list}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.option}
-                  onPress={() => onSelect(item.value)}>
-                  <Text style={styles.optionText}>{item.label}</Text>
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const marcado = multiple && selectedValues.includes(item.value);
+                return (
+                  <TouchableOpacity style={styles.option} onPress={() => onSelect(item.value)}>
+                    {multiple && <Text style={styles.checkbox}>{marcado ? '☑' : '☐'}</Text>}
+                    <Text style={styles.optionText}>{item.label}</Text>
+                  </TouchableOpacity>
+                );
+              }}
             />
           )}
           <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelText}>Cancelar</Text>
+            <Text style={styles.cancelText}>{multiple ? 'Concluir' : 'Cancelar'}</Text>
           </TouchableOpacity>
         </TouchableOpacity>
       </TouchableOpacity>
@@ -91,10 +104,17 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  checkbox: {
+    fontSize: 16,
+    color: colors.primary,
   },
   optionText: {
     fontSize: 15,
