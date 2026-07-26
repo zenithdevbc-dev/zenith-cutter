@@ -14,10 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   listProducaoObservacoes,
   listProducaoPerdas,
-  listProdutoTamanhos,
   registrarProducaoObservacao,
   registrarProducaoPerda,
 } from '../lib/producao';
+import { listProdutoTamanhos } from '../lib/produtoTamanhos';
 import { useAuth } from '../lib/auth-context';
 import type { ProducaoObservacao, ProducaoPerda, ProdutoTamanho, SessaoProducaoResumo } from '../models';
 import { colors } from '../theme';

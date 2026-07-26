@@ -11,7 +11,6 @@ import {
   type ProducaoObservacaoInput,
   type ProducaoPerda,
   type ProducaoPerdaInput,
-  type ProdutoTamanho,
   type SessaoProducao,
   type SessaoProducaoResumo,
   type StatusOrdemCorte,
@@ -340,16 +339,6 @@ export async function retomarProducao(ordemId: string, usuarioId: string): Promi
     acao: 'retomada',
     descricao: 'Produção retomada.',
   });
-}
-
-export async function listProdutoTamanhos(produtoId: string): Promise<ProdutoTamanho[]> {
-  const { data, error } = await supabase
-    .from('produto_tamanhos')
-    .select('id, empresa_id, produto_id, tamanho, ordem, ativo, criado_em, atualizado_em')
-    .eq('produto_id', produtoId)
-    .order('ordem', { ascending: true });
-  if (error) throw error;
-  return data ?? [];
 }
 
 export async function listProducaoPerdas(sessaoId: string): Promise<ProducaoPerda[]> {
