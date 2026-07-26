@@ -113,6 +113,51 @@ export function DashboardPage() {
         producao={producao}
       />
 
+      {podeVerOrdens && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Pesquisa rápida</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <Input
+              placeholder="Buscar por número, cliente, produto ou material..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+            {busca.trim() && (
+              resultadosBusca.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma ordem encontrada.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nº</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Produto</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {resultadosBusca.map((ordem) => (
+                      <TableRow key={ordem.id}>
+                        <TableCell className="font-medium">{ordem.numero}</TableCell>
+                        <TableCell>{ordem.cliente_nome}</TableCell>
+                        <TableCell>{ordem.produto_nome}</TableCell>
+                        <TableCell>
+                          <Badge variant={STATUS_ORDEM_CORTE_VARIANT[ordem.status]}>
+                            {STATUS_ORDEM_CORTE_LABEL[ordem.status]}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -237,51 +282,6 @@ export function DashboardPage() {
               <Skeleton className="h-[240px] w-full" />
             ) : (
               <ProducaoUltimos30DiasChart dados={producaoUltimos30Dias} />
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {podeVerOrdens && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pesquisa rápida</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Input
-              placeholder="Buscar por número, cliente, produto ou material..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-            />
-            {busca.trim() && (
-              resultadosBusca.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma ordem encontrada.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nº</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Produto</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {resultadosBusca.map((ordem) => (
-                      <TableRow key={ordem.id}>
-                        <TableCell className="font-medium">{ordem.numero}</TableCell>
-                        <TableCell>{ordem.cliente_nome}</TableCell>
-                        <TableCell>{ordem.produto_nome}</TableCell>
-                        <TableCell>
-                          <Badge variant={STATUS_ORDEM_CORTE_VARIANT[ordem.status]}>
-                            {STATUS_ORDEM_CORTE_LABEL[ordem.status]}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )
             )}
           </CardContent>
         </Card>
