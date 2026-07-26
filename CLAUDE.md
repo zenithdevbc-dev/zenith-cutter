@@ -95,9 +95,9 @@ Três papéis (`usuarios.papel`), decisão de 2026-07-09:
 | Dashboard | ✅ | ✅ | ✅ |
 | Ordens de Corte | ✅ | ✅ | ❌ |
 | Produção (fila + execução: iniciar/avançar etapa/pausar/retomar/finalizar/perdas/observações) | ✅ | ✅ | ✅ |
-| Cadastros — Clientes/Produtos/Tecidos/Mesas de Corte | ✅ | ✅ | ❌ |
+| Cadastros — Clientes/Produtos/Materiais/Mesas de Corte | ✅ | ✅ | ❌ |
 | Cadastros — Usuários | ✅ | ❌ | ❌ |
-| Bancas (cadastro + controle de produção por banca) | ✅ | ✅ | ❌ |
+| Terceiros (cadastro + controle de produção por terceiro) | ✅ | ✅ | ❌ |
 | Configurações | ✅ | ❌ | ❌ |
 
 Aplicado em duas camadas, nunca só uma (ver 3.1): navegação/UI
@@ -267,6 +267,35 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-24** — **vocabulário da interface suavizado — "Tecido" vira
+  "Material", "Banca" vira "Terceiro"** (pedido do usuário, com
+  avaliação prévia por já esbarrar no princípio de "representação
+  fiel da fábrica", CLAUDE.md §3.4). Decisão, depois de avaliar termo
+  por termo: o produto **continua sendo especificamente pra corte de
+  tecido/confecção** — não é um reposicionamento pra "qualquer setor
+  de corte" — e o rename é **só de rótulo visível na interface**,
+  nunca de identificador técnico. `Enfesto` e `Grade de tamanhos` não
+  entraram (são conceitos que só existem em corte de tecido de
+  verdade, não têm equivalente genérico — generalizar a palavra sem
+  generalizar o conceito ficaria inconsistente).
+  **Importante para sessões futuras**: por decisão explícita, tabelas
+  Supabase/SQLite (`tecidos`, `bancas`), colunas (`tecido_id`,
+  `banca_id`, `tecido_nome`, `banca_nome`), tipos TypeScript (`Tecido`,
+  `Banca`, `TecidoInput`, `BancaInput`, etc.), nomes de arquivo
+  (`TecidosPage.tsx`, `BancasPage.tsx`, `lib/tecidos.ts`,
+  `lib/bancas.ts`, `lib/relatorioBancas*.ts`) e IPC channels
+  (`tecidosListLocal`, `bancasCreateLocal`, etc.) **continuam com o
+  nome antigo em todo o código** — só o texto exibido pro usuário
+  mudou (labels, títulos de card/diálogo, toasts, placeholders,
+  cabeçalhos de tabela/coluna de export CSV/Excel/PDF). Não confundir
+  "Material"/"Terceiro" na tela com os nomes reais no banco/código.
+  Tocados: todos os pontos de Cadastros, Ordens de Corte, Produção,
+  Dashboard e Relatórios (incluindo a aba "Bancas"→"Terceiros" de
+  Relatórios, distinta da aba "Materiais" de Relatórios que já
+  existia com esse nome desde 2026-07-16 — sem colisão, são relatórios
+  diferentes). `npm run build` (typecheck + vite build) limpo. Mobile
+  não tinha nenhum rótulo "Tecido"/"Banca" pra mudar. **Não testado
+  manualmente ainda.**
 - **2026-07-24** — **Bancas ganha aba própria na sidebar + visibilidade
   na Produção** (pedido do usuário — "as bancas não aparecem no setor
   de produção, nem tem retorno"). Duas causas raiz distintas, uma por
