@@ -57,17 +57,23 @@ interface OrdemCorteRow {
   produto_id: string;
   tecido_id: string;
   status: StatusOrdemCorte;
+  prioridade: number;
   observacoes: string | null;
   mesa_atribuida_id: string | null;
+  prazo: string | null;
+  banca_id: string | null;
+  arquivada: boolean;
+  criado_em: string;
+  atualizado_em: string;
 }
 
 const ORDEM_CORTE_CAMPOS =
-  'id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, observacoes, mesa_atribuida_id';
+  'id, empresa_id, numero, cliente_id, produto_id, tecido_id, status, prioridade, observacoes, mesa_atribuida_id, prazo, banca_id, arquivada, criado_em, atualizado_em';
 
 async function anexarNomesEQuantidade(rows: OrdemCorteRow[]): Promise<OrdemCorteResumo[]> {
   if (rows.length === 0) return [];
 
-  const [clientes, produtos, tecidos, mesas] = await Promise.all([
+  const [clientes, produtos, tecidos, mesas, bancas] = await Promise.all([
     mapaPorId('clientes', 'id, nome', rows.map((r) => r.cliente_id)),
     mapaPorId('produtos', 'id, nome', rows.map((r) => r.produto_id)),
     mapaPorId('tecidos', 'id, nome', rows.map((r) => r.tecido_id)),
@@ -75,6 +81,11 @@ async function anexarNomesEQuantidade(rows: OrdemCorteRow[]): Promise<OrdemCorte
       'mesas_corte',
       'id, nome',
       rows.map((r) => r.mesa_atribuida_id).filter((id): id is string => !!id),
+    ),
+    mapaPorId(
+      'bancas',
+      'id, nome',
+      rows.map((r) => r.banca_id).filter((id): id is string => !!id),
     ),
   ]);
 
@@ -100,11 +111,18 @@ async function anexarNomesEQuantidade(rows: OrdemCorteRow[]): Promise<OrdemCorte
     tecido_id: r.tecido_id,
     tecido_nome: (tecidos.get(r.tecido_id)?.nome as string) ?? '',
     status: r.status,
+    prioridade: r.prioridade,
     observacoes: r.observacoes,
     mesa_atribuida_id: r.mesa_atribuida_id,
     mesa_atribuida_nome: r.mesa_atribuida_id
       ? ((mesas.get(r.mesa_atribuida_id)?.nome as string) ?? null)
       : null,
+    prazo: r.prazo,
+    banca_id: r.banca_id,
+    banca_nome: r.banca_id ? ((bancas.get(r.banca_id)?.nome as string) ?? null) : null,
+    arquivada: r.arquivada,
+    criado_em: r.criado_em,
+    atualizado_em: r.atualizado_em,
     quantidade_total: quantidades.get(r.id) ?? 0,
   }));
 }
@@ -139,7 +157,7 @@ export async function listEmProducao(): Promise<OrdemCorteResumo[]> {
 export async function listMesasComStatus(): Promise<MesaCorteComStatus[]> {
   const { data: mesas, error } = await supabase
     .from('mesas_corte')
-    .select('id, empresa_id, nome, observacoes, ativo')
+    .select('id, empresa_id, nome, observacoes, ativo, criado_em, atualizado_em')
     .order('nome', { ascending: true });
   if (error) throw error;
 
@@ -415,7 +433,7 @@ export async function retomarProducao(ordemId: string, usuarioId: string): Promi
 export async function listProdutoTamanhos(produtoId: string): Promise<ProdutoTamanho[]> {
   const { data, error } = await supabase
     .from('produto_tamanhos')
-    .select('id, produto_id, tamanho, ordem, ativo')
+    .select('id, empresa_id, produto_id, tamanho, ordem, ativo, criado_em, atualizado_em')
     .eq('produto_id', produtoId)
     .order('ordem', { ascending: true });
   if (error) throw error;

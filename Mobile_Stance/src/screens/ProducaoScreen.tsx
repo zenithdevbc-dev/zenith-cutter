@@ -53,7 +53,7 @@ function formatTempoProducao(sessao: SessaoProducaoResumo): string {
  * (pausar/retomar/perdas/observações).
  */
 export function ProducaoScreen() {
-  const { usuario, empresa, signOut } = useAuth();
+  const { usuario } = useAuth();
   const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
 
   const [fila, setFila] = useState<OrdemCorteResumo[] | null>(null);
@@ -145,21 +145,6 @@ export function ProducaoScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        <View style={styles.headerTitleRow}>
-          <View style={styles.headerAccent} />
-          <View>
-            <Text style={styles.headerTitle}>Zenith Cutter</Text>
-            <Text style={styles.headerSubtitle}>
-              {empresa?.nome ?? '...'} · {usuario?.nome ?? '...'}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity onPress={() => signOut()}>
-          <Text style={styles.signOut}>Sair</Text>
-        </TouchableOpacity>
-      </View>
-
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
@@ -305,39 +290,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.foreground,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  headerTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  headerAccent: {
-    width: 4,
-    height: 18,
-    borderRadius: 2,
-    backgroundColor: colors.primary,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  headerSubtitle: {
-    color: '#cbd5e1',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  signOut: {
-    color: '#f87171',
-    fontWeight: '600',
   },
   content: {
     padding: 16,

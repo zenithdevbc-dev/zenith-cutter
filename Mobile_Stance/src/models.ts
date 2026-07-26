@@ -30,6 +30,20 @@ export interface MesaCorte {
   nome: string;
   observacoes: string | null;
   ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface MesaCorteInput {
+  empresa_id: string;
+  nome: string;
+  observacoes?: string | null;
+}
+
+export interface MesaCorteUpdatePatch {
+  nome?: string;
+  observacoes?: string | null;
+  ativo?: boolean;
 }
 
 /** "Ocupada" é derivada de existir sessão ativa (em_andamento/pausada) — nunca uma coluna própria. */
@@ -37,6 +51,124 @@ export interface MesaCorteComStatus extends MesaCorte {
   ocupada: boolean;
   sessao_id: string | null;
   ordem_numero: number | null;
+}
+
+export interface Cliente {
+  id: string;
+  empresa_id: string;
+  nome: string;
+  documento: string | null;
+  telefone: string | null;
+  email: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface ClienteInput {
+  empresa_id: string;
+  nome: string;
+  documento?: string | null;
+  telefone?: string | null;
+  email?: string | null;
+}
+
+export interface ClienteUpdatePatch {
+  nome?: string;
+  documento?: string | null;
+  telefone?: string | null;
+  email?: string | null;
+  ativo?: boolean;
+}
+
+export interface Produto {
+  id: string;
+  empresa_id: string;
+  nome: string;
+  codigo: string | null;
+  descricao: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface ProdutoInput {
+  empresa_id: string;
+  nome: string;
+  codigo?: string | null;
+  descricao?: string | null;
+}
+
+export interface ProdutoUpdatePatch {
+  nome?: string;
+  codigo?: string | null;
+  descricao?: string | null;
+  ativo?: boolean;
+}
+
+export interface Tecido {
+  id: string;
+  empresa_id: string;
+  nome: string;
+  composicao: string | null;
+  cor: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface TecidoInput {
+  empresa_id: string;
+  nome: string;
+  composicao?: string | null;
+  cor?: string | null;
+}
+
+export interface TecidoUpdatePatch {
+  nome?: string;
+  composicao?: string | null;
+  cor?: string | null;
+  ativo?: boolean;
+}
+
+export interface Banca {
+  id: string;
+  empresa_id: string;
+  nome: string;
+  responsavel: string | null;
+  telefone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  endereco: string | null;
+  tipo_servico: string | null;
+  observacoes: string | null;
+  ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface BancaInput {
+  empresa_id: string;
+  nome: string;
+  responsavel?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  endereco?: string | null;
+  tipo_servico?: string | null;
+  observacoes?: string | null;
+}
+
+export interface BancaUpdatePatch {
+  nome?: string;
+  responsavel?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  endereco?: string | null;
+  tipo_servico?: string | null;
+  observacoes?: string | null;
+  ativo?: boolean;
 }
 
 export type StatusOrdemCorte =
@@ -73,22 +205,90 @@ export const STATUS_ORDEM_CORTE_LABEL: Record<StatusOrdemCorte, string> = {
   pronto: 'Pronto',
 };
 
-/** Linha da fila/pipeline já com nomes resolvidos (join), evita N+1 lookups na tela. */
-export interface OrdemCorteResumo {
+export interface OrdemCorte {
   id: string;
   empresa_id: string;
   numero: number;
   cliente_id: string;
-  cliente_nome: string;
   produto_id: string;
-  produto_nome: string;
   tecido_id: string;
-  tecido_nome: string;
   status: StatusOrdemCorte;
+  prioridade: number;
   observacoes: string | null;
   mesa_atribuida_id: string | null;
-  mesa_atribuida_nome: string | null;
+  prazo: string | null;
+  banca_id: string | null;
+  arquivada: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+/** Linha da fila/pipeline já com nomes resolvidos (join), evita N+1 lookups na tela. */
+export interface OrdemCorteResumo extends OrdemCorte {
+  cliente_nome: string;
+  produto_nome: string;
+  tecido_nome: string;
   quantidade_total: number;
+  mesa_atribuida_nome: string | null;
+  banca_nome: string | null;
+}
+
+export interface OrdemCorteItem {
+  id: string;
+  empresa_id: string;
+  ordem_id: string;
+  produto_tamanho_id: string;
+  tamanho: string;
+  quantidade: number;
+}
+
+export interface OrdemCorteItemInput {
+  produto_tamanho_id: string;
+  quantidade: number;
+}
+
+export interface OrdemCorteInput {
+  empresa_id: string;
+  numero: number;
+  cliente_id: string;
+  produto_id: string;
+  tecido_id: string;
+  observacoes?: string | null;
+  prazo?: string | null;
+  banca_id?: string | null;
+  itens: OrdemCorteItemInput[];
+}
+
+export interface OrdemCorteUpdatePatch {
+  cliente_id?: string;
+  produto_id?: string;
+  tecido_id?: string;
+  observacoes?: string | null;
+  prazo?: string | null;
+  banca_id?: string | null;
+  status?: StatusOrdemCorte;
+  itens?: OrdemCorteItemInput[];
+}
+
+export type AcaoOrdemCorteHistorico =
+  | 'criacao'
+  | 'edicao'
+  | 'mudanca_status'
+  | 'cancelamento'
+  | 'duplicacao'
+  | 'pausa'
+  | 'retomada'
+  | 'arquivamento';
+
+export interface OrdemCorteHistoricoEntry {
+  id: string;
+  empresa_id: string;
+  ordem_id: string;
+  usuario_id: string;
+  usuario_nome: string;
+  acao: AcaoOrdemCorteHistorico;
+  descricao: string;
+  criado_em: string;
 }
 
 export type StatusSessaoProducao = 'em_andamento' | 'pausada' | 'finalizada';
@@ -121,10 +321,24 @@ export interface IniciarProducaoInput {
 
 export interface ProdutoTamanho {
   id: string;
+  empresa_id: string;
   produto_id: string;
   tamanho: string;
   ordem: number;
   ativo: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface ProdutoTamanhoInput {
+  empresa_id: string;
+  produto_id: string;
+  tamanho: string;
+}
+
+export interface ProdutoTamanhoUpdatePatch {
+  tamanho?: string;
+  ativo?: boolean;
 }
 
 export interface ProducaoPerda {
@@ -158,4 +372,42 @@ export interface ProducaoObservacao {
 export interface ProducaoObservacaoInput {
   sessao_id: string;
   texto: string;
+}
+
+/**
+ * Uma linha do Relatório de Produção: uma ordem de corte + dados da sua
+ * sessão de produção mais recente. Sem sessão (ordem ainda não
+ * iniciada), os campos de sessão vêm null.
+ */
+export interface RelatorioProducaoLinha {
+  ordem_id: string;
+  numero: number;
+  cliente_id: string;
+  cliente_nome: string;
+  tecido_id: string;
+  tecido_nome: string;
+  status: StatusOrdemCorte;
+  prazo: string | null;
+  criado_em: string;
+  quantidade_total: number;
+  operador_id: string | null;
+  operador_nome: string | null;
+  iniciado_em: string | null;
+  finalizado_em: string | null;
+  tempo_pausado_segundos: number;
+  banca_id: string | null;
+  banca_nome: string | null;
+}
+
+/** Uma linha do Relatório de Materiais: uma perda de produção + dados da ordem/tecido/cliente dela. */
+export interface RelatorioPerdaLinha {
+  perda_id: string;
+  ordem_id: string;
+  numero: number;
+  cliente_id: string;
+  cliente_nome: string;
+  tecido_id: string;
+  tecido_nome: string;
+  quantidade: number;
+  criado_em: string;
 }
