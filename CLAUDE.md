@@ -267,6 +267,37 @@ implementar.
 
 ## 7. Estado atual
 
+- **2026-07-26** — **filtros completos em Ordens de Corte e nos
+  relatórios de ordem** (pedido do usuário: "por etapa (checkbox de
+  seleção múltipla), período, cliente, material, produto — em todos
+  os lugares que valha a pena"). Novo `EtapaMultiSelect.tsx`
+  (`components/ordens/`) — reaproveita `DropdownMenu`/
+  `DropdownMenuCheckboxItem`, já existentes no design system, em vez
+  de criar um `Popover`/`Checkbox` novo (`onSelect` com
+  `preventDefault()` mantém o menu aberto entre marcações); nenhuma
+  etapa marcada = sem filtro de status.
+  - **Ordens de Corte**: painel de filtro completo — Etapa (multi),
+    Período, Cliente, Produto, Material (Cliente/Produto/Material
+    antes só davam pra buscar por texto livre, agora também têm
+    Select dedicado). "Mostrar arquivadas" virou um `Switch` separado
+    da Etapa (arquivamento é outro eixo, não um status).
+  - **Relatórios → Histórico de Ordens**: ganhou filtro de Produto
+    (dado já vinha em `OrdemCorteResumo`/`OrdemHistoricoLinha`, sem
+    IPC novo) e trocou o Select de Status único por Etapa
+    multi-select.
+  - **Relatórios → Produção** e **→ Operadores**: só trocaram Status
+    por Etapa multi-select (já tinham os demais filtros).
+  - **Deliberadamente fora desta rodada**: Produto **não** entrou nos
+    relatórios de Clientes/Bancas/Operadores nem no lado de perdas de
+    Materiais — a linha compartilhada `RelatorioProducaoLinha`/
+    `RelatorioPerdaLinha` não carrega `produto_id`/`produto_nome`
+    ainda; adicionar exigiria estender o JOIN de
+    `listRelatorioProducaoLocal` (repositório main) e o tipo
+    compartilhado, mudança de schema/backend, não só de filtro —
+    deixado de fora por ser bem mais caro que o resto do pedido, fica
+    pra decidir com o usuário se quiser depois.
+  `npm run build` (typecheck + vite build) limpo. **Não testado
+  manualmente ainda.**
 - **2026-07-26** — **botão "Arquivar" em Ordens de Corte** (pedido do
   usuário — só disponível depois de cancelada). Novo campo
   `ordens_corte.arquivada` (boolean, default `false`) — mesmo
