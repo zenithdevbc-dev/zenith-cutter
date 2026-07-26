@@ -116,30 +116,45 @@ separada); Operador vê a fila só como lista (sem os botões de mover).
 ## 4. Fluxo oficial da produção (state machine de referência)
 
 ```
-Nova Ordem → Planejado
-  → Ação manual (administrador/supervisor): editar Status → Em Fila
-    → Operador seleciona "Iniciar"
-      → Seleciona uma Mesa Livre
-        → Confirma
-          → Enfesto
+Nova Ordem → Em Fila
+  → Operador seleciona "Iniciar"
+    → Seleciona uma Mesa Livre
+      → Confirma
+        → Enfesto
+          → Pausar (opcional) → Retomar (opcional)
+        → Avança etapa
+          → Corte
             → Pausar (opcional) → Retomar (opcional)
-          → Avança etapa
-            → Corte
-              → Pausar (opcional) → Retomar (opcional)
-            → Avança etapa (finaliza a sessão, libera a mesa)
-              → Embalagem
-                → Avança etapa
-                  → Despache
-                    → Avança etapa
-                      → Pronto
+          → Avança etapa (finaliza a sessão, libera a mesa)
+            → Embalagem
+              → Avança etapa
+                → Despache
+                  → Avança etapa
+                    → Pronto
 ```
 
-Decisão de 2026-07-21 (pedido do usuário): pipeline reajustado para
-Planejado - Em Fila - Enfesto - Corte - Embalagem - Despache, substituindo o
-desenho de 2026-07-11 (texto original preservado no fim desta seção).
-Mudanças:
-- **Planejado** volta a ser o status inicial da ordem — reverte a entrada
-  automática em "Em Fila" da decisão de 2026-07-11. Precisa de uma ação
+Decisão de 2026-07-26 (pedido do usuário — reportou "ordens ficam em
+Planejado e não aparecem na fila/pipeline", esperava entrada automática):
+**reverte a decisão de 2026-07-21 abaixo** — ordem volta a nascer
+diretamente em **Em Fila**, sem exigir a edição manual de Status que a
+decisão anterior introduzia. `createOrdemCorteLocal`
+(`electron/main/db/repositories/ordensCorte.ts`) e `createOrdemCorte`
+(`Mobile_Stance/src/lib/ordensCorte.ts`) passam `status: "em_fila"` em vez
+de `"planejado"` — mesmo efeito em duplicar (que reusa a mesma função de
+criação). **`Planejado` continua existindo** como status válido (ainda em
+`StatusOrdemCorte`, ainda editável no diálogo Editar) — só deixou de ser o
+padrão automático; serve pra quem quiser tirar manualmente uma ordem da
+fila sem cancelá-la. Nenhuma mudança nas etapas de Enfesto/Corte/
+Embalagem/Despache/Pronto, só no ponto de entrada.
+
+Decisão de 2026-07-21 (pipeline Enfesto/Corte/Embalagem/Despache
+introduzido; entrada automática em Em Fila **revertida pela decisão de
+2026-07-26 acima** — texto mantido aqui só como histórico do motivo
+original de cada etapa): pipeline reajustado para Planejado - Em Fila -
+Enfesto - Corte - Embalagem - Despache, substituindo o desenho de
+2026-07-11 (texto original preservado no fim desta seção). Mudanças:
+- **Planejado** virou o status inicial da ordem — revertia a entrada
+  automática em "Em Fila" da decisão de 2026-07-11. Precisava de uma ação
   manual de administrador/supervisor (trocar o campo Status no diálogo
   Editar Ordem, já protegido por PIN — nenhum IPC/tela nova, reaproveita o
   fluxo de edição existente) para a ordem entrar de fato na fila.
