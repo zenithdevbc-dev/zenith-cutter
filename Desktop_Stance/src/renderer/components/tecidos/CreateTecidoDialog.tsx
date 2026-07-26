@@ -47,12 +47,12 @@ export function CreateTecidoDialog({ onCreated }: CreateTecidoDialogProps) {
         composicao: composicao || null,
         cor: cor || null,
       });
-      toast.success(`Tecido ${tecido.nome} cadastrado.`);
+      toast.success(`Material ${tecido.nome} cadastrado.`);
       onCreated(tecido);
       setOpen(false);
       reset();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao cadastrar tecido.");
+      setError(err instanceof Error ? err.message : "Falha ao cadastrar material.");
     } finally {
       setSubmitting(false);
     }
@@ -61,11 +61,11 @@ export function CreateTecidoDialog({ onCreated }: CreateTecidoDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (!next) reset(); }}>
       <DialogTrigger asChild>
-        <Button>Novo tecido</Button>
+        <Button>Novo material</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo tecido</DialogTitle>
+          <DialogTitle>Novo material</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">

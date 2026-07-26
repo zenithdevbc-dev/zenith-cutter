@@ -15,7 +15,7 @@ export function CadastrosPage() {
         {isAdmin && <TabsTrigger value="usuarios">Usuários</TabsTrigger>}
         <TabsTrigger value="clientes">Clientes</TabsTrigger>
         <TabsTrigger value="produtos">Produtos</TabsTrigger>
-        <TabsTrigger value="tecidos">Tecidos</TabsTrigger>
+        <TabsTrigger value="tecidos">Materiais</TabsTrigger>
         <TabsTrigger value="mesas">Mesas de Corte</TabsTrigger>
       </TabsList>
       {isAdmin && (

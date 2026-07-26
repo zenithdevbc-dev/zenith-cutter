@@ -88,7 +88,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
         setTecidos(t.filter((x) => x.ativo));
         setBancas(b.filter((x) => x.ativo));
       })
-      .catch(() => toast.error("Não foi possível carregar clientes/produtos/tecidos/bancas."));
+      .catch(() => toast.error("Não foi possível carregar clientes/produtos/materiais/terceiros."));
   }, [open]);
 
   useEffect(() => {
@@ -207,10 +207,10 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
             </Select>
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Tecido</Label>
+            <Label>Material</Label>
             <Select value={tecidoId} onValueChange={setTecidoId}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecione o tecido" />
+                <SelectValue placeholder="Selecione o material" />
               </SelectTrigger>
               <SelectContent>
                 {tecidos.map((t) => (
@@ -233,7 +233,7 @@ export function EditOrdemCorteDialog({ ordem, onUpdated }: EditOrdemCorteDialogP
             </Select>
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Banca responsável (opcional)</Label>
+            <Label>Terceiro responsável (opcional)</Label>
             <Select
               value={bancaId || "nenhuma"}
               onValueChange={(v) => setBancaId(v === "nenhuma" ? "" : v)}

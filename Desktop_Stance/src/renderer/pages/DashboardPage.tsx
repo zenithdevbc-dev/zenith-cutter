@@ -62,7 +62,7 @@ export function DashboardPage() {
         .catch(() => toast.error("Não foi possível carregar os dados de produção."));
       listBancas()
         .then(setBancas)
-        .catch(() => toast.error("Não foi possível carregar as bancas."));
+        .catch(() => toast.error("Não foi possível carregar os terceiros."));
     }
     listMesasComStatus()
       .then(setMesas)
@@ -184,7 +184,7 @@ export function DashboardPage() {
         {podeVerOrdens && (
           <Card>
             <CardHeader>
-              <CardTitle>Bancas</CardTitle>
+              <CardTitle>Terceiros</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               {bancas === null ? (
@@ -195,18 +195,18 @@ export function DashboardPage() {
                   ))}
                 </div>
               ) : bancas.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma banca cadastrada.</p>
+                <p className="text-sm text-muted-foreground">Nenhum terceiro cadastrado.</p>
               ) : (
                 <>
                   <div className="flex gap-4 text-sm">
                     <span>
-                      <Badge variant="secondary">{bancasAtivas}</Badge> banca(s) ativa(s)
+                      <Badge variant="secondary">{bancasAtivas}</Badge> terceiro(s) ativo(s)
                     </span>
                   </div>
                   <div className="flex flex-col gap-1">
                     {pecasEmProducaoPorBanca.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
-                        Nenhuma peça em produção em bancas no momento.
+                        Nenhuma peça em produção em terceiros no momento.
                       </p>
                     ) : (
                       pecasEmProducaoPorBanca.map((item) => (
@@ -249,7 +249,7 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <Input
-              placeholder="Buscar por número, cliente, produto ou tecido..."
+              placeholder="Buscar por número, cliente, produto ou material..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
             />

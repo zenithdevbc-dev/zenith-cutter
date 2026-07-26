@@ -53,10 +53,10 @@ export function BancasPage() {
   useEffect(() => {
     listBancas()
       .then(setBancas)
-      .catch(() => toast.error("Não foi possível carregar a lista de bancas."));
+      .catch(() => toast.error("Não foi possível carregar a lista de terceiros."));
     listRelatorioProducao()
       .then(setProducao)
-      .catch(() => toast.error("Não foi possível carregar a produção das bancas."));
+      .catch(() => toast.error("Não foi possível carregar a produção dos terceiros."));
   }, []);
 
   function upsertLocal(banca: Banca) {
@@ -74,9 +74,9 @@ export function BancasPage() {
     try {
       const updated = await updateBanca(banca.id, { ativo });
       upsertLocal(updated);
-      toast.success(ativo ? "Banca reativada." : "Banca desativada.");
+      toast.success(ativo ? "Terceiro reativado." : "Terceiro desativado.");
     } catch {
-      toast.error("Não foi possível atualizar o status da banca.");
+      toast.error("Não foi possível atualizar o status do terceiro.");
     }
   }
 
@@ -112,7 +112,7 @@ export function BancasPage() {
   return (
     <Card className="flex h-full flex-col">
       <CardHeader className="flex shrink-0 flex-row items-center justify-between">
-        <CardTitle>Bancas</CardTitle>
+        <CardTitle>Terceiros</CardTitle>
         <CreateBancaDialog onCreated={upsertLocal} />
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
@@ -138,7 +138,7 @@ export function BancasPage() {
           {filtradas === null ? (
             <p className="text-sm text-muted-foreground">Carregando...</p>
           ) : filtradas.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma banca encontrada.</p>
+            <p className="text-sm text-muted-foreground">Nenhum terceiro encontrado.</p>
           ) : (
             <Table>
               <TableHeader>
@@ -212,7 +212,7 @@ export function BancasPage() {
           </DialogHeader>
           {ordensDaBancaAberta.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Nenhuma ordem em produção nesta banca no momento.
+              Nenhuma ordem em produção neste terceiro no momento.
             </p>
           ) : (
             <div className="flex flex-col gap-2">

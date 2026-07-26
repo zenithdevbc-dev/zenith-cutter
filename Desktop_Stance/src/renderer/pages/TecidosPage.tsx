@@ -21,7 +21,7 @@ export function TecidosPage() {
   useEffect(() => {
     listTecidos()
       .then(setTecidos)
-      .catch(() => toast.error("Não foi possível carregar a lista de tecidos."));
+      .catch(() => toast.error("Não foi possível carregar a lista de materiais."));
   }, []);
 
   function upsertLocal(tecido: Tecido) {
@@ -39,23 +39,23 @@ export function TecidosPage() {
     try {
       const updated = await updateTecido(tecido.id, { ativo });
       upsertLocal(updated);
-      toast.success(ativo ? "Tecido reativado." : "Tecido desativado.");
+      toast.success(ativo ? "Material reativado." : "Material desativado.");
     } catch {
-      toast.error("Não foi possível atualizar o status do tecido.");
+      toast.error("Não foi possível atualizar o status do material.");
     }
   }
 
   return (
     <Card className="flex h-full flex-col">
       <CardHeader className="flex shrink-0 flex-row items-center justify-between">
-        <CardTitle>Tecidos</CardTitle>
+        <CardTitle>Materiais</CardTitle>
         <CreateTecidoDialog onCreated={upsertLocal} />
       </CardHeader>
       <CardContent className="min-h-0 flex-1 overflow-y-auto">
         {tecidos === null ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
         ) : tecidos.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum tecido cadastrado.</p>
+          <p className="text-sm text-muted-foreground">Nenhum material cadastrado.</p>
         ) : (
           <Table>
             <TableHeader>

@@ -71,7 +71,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "cadastros", label: "Cadastros", icon: Users, roles: ["administrador", "supervisor"] },
   {
     id: "bancas",
-    label: "Bancas",
+    label: "Terceiros",
     icon: Factory,
     roles: ["administrador", "supervisor"],
   },

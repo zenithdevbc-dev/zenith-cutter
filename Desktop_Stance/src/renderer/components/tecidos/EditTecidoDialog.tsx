@@ -37,11 +37,11 @@ export function EditTecidoDialog({ tecido, onUpdated }: EditTecidoDialogProps) {
         composicao: composicao || null,
         cor: cor || null,
       });
-      toast.success("Tecido atualizado.");
+      toast.success("Material atualizado.");
       onUpdated(updated);
       setOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao atualizar tecido.");
+      setError(err instanceof Error ? err.message : "Falha ao atualizar material.");
     } finally {
       setSubmitting(false);
     }
@@ -54,7 +54,7 @@ export function EditTecidoDialog({ tecido, onUpdated }: EditTecidoDialogProps) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar tecido</DialogTitle>
+          <DialogTitle>Editar material</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">

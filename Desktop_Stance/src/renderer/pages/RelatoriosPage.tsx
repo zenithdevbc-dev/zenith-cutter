@@ -69,7 +69,7 @@ export function RelatoriosPage() {
     // filtro por status são parte do pedido do relatório).
     listBancas()
       .then(setBancas)
-      .catch(() => toast.error("Não foi possível carregar as bancas."));
+      .catch(() => toast.error("Não foi possível carregar os terceiros."));
   }, []);
 
   const historico = useMemo(
@@ -93,7 +93,7 @@ export function RelatoriosPage() {
           <TabsTrigger value="materiais">Materiais</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
           <TabsTrigger value="operadores">Operadores</TabsTrigger>
-          <TabsTrigger value="bancas">Bancas</TabsTrigger>
+          <TabsTrigger value="bancas">Terceiros</TabsTrigger>
         </TabsList>
         <TabsContent value="producao" className="min-h-0 overflow-y-auto">
           <RelatorioProducaoTab

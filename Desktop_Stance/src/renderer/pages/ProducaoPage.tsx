@@ -222,9 +222,9 @@ export function ProducaoPage() {
                     <TableHead>Nº</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Produto</TableHead>
-                    <TableHead>Tecido</TableHead>
+                    <TableHead>Material</TableHead>
                     <TableHead>Qtd. total</TableHead>
-                    <TableHead>Banca</TableHead>
+                    <TableHead>Terceiro</TableHead>
                     <TableHead>Mesa atribuída</TableHead>
                     {podeReordenar && <TableHead>Mover</TableHead>}
                     <TableHead className="text-right">Ações</TableHead>
@@ -366,7 +366,7 @@ export function ProducaoPage() {
                 <TableRow>
                   <TableHead>Nº</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Banca</TableHead>
+                  <TableHead>Terceiro</TableHead>
                   <TableHead>Etapa atual</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>

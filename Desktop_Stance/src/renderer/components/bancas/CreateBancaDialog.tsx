@@ -62,12 +62,12 @@ export function CreateBancaDialog({ onCreated }: CreateBancaDialogProps) {
         tipo_servico: tipoServico || null,
         observacoes: observacoes || null,
       });
-      toast.success(`Banca ${banca.nome} cadastrada.`);
+      toast.success(`Terceiro ${banca.nome} cadastrado.`);
       onCreated(banca);
       setOpen(false);
       reset();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao cadastrar banca.");
+      setError(err instanceof Error ? err.message : "Falha ao cadastrar terceiro.");
     } finally {
       setSubmitting(false);
     }
@@ -76,11 +76,11 @@ export function CreateBancaDialog({ onCreated }: CreateBancaDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (!next) reset(); }}>
       <DialogTrigger asChild>
-        <Button>Nova banca</Button>
+        <Button>Novo terceiro</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="shrink-0">
-          <DialogTitle>Nova banca</DialogTitle>
+          <DialogTitle>Novo terceiro</DialogTitle>
         </DialogHeader>
         <form
           id="create-banca-form"
@@ -88,7 +88,7 @@ export function CreateBancaDialog({ onCreated }: CreateBancaDialogProps) {
           className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto"
         >
           <div className="flex flex-col gap-2">
-            <Label htmlFor="banca-nome">Nome da banca</Label>
+            <Label htmlFor="banca-nome">Nome do terceiro</Label>
             <Input
               id="banca-nome"
               value={nome}

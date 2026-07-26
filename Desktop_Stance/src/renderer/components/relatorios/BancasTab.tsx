@@ -104,7 +104,7 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
 
   async function handleExportar(formato: "csv" | "excel" | "pdf") {
     if (agregado.length === 0) {
-      toast.error("Nenhuma banca para exportar com os filtros atuais.");
+      toast.error("Nenhum terceiro para exportar com os filtros atuais.");
       return;
     }
     setExportando(true);
@@ -145,7 +145,7 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label>Banca</Label>
+            <Label>Terceiro</Label>
             <Select
               value={filtros.bancaId}
               onValueChange={(v) => atualizarFiltro("bancaId", v)}
@@ -183,13 +183,13 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Total de Bancas</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Total de Terceiros</CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">{kpis.totalBancas}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Bancas Ativas</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Terceiros Ativos</CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">{kpis.bancasAtivas}</CardContent>
         </Card>
@@ -202,7 +202,7 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
-              Média de Peças por Banca
+              Média de Peças por Terceiro
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
@@ -214,7 +214,7 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Peças por Banca</CardTitle>
+            <CardTitle className="text-sm">Peças por Terceiro</CardTitle>
           </CardHeader>
           <CardContent>
             {carregando ? (
@@ -241,7 +241,7 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm">
-            {carregando ? "Bancas" : `Bancas (${agregado.length})`}
+            {carregando ? "Terceiros" : `Terceiros (${agregado.length})`}
           </CardTitle>
           <div className="flex gap-2">
             <Button
@@ -275,7 +275,7 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
             <p className="text-sm text-muted-foreground">Carregando...</p>
           ) : agregado.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Nenhuma banca encontrada com os filtros atuais.
+              Nenhum terceiro encontrado com os filtros atuais.
             </p>
           ) : (
             <>
@@ -283,7 +283,7 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Banca</TableHead>
+                      <TableHead>Terceiro</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Peças</TableHead>
                       <TableHead>Última Atividade</TableHead>
@@ -295,7 +295,7 @@ export function BancasTab({ linhas, bancas }: BancasTabProps) {
                         <TableCell className="font-medium">{linha.banca}</TableCell>
                         <TableCell>
                           <Badge variant={linha.ativo ? "secondary" : "destructive"}>
-                            {linha.ativo ? "Ativa" : "Inativa"}
+                            {linha.ativo ? "Ativo" : "Inativo"}
                           </Badge>
                         </TableCell>
                         <TableCell>{linha.pecas}</TableCell>

@@ -1,36 +1,36 @@
 import type { BancaAgregadaLinha } from "@/lib/relatorioBancas";
 import { gerarCsv, gerarExcel, gerarPdfTabela } from "@/lib/exportUtils";
 
-const COLUNAS = ["Banca", "Status", "Peças", "Última Atividade"];
+const COLUNAS = ["Terceiro", "Status", "Peças", "Última Atividade"];
 
 function paraLinhasExportaveis(linhas: BancaAgregadaLinha[]): (string | number)[][] {
   return linhas.map((linha) => [
     linha.banca,
-    linha.ativo ? "Ativa" : "Inativa",
+    linha.ativo ? "Ativo" : "Inativo",
     linha.pecas,
     linha.ultimaAtividade ? new Date(linha.ultimaAtividade).toLocaleDateString("pt-BR") : "—",
   ]);
 }
 
 export function exportarRelatorioBancasCsv(linhas: BancaAgregadaLinha[]): void {
-  gerarCsv(COLUNAS, paraLinhasExportaveis(linhas), "relatorio-bancas.csv");
+  gerarCsv(COLUNAS, paraLinhasExportaveis(linhas), "relatorio-terceiros.csv");
 }
 
 export function exportarRelatorioBancasExcel(linhas: BancaAgregadaLinha[]): Promise<void> {
   return gerarExcel(
-    "Relatório de Bancas",
+    "Relatório de Terceiros",
     COLUNAS,
     paraLinhasExportaveis(linhas),
-    "relatorio-bancas.xlsx",
+    "relatorio-terceiros.xlsx",
   );
 }
 
 export function exportarRelatorioBancasPdf(linhas: BancaAgregadaLinha[]): void {
   gerarPdfTabela({
-    titulo: "Relatório de Bancas",
-    subtitulo: `${linhas.length} banca(s)`,
+    titulo: "Relatório de Terceiros",
+    subtitulo: `${linhas.length} terceiro(s)`,
     colunas: COLUNAS,
     linhas: paraLinhasExportaveis(linhas),
-    nomeArquivo: "relatorio-bancas.pdf",
+    nomeArquivo: "relatorio-terceiros.pdf",
   });
 }

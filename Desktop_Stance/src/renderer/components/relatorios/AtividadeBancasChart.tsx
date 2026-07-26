@@ -20,7 +20,7 @@ interface AtividadeBancasChartProps {
  */
 export function AtividadeBancasChart({ dados }: AtividadeBancasChartProps) {
   if (dados.length === 0) {
-    return <p className="text-sm text-muted-foreground">Sem ordens de bancas no período filtrado.</p>;
+    return <p className="text-sm text-muted-foreground">Sem ordens de terceiros no período filtrado.</p>;
   }
   return (
     <ResponsiveContainer width="100%" height={240}>

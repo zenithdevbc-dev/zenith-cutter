@@ -76,7 +76,7 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
               <p className="font-medium">{ordem.produto_nome}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Tecido</p>
+              <p className="text-muted-foreground">Material</p>
               <p className="font-medium">{ordem.tecido_nome}</p>
             </div>
             <div>
@@ -92,7 +92,7 @@ export function InfoOrdemCorteDialog({ ordem }: InfoOrdemCorteDialogProps) {
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Banca responsável</p>
+              <p className="text-muted-foreground">Terceiro responsável</p>
               <p className="font-medium">{ordem.banca_nome ?? "Produção interna"}</p>
             </div>
             <div>

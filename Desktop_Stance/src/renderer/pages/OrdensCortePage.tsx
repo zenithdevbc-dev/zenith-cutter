@@ -118,7 +118,7 @@ export function OrdensCortePage() {
       <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
         <div className="flex shrink-0 gap-2">
           <Input
-            placeholder="Pesquisar por número, cliente, produto ou tecido..."
+            placeholder="Pesquisar por número, cliente, produto ou material..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
@@ -149,7 +149,7 @@ export function OrdensCortePage() {
                   <TableHead>Nº</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Produto</TableHead>
-                  <TableHead>Tecido</TableHead>
+                  <TableHead>Material</TableHead>
                   <TableHead>Qtd. total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -166,7 +166,7 @@ export function OrdensCortePage() {
                   <TableHead>Nº</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Produto</TableHead>
-                  <TableHead>Tecido</TableHead>
+                  <TableHead>Material</TableHead>
                   <TableHead>Qtd. total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
