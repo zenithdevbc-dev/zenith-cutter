@@ -5,14 +5,14 @@ export interface RelatorioOperadoresFiltros {
   dataInicio: string;
   dataFim: string;
   operadorId: string;
-  status: StatusOrdemCorte | "todos";
+  etapas: StatusOrdemCorte[];
 }
 
 export const FILTROS_OPERADORES_VAZIOS: RelatorioOperadoresFiltros = {
   dataInicio: "",
   dataFim: "",
   operadorId: "todos",
-  status: "todos",
+  etapas: [],
 };
 
 export interface OperadorOpcao {
@@ -49,7 +49,7 @@ export function filtrarRelatorioOperadores(
     if (filtros.dataInicio && data < filtros.dataInicio) return false;
     if (filtros.dataFim && data > filtros.dataFim) return false;
     if (filtros.operadorId !== "todos" && linha.operador_id !== filtros.operadorId) return false;
-    if (filtros.status !== "todos" && linha.status !== filtros.status) return false;
+    if (filtros.etapas.length > 0 && !filtros.etapas.includes(linha.status)) return false;
     return true;
   });
 }

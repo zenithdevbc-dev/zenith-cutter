@@ -11,6 +11,8 @@ import {
 import { TableSkeletonRows } from "@/components/ui/table-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,25 +25,46 @@ import {
 import { CreateOrdemCorteDialog } from "@/components/ordens/CreateOrdemCorteDialog";
 import { EditOrdemCorteDialog } from "@/components/ordens/EditOrdemCorteDialog";
 import { InfoOrdemCorteDialog } from "@/components/ordens/InfoOrdemCorteDialog";
+import { EtapaMultiSelect } from "@/components/ordens/EtapaMultiSelect";
 import { listOrdensCorte, updateOrdemCorte, duplicateOrdemCorte, arquivarOrdem } from "@/lib/ordensCorte";
+import { listClientes } from "@/lib/clientes";
+import { listProdutos } from "@/lib/produtos";
+import { listTecidos } from "@/lib/tecidos";
 import { useAuth } from "@/lib/auth-context";
 import { usePinConfirm } from "@/components/usePinConfirm";
 import { STATUS_ORDEM_CORTE_LABEL, STATUS_ORDEM_CORTE_VARIANT } from "@/lib/statusOrdemCorte";
-import { PIPELINE_PRODUCAO, type OrdemCorteResumo, type StatusOrdemCorte } from "@shared/models";
+import { PIPELINE_PRODUCAO, type Cliente, type OrdemCorteResumo, type Produto, type StatusOrdemCorte, type Tecido } from "@shared/models";
 
 export function OrdensCortePage() {
   const { usuario } = useAuth();
   const { confirm: confirmPin, dialog: pinDialog } = usePinConfirm();
   const [ordens, setOrdens] = useState<OrdemCorteResumo[] | null>(null);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [tecidos, setTecidos] = useState<Tecido[]>([]);
+
   const [busca, setBusca] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState<
-    StatusOrdemCorte | "todos" | "aberta" | "arquivada"
-  >("todos");
+  const [etapas, setEtapas] = useState<StatusOrdemCorte[]>([]);
+  const [mostrarArquivadas, setMostrarArquivadas] = useState(false);
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
+  const [clienteId, setClienteId] = useState("todos");
+  const [tecidoId, setTecidoId] = useState("todos");
+  const [produtoId, setProdutoId] = useState("todos");
 
   useEffect(() => {
     listOrdensCorte()
       .then(setOrdens)
       .catch(() => toast.error("Não foi possível carregar as ordens de corte."));
+    listClientes()
+      .then((c) => setClientes(c.filter((x) => x.ativo)))
+      .catch(() => toast.error("Não foi possível carregar os clientes."));
+    listProdutos()
+      .then((p) => setProdutos(p.filter((x) => x.ativo)))
+      .catch(() => toast.error("Não foi possível carregar os produtos."));
+    listTecidos()
+      .then((t) => setTecidos(t.filter((x) => x.ativo)))
+      .catch(() => toast.error("Não foi possível carregar os materiais."));
   }, []);
 
   function upsertLocal(ordem: OrdemCorteResumo) {
@@ -103,23 +126,21 @@ export function OrdensCortePage() {
     if (!ordens) return null;
     const termo = busca.trim().toLowerCase();
     return ordens.filter((o) => {
-      // Arquivada é escondida de todo filtro, exceto quando o próprio
-      // filtro selecionado é "Arquivadas" (decisão de 2026-07-26 — o
-      // objetivo de arquivar é sumir da lista padrão, não só marcar).
-      if (statusFiltro === "arquivada") {
+      // Arquivada some de todo filtro, exceto quando "Mostrar
+      // arquivadas" está ligado (decisão de 2026-07-26 — o objetivo de
+      // arquivar é sumir da lista padrão, não só marcar).
+      if (mostrarArquivadas) {
         if (!o.arquivada) return false;
       } else {
         if (o.arquivada) return false;
-        // "Aberta" é um filtro agregado (não status literal): qualquer
-        // ordem que ainda não terminou nem foi cancelada — cobre
-        // planejado/em_fila/enfesto/corte/embalagem/despacho de uma vez
-        // (pedido do usuário, 2026-07-16).
-        if (statusFiltro === "aberta") {
-          if (o.status === "pronto" || o.status === "cancelada") return false;
-        } else if (statusFiltro !== "todos" && o.status !== statusFiltro) {
-          return false;
-        }
+        if (etapas.length > 0 && !etapas.includes(o.status)) return false;
       }
+      if (clienteId !== "todos" && o.cliente_id !== clienteId) return false;
+      if (produtoId !== "todos" && o.produto_id !== produtoId) return false;
+      if (tecidoId !== "todos" && o.tecido_id !== tecidoId) return false;
+      const dataCriacao = o.criado_em.slice(0, 10);
+      if (dataInicio && dataCriacao < dataInicio) return false;
+      if (dataFim && dataCriacao > dataFim) return false;
       if (!termo) return true;
       return (
         String(o.numero).includes(termo) ||
@@ -128,7 +149,7 @@ export function OrdensCortePage() {
         o.tecido_nome.toLowerCase().includes(termo)
       );
     });
-  }, [ordens, busca, statusFiltro]);
+  }, [ordens, busca, etapas, mostrarArquivadas, clienteId, produtoId, tecidoId, dataInicio, dataFim]);
 
   return (
     <>
@@ -138,30 +159,88 @@ export function OrdensCortePage() {
         <CreateOrdemCorteDialog onCreated={upsertLocal} />
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
-        <div className="flex shrink-0 gap-2">
-          <Input
-            placeholder="Pesquisar por número, cliente, produto ou material..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-          <Select value={statusFiltro} onValueChange={(v) => setStatusFiltro(v as typeof statusFiltro)}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os status</SelectItem>
-              <SelectItem value="aberta">Aberta</SelectItem>
-              <SelectItem value="planejado">Planejado</SelectItem>
-              <SelectItem value="em_fila">Em Fila</SelectItem>
-              <SelectItem value="enfesto">Enfesto</SelectItem>
-              <SelectItem value="corte">Corte</SelectItem>
-              <SelectItem value="embalagem">Embalagem</SelectItem>
-              <SelectItem value="despacho">Despache</SelectItem>
-              <SelectItem value="pronto">Pronto</SelectItem>
-              <SelectItem value="cancelada">Cancelada</SelectItem>
-              <SelectItem value="arquivada">Arquivadas</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-col gap-1 lg:col-span-2">
+            <Label htmlFor="ordens-busca">Buscar</Label>
+            <Input
+              id="ordens-busca"
+              placeholder="Pesquisar por número, cliente, produto ou material..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label>Etapa</Label>
+            <EtapaMultiSelect selecionadas={etapas} onChange={setEtapas} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label>Cliente</Label>
+            <Select value={clienteId} onValueChange={setClienteId}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {clientes.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label>Produto</Label>
+            <Select value={produtoId} onValueChange={setProdutoId}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {produtos.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label>Material</Label>
+            <Select value={tecidoId} onValueChange={setTecidoId}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {tecidos.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="ordens-data-inicio">Data início</Label>
+            <Input
+              id="ordens-data-inicio"
+              type="date"
+              value={dataInicio}
+              onChange={(e) => setDataInicio(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="ordens-data-fim">Data fim</Label>
+            <Input
+              id="ordens-data-fim"
+              type="date"
+              value={dataFim}
+              onChange={(e) => setDataFim(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2 self-end pb-2">
+            <Switch
+              id="ordens-mostrar-arquivadas"
+              checked={mostrarArquivadas}
+              onCheckedChange={setMostrarArquivadas}
+            />
+            <Label htmlFor="ordens-mostrar-arquivadas">Mostrar arquivadas</Label>
+          </div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">

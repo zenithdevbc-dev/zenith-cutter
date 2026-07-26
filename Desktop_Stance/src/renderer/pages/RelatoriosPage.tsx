@@ -10,6 +10,7 @@ import { BancasTab } from "@/components/relatorios/BancasTab";
 import { listRelatorioProducao, listRelatorioPerdas } from "@/lib/relatorios";
 import { listOrdensCorte } from "@/lib/ordensCorte";
 import { listClientes } from "@/lib/clientes";
+import { listProdutos } from "@/lib/produtos";
 import { listTecidos } from "@/lib/tecidos";
 import { listUsuarios } from "@/lib/usuarios";
 import { listBancas } from "@/lib/bancas";
@@ -18,6 +19,7 @@ import type {
   Banca,
   Cliente,
   OrdemCorteResumo,
+  Produto,
   RelatorioPerdaLinha,
   RelatorioProducaoLinha,
   Tecido,
@@ -41,6 +43,7 @@ export function RelatoriosPage() {
   const [producao, setProducao] = useState<RelatorioProducaoLinha[] | null>(null);
   const [perdas, setPerdas] = useState<RelatorioPerdaLinha[] | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
   const [tecidos, setTecidos] = useState<Tecido[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [bancas, setBancas] = useState<Banca[]>([]);
@@ -58,6 +61,9 @@ export function RelatoriosPage() {
     listClientes()
       .then((c) => setClientes(c.filter((x) => x.ativo)))
       .catch(() => toast.error("Não foi possível carregar os clientes."));
+    listProdutos()
+      .then((p) => setProdutos(p.filter((x) => x.ativo)))
+      .catch(() => toast.error("Não foi possível carregar os produtos."));
     listTecidos()
       .then((t) => setTecidos(t.filter((x) => x.ativo)))
       .catch(() => toast.error("Não foi possível carregar os materiais."));
@@ -107,6 +113,7 @@ export function RelatoriosPage() {
           <HistoricoOrdensTab
             linhas={historico}
             clientes={clientes}
+            produtos={produtos}
             tecidos={tecidos}
             usuarios={usuarios}
           />

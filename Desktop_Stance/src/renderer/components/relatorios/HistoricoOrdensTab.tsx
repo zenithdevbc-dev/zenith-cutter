@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InfoOrdemCorteDialog } from "@/components/ordens/InfoOrdemCorteDialog";
+import { EtapaMultiSelect } from "@/components/ordens/EtapaMultiSelect";
 import {
   STATUS_ORDEM_CORTE_LABEL,
   STATUS_ORDEM_CORTE_VARIANT,
@@ -37,24 +38,14 @@ import {
   exportarHistoricoOrdensExcel,
   exportarHistoricoOrdensPdf,
 } from "@/lib/historicoOrdensExport";
-import type { Cliente, StatusOrdemCorte, Tecido, Usuario } from "@shared/models";
-
-const STATUS_OPCOES: StatusOrdemCorte[] = [
-  "planejado",
-  "em_fila",
-  "enfesto",
-  "corte",
-  "embalagem",
-  "despacho",
-  "pronto",
-  "cancelada",
-];
+import type { Cliente, Produto, Tecido, Usuario } from "@shared/models";
 
 const POR_PAGINA = 20;
 
 interface HistoricoOrdensTabProps {
   linhas: OrdemHistoricoLinha[] | null;
   clientes: Cliente[];
+  produtos: Produto[];
   tecidos: Tecido[];
   usuarios: Usuario[];
 }
@@ -72,6 +63,7 @@ interface HistoricoOrdensTabProps {
 export function HistoricoOrdensTab({
   linhas,
   clientes,
+  produtos,
   tecidos,
   usuarios,
 }: HistoricoOrdensTabProps) {
@@ -153,6 +145,23 @@ export function HistoricoOrdensTab({
             </Select>
           </div>
           <div className="flex flex-col gap-1">
+            <Label>Produto</Label>
+            <Select
+              value={filtros.produtoId}
+              onValueChange={(v) => atualizarFiltro("produtoId", v)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {produtos.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
             <Label>Material</Label>
             <Select
               value={filtros.tecidoId}
@@ -170,21 +179,11 @@ export function HistoricoOrdensTab({
             </Select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label>Status</Label>
-            <Select
-              value={filtros.status}
-              onValueChange={(v) => atualizarFiltro("status", v as typeof filtros.status)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                {STATUS_OPCOES.map((s) => (
-                  <SelectItem key={s} value={s}>{STATUS_ORDEM_CORTE_LABEL[s]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Etapa</Label>
+            <EtapaMultiSelect
+              selecionadas={filtros.etapas}
+              onChange={(v) => atualizarFiltro("etapas", v)}
+            />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Operador</Label>

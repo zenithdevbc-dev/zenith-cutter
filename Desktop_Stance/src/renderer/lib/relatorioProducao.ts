@@ -6,7 +6,7 @@ export interface RelatorioProducaoFiltros {
   clienteId: string;
   operadorId: string;
   tecidoId: string;
-  status: StatusOrdemCorte | "todos";
+  etapas: StatusOrdemCorte[];
 }
 
 export const FILTROS_RELATORIO_VAZIOS: RelatorioProducaoFiltros = {
@@ -15,7 +15,7 @@ export const FILTROS_RELATORIO_VAZIOS: RelatorioProducaoFiltros = {
   clienteId: "todos",
   operadorId: "todos",
   tecidoId: "todos",
-  status: "todos",
+  etapas: [],
 };
 
 /**
@@ -34,7 +34,7 @@ export function filtrarRelatorioProducao(
     if (filtros.clienteId !== "todos" && linha.cliente_id !== filtros.clienteId) return false;
     if (filtros.operadorId !== "todos" && linha.operador_id !== filtros.operadorId) return false;
     if (filtros.tecidoId !== "todos" && linha.tecido_id !== filtros.tecidoId) return false;
-    if (filtros.status !== "todos" && linha.status !== filtros.status) return false;
+    if (filtros.etapas.length > 0 && !filtros.etapas.includes(linha.status)) return false;
     return true;
   });
 }

@@ -44,8 +44,9 @@ export function mesclarHistoricoOrdens(
 export interface HistoricoOrdensFiltros {
   numero: string;
   clienteId: string;
+  produtoId: string;
   tecidoId: string;
-  status: StatusOrdemCorte | "todos";
+  etapas: StatusOrdemCorte[];
   operadorId: string;
   dataInicio: string;
   dataFim: string;
@@ -54,8 +55,9 @@ export interface HistoricoOrdensFiltros {
 export const FILTROS_HISTORICO_VAZIOS: HistoricoOrdensFiltros = {
   numero: "",
   clienteId: "todos",
+  produtoId: "todos",
   tecidoId: "todos",
-  status: "todos",
+  etapas: [],
   operadorId: "todos",
   dataInicio: "",
   dataFim: "",
@@ -70,8 +72,9 @@ export function filtrarHistoricoOrdens(
   return linhas.filter((linha) => {
     if (numeroBusca && !String(linha.numero).includes(numeroBusca)) return false;
     if (filtros.clienteId !== "todos" && linha.cliente_id !== filtros.clienteId) return false;
+    if (filtros.produtoId !== "todos" && linha.produto_id !== filtros.produtoId) return false;
     if (filtros.tecidoId !== "todos" && linha.tecido_id !== filtros.tecidoId) return false;
-    if (filtros.status !== "todos" && linha.status !== filtros.status) return false;
+    if (filtros.etapas.length > 0 && !filtros.etapas.includes(linha.status)) return false;
     if (filtros.operadorId !== "todos" && linha.operador_id !== filtros.operadorId) return false;
     const dataCriacao = linha.criado_em.slice(0, 10);
     if (filtros.dataInicio && dataCriacao < filtros.dataInicio) return false;

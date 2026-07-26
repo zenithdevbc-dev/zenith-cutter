@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EtapaMultiSelect } from "@/components/ordens/EtapaMultiSelect";
 import {
   STATUS_ORDEM_CORTE_LABEL,
   STATUS_ORDEM_CORTE_VARIANT,
@@ -40,21 +41,9 @@ import {
 import type {
   Cliente,
   RelatorioProducaoLinha,
-  StatusOrdemCorte,
   Tecido,
   Usuario,
 } from "@shared/models";
-
-const STATUS_OPCOES: StatusOrdemCorte[] = [
-  "planejado",
-  "em_fila",
-  "enfesto",
-  "corte",
-  "embalagem",
-  "despacho",
-  "pronto",
-  "cancelada",
-];
 
 interface RelatorioProducaoTabProps {
   linhas: RelatorioProducaoLinha[] | null;
@@ -188,21 +177,11 @@ export function RelatorioProducaoTab({
             </Select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label>Status</Label>
-            <Select
-              value={filtros.status}
-              onValueChange={(v) => atualizarFiltro("status", v as typeof filtros.status)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                {STATUS_OPCOES.map((s) => (
-                  <SelectItem key={s} value={s}>{STATUS_ORDEM_CORTE_LABEL[s]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Etapa</Label>
+            <EtapaMultiSelect
+              selecionadas={filtros.etapas}
+              onChange={(v) => atualizarFiltro("etapas", v)}
+            />
           </div>
         </CardContent>
       </Card>
