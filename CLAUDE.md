@@ -357,8 +357,7 @@ implementar.
     como a única das 6 tabelas de cadastro sem checagem de papel na
     RLS desde `0034` (as outras 5 já foram travadas em `0011`) —
     Operador deixa de conseguir ler/gravar Terceiros via chamada
-    direta ao Supabase. **Ambas pendentes de execução manual** no SQL
-    Editor, mesma rotina de sempre.
+    direta ao Supabase.
   - Refatorações no caminho: `lib/join.ts` (helper `mapaPorId`) e
     `lib/historico.ts` (`registrarHistorico`) extraídos de
     `producao.ts` pra serem compartilhados com `ordensCorte.ts` — evita
@@ -366,12 +365,55 @@ implementar.
     `lib/produtoTamanhos.ts` novo vira a fonte canônica da grade
     (leitura movida de `producao.ts`, que agora importa de lá).
   `npx tsc --noEmit`, `npx eslint .` e `npx jest` limpos a cada uma
-  das 5 fases (commits separados). **Não testado num
-  dispositivo/emulador Android ainda** — o build de release desta
-  máquina segue bloqueado pelo limite de 260 caracteres de path do
-  Windows (MAX_PATH) relatado numa tentativa anterior nesta mesma
-  sessão (fix de registro passado ao usuário, reboot não confirmado).
-  Migrations `0038`/`0039` pendentes de execução manual.
+  das 5 fases (commits separados).
+- **2026-07-26** — **teste ponta a ponta no Android confirmado**
+  (pedido do usuário: "rode o teste no android conectado" — SDK e um
+  aparelho físico (KINGKONG 11) já disponíveis nesta máquina, sem
+  precisar mais do fix de MAX_PATH do Windows sinalizado como bloqueio
+  na entrega acima). Instalado via `gradlew.bat app:installDebug`
+  (não `npx react-native run-android` — o CLI não resolve
+  `gradlew.bat` corretamente rodando de dentro do Git Bash nesta
+  máquina; PowerShell funciona) + Metro (`npx react-native start`) +
+  `adb reverse tcp:8081 tcp:8081`. Testado manualmente: Dashboard
+  (resumo, mesas, donut, terceiros, barras), Ordens de Corte (filtros,
+  cards, ações), Cadastros (sub-abas, switch de ativo), Relatórios →
+  Produção e Materiais (KPIs + os 3 tipos de gráfico — donut, barra e
+  linha — renderizando com dado real de produção). Confirma que
+  `react-native-svg` (Fase 1) **não** reproduz o MAX_PATH do Windows
+  que outra lib nativa já tinha causado numa tentativa anterior nesta
+  sessão.
+  3 problemas achados e corrigidos no caminho, nenhum deles do código
+  desta expansão em si:
+  1. **Migration `0037_ordens_corte_arquivada.sql` nunca tinha sido
+     executada em produção** (fica registrada como pendente desde
+     2026-07-26, sem confirmação posterior) — a coluna `arquivada` não
+     existia na tabela `ordens_corte` do Supabase, quebrando toda
+     leitura de Ordens de Corte no mobile (`column ordens_corte.
+     arquivada does not exist`, achado via `console.error` temporário +
+     `npx supabase db query --linked`, mesmo método já documentado em
+     `feedback_production_db_debugging.md`). Rodada agora — junto com
+     `0038`/`0039` desta sessão — via `supabase db query --linked
+     --file`, com autorização explícita do usuário (não é a rotina
+     padrão de deixar pendente pro SQL Editor; usada aqui pra destravar
+     o teste na hora).
+  2. **`android/app/src/main/res/values/colors.xml`** (criado na
+     entrega de 2026-07-24, "polimento visual") tinha um comentário XML
+     com `--` dentro (`<!-- Espelha --background do Desktop_Stance...
+     -->`), inválido em XML — quebrava `mergeDebugResources` antes do
+     app sequer compilar. Corrigido (comentário reescrito sem `--`).
+  3. **`BottomTabBar.tsx` não respeitava a safe-area inferior** — em
+     telas edge-to-edge (maioria dos Android recentes) a barra de
+     navegação do sistema cobria a barra de abas do app, e o toque nela
+     caía nos botões do sistema em vez do app (achado tentando navegar
+     pra aba "Ordens" e caindo na home screen do Android). Corrigido
+     com `useSafeAreaInsets()` — mesmo hook já usado em
+     `PerdasObservacoesModal.tsx`.
+  Migrations `0037`/`0038`/`0039` **já aplicadas em produção**
+  (confirmado via query direta). Não testado ainda: Produção (tela
+  pré-existente da Fase A, não tocada nesta expansão), Terceiros,
+  Relatórios → Histórico/Clientes/Operadores/Bancas, e nenhum fluxo de
+  escrita (criar/editar Ordem de Corte ou Cadastro, PIN) — só leitura
+  foi validada nesta rodada.
 - **2026-07-26** — **filtros completos em Ordens de Corte e nos
   relatórios de ordem** (pedido do usuário: "por etapa (checkbox de
   seleção múltipla), período, cliente, material, produto — em todos
